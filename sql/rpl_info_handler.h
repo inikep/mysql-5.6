@@ -23,11 +23,13 @@
 #ifndef RPL_INFO_HANDLER_H
 #define RPL_INFO_HANDLER_H
 
+#include <stdarg.h>
 #include <stddef.h>
 #include <sys/types.h>
 #include <type_traits>
 
 #include "my_bitmap.h"
+#include "my_dbug.h"
 #include "my_inttypes.h"
 
 class Rpl_info_values;
@@ -314,6 +316,18 @@ class Rpl_info_handler {
     @param[in] period Number of events.
   */
   void set_sync_period(uint period);
+
+  /**
+    Increments sync_counter.
+  */
+  void inc_sync_counter() { sync_counter++; }
+
+  /**
+    Returns sync_counter.
+
+    @return sync_counter
+  */
+  uint get_sync_counter() { return sync_counter; }
 
   /**
     Returns a string describing the repository. For instance, if the

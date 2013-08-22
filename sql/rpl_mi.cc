@@ -384,6 +384,20 @@ int Master_info::flush_info(bool force) {
   */
   if (inited) handler->set_sync_period(sync_masterinfo_period);
 
+  handler->inc_sync_counter();
+
+  bool do_flush = sync_masterinfo_period &&
+                  handler->get_sync_counter() >= sync_masterinfo_period;
+
+  /*
+    Check whether a write is actually necessary. If not checked,
+    write_info() causes unnecessary code path which copies (sprintf),
+    writes to file cache and flush_info() causes unnecessary flush of the
+    file cache which are anyway completely useless in recovery since
+    they are not transactional if we are using FILE based repository.
+  */
+  if (skip_flush_master_info && !(force || do_flush)) return 0;
+
   if (write_info(handler)) goto err;
 
   if (handler->flush_info(force)) goto err;
@@ -692,7 +706,8 @@ bool Master_info::write_info(Rpl_info_handler *to) {
      contents of file). But because of number of lines in the first line
      of file we don't care about this garbage.
   */
-  if (to->prepare_info_for_write() || to->set_info((int)LINES_IN_MASTER_INFO) ||
+  if (to->prepare_info_for_write()) return true;
+  if (to->set_info((int)LINES_IN_MASTER_INFO) ||
       to->set_info(master_log_name) || to->set_info((ulong)master_log_pos) ||
       to->set_info(host) || to->set_info(user) || to->set_info(password) ||
       to->set_info((int)port) || to->set_info((int)connect_retry) ||
@@ -713,7 +728,6 @@ bool Master_info::write_info(Rpl_info_handler *to) {
       to->set_info((int)m_source_connection_auto_failover) ||
       to->set_info((int)m_gtid_only_mode))
     return true;
-
   return false;
 }
 

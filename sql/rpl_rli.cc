@@ -2320,8 +2320,9 @@ bool Relay_log_info::write_info(Rpl_info_handler *to) {
     Relay_log_info::read_info() for details. /Sven
   */
   // assert(!belongs_to_client());
-  if (to->prepare_info_for_write() ||
-      to->set_info((int)MAXIMUM_APPLIER_METADATA_LINES) ||
+  if (to->prepare_info_for_write()) return true;
+
+  if (to->set_info((int)MAXIMUM_APPLIER_METADATA_LINES) ||
       to->set_info(group_relay_log_name) ||
       to->set_info((ulong)group_relay_log_pos) ||
       to->set_info(group_master_log_name) ||
@@ -2329,6 +2330,7 @@ bool Relay_log_info::write_info(Rpl_info_handler *to) {
       to->set_info((int)sql_delay) || to->set_info(recovery_parallel_workers) ||
       to->set_info((int)internal_id) || to->set_info(channel))
     return true;
+
   if (m_privilege_checks_username.length()) {
     if (to->set_info(m_privilege_checks_username.c_str())) return true;
   } else {

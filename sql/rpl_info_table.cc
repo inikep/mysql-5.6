@@ -171,7 +171,7 @@ end:
   return error;
 }
 
-int Rpl_info_table::do_flush_info(const bool force) {
+int Rpl_info_table::do_flush_info(const bool force MY_ATTRIBUTE((unused))) {
   int error = 1;
   enum enum_return_id res = FOUND_ID;
   TABLE *table = nullptr;

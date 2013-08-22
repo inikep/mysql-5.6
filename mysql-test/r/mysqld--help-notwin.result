@@ -1964,6 +1964,12 @@ The following options may be given as the first argument:
  --show-slave-auth-info 
  This option is deprecated and will be removed in a future
  version. Use show-replica-auth-info instead.
+ --skip-flush-master-info 
+ Increase performance by not flushing the master info on
+ each replica event
+ --skip-flush-relay-worker-info 
+ Increase performance by not flushing the relay/worker
+ info on each replica transaction
  --skip-grant-tables Start without grant tables. This gives all users FULL
  ACCESS to all tables.
  --skip-name-resolve Don't resolve hostnames. All hostnames are IP's or
@@ -2497,7 +2503,7 @@ performance-schema-max-socket-classes 10
 performance-schema-max-socket-instances -1
 performance-schema-max-sql-text-length 1024
 performance-schema-max-stage-classes 175
-performance-schema-max-statement-classes 221
+performance-schema-max-statement-classes 222
 performance-schema-max-statement-stack 10
 performance-schema-max-table-handles -1
 performance-schema-max-table-instances -1
@@ -2769,6 +2775,8 @@ show-gipk-in-create-table-and-information-schema TRUE
 show-old-temporals FALSE
 show-replica-auth-info FALSE
 show-slave-auth-info FALSE
+skip-flush-master-info FALSE
+skip-flush-relay-worker-info FALSE
 skip-grant-tables TRUE
 skip-name-resolve FALSE
 skip-networking FALSE
