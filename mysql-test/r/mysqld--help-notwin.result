@@ -566,6 +566,10 @@ The following options may be given as the first argument:
  do not exist and the binary logging cannot break, so you
  can safely set this to TRUE. This variable is deprecated
  and will be removed in a future version.
+ --log-datagram      Enable logging queries to a unix local datagram socket
+ --log-datagram-usecs=# 
+ Log queries longer than log-datagram-usecs to a unix
+ local datagram socket
  --log-error[=name]  Error log file
  --log-error-services=name 
  Services that should be called when an error event is
@@ -2341,6 +2345,8 @@ lock-wait-timeout 31536000
 log-bin (No default value)
 log-bin-index (No default value)
 log-bin-trust-function-creators FALSE
+log-datagram FALSE
+log-datagram-usecs 0
 log-error stderr
 log-error-services log_filter_internal; log_sink_internal
 log-error-suppression-list 
