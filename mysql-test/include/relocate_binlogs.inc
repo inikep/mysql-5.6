@@ -15,6 +15,9 @@
 # --let $relocate_index_file= FNAME
 # --source include/relocate_binlogs.inc
 
+--let $include_filename= relocate_binlogs.inc
+--source include/begin_include_file.inc
+
 if ($relocate_disable_query_log)
 {
   --disable_query_log
@@ -37,11 +40,17 @@ if ($relocate_index_file)
   --let $_from= $relocate_from
   --let $_to= $relocate_into
 
+  --let $gen_binlog_index_file= $_index_file
+  --let $gen_binlog_output_file= $MYSQLTEST_VARDIR/tmp/binlog_index.txt
+  --source include/rpl_gen_binlog_index_file.inc
+
   # chmod to allow the following LOAD DATA
   --chmod 0666 $_index_file
 
-  --eval LOAD DATA INFILE '$_index_file' INTO TABLE tmp (filename)
+  --eval LOAD DATA INFILE '$gen_binlog_output_file' INTO TABLE tmp (filename)
   --let $count= `SELECT count(*) FROM tmp`
+
+  --remove_file $gen_binlog_output_file
 
   while ($count)
   {
@@ -96,3 +105,6 @@ if ($relocate_disable_query_log)
 {
   --enable_query_log
 }
+
+--let $include_filename= relocate_binlogs.inc
+--source include/end_include_file.inc
