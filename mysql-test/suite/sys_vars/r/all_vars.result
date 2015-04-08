@@ -40,6 +40,8 @@ init_replica
 init_replica
 init_slave
 init_slave
+innodb_aio_outstanding_requests
+innodb_aio_outstanding_requests
 innodb_dedicated_server
 innodb_dedicated_server
 innodb_log_checkpoint_every
@@ -84,6 +86,16 @@ innodb_log_writer_spin_delay
 innodb_log_writer_spin_delay
 innodb_log_writer_timeout
 innodb_log_writer_timeout
+innodb_lra_debug
+innodb_lra_debug
+innodb_lra_n_spaces
+innodb_lra_n_spaces
+innodb_lra_pages_before_sleep
+innodb_lra_pages_before_sleep
+innodb_lra_size
+innodb_lra_size
+innodb_lra_sleep
+innodb_lra_sleep
 keyring_operations
 keyring_operations
 log_replica_updates
