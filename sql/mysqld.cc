@@ -1511,6 +1511,7 @@ size_t mysql_data_home_len = 1;
 uint reg_ext_length;
 char logname_path[FN_REFLEN];
 char slow_logname_path[FN_REFLEN];
+char gap_lock_logname_path[FN_REFLEN];
 char secure_file_real_path[FN_REFLEN];
 Time_zone *default_tz;
 char *mysql_data_home = const_cast<char *>(".");
@@ -1689,6 +1690,7 @@ bool log_replica_updates_supplied = false;
 */
 bool replica_preserve_commit_order_supplied = false;
 char *opt_general_logname, *opt_slow_logname, *opt_bin_logname;
+char *opt_gap_lock_logname;
 
 bool binlog_expire_logs_seconds_supplied = false;
 /* Static variables */
@@ -7029,6 +7031,8 @@ int init_common_variables() {
               make_query_log_name(logname_path, QUERY_LOG_GENERAL));
   FIX_LOG_VAR(opt_slow_logname,
               make_query_log_name(slow_logname_path, QUERY_LOG_SLOW));
+  FIX_LOG_VAR(opt_gap_lock_logname,
+              make_query_log_name(gap_lock_logname_path, QUERY_LOG_GAP_LOCK));
 
 #if defined(ENABLED_DEBUG_SYNC)
   /* Initialize the debug sync facility. See debug_sync.cc. */
@@ -8662,6 +8666,10 @@ static int init_server_components() {
   query_logger.set_log_file(QUERY_LOG_GENERAL);
   if (opt_general_log && query_logger.reopen_log_file(QUERY_LOG_GENERAL))
     opt_general_log = false;
+
+  // Open gap lock log file
+  query_logger.set_log_file(QUERY_LOG_GAP_LOCK);
+  query_logger.reopen_log_file(QUERY_LOG_GAP_LOCK);
 
   /*
     Set the default storage engines
@@ -11986,6 +11994,7 @@ static int mysql_init_variables() {
   opt_skip_name_resolve = false;
   opt_general_logname = opt_binlog_index_name = opt_slow_logname = nullptr;
   opt_tc_log_file = "tc.log";  // no hostname in tc_log file name !
+  opt_gap_lock_logname = nullptr;
   opt_myisam_log = false;
   mqh_used = false;
   server_shutting_down = false;
@@ -13883,6 +13892,7 @@ PSI_file_key key_file_trn;
 PSI_file_key key_file_init;
 PSI_file_key key_file_general_log;
 PSI_file_key key_file_slow_log;
+PSI_file_key key_file_gap_lock_log;
 PSI_file_key key_file_relaylog;
 PSI_file_key key_file_relaylog_cache;
 PSI_file_key key_file_relaylog_index;
@@ -13916,6 +13926,7 @@ static PSI_file_info all_server_files[]=
   { &key_file_pid, "pid", 0, 0, PSI_DOCUMENT_ME},
   { &key_file_general_log, "query_log", 0, 0, PSI_DOCUMENT_ME},
   { &key_file_slow_log, "slow_log", 0, 0, PSI_DOCUMENT_ME},
+  { &key_file_gap_lock_log, "gap_lock_log", 0, 0, PSI_DOCUMENT_ME},
   { &key_file_tclog, "tclog", 0, 0, PSI_DOCUMENT_ME},
   { &key_file_trg, "trigger_name", 0, 0, PSI_DOCUMENT_ME},
   { &key_file_trn, "trigger", 0, 0, PSI_DOCUMENT_ME},
