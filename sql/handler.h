@@ -43,6 +43,7 @@
 #include <set>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include <mysql/components/services/bulk_data_service.h>
 #include <mysql/components/services/page_track_service.h>
@@ -4108,6 +4109,12 @@ class Handler_share {
   virtual ~Handler_share() = default;
 };
 
+extern std::vector<std::string> gap_lock_exception_list;
+bool is_table_in_list(const std::string &table_name,
+                      const std::vector<std::string> &table_list,
+                      mysql_rwlock_t *lock);
+std::vector<std::string> split(const std::string &input, char delimiter);
+
 /**
   Wrapper for struct ft_hints.
 */
@@ -5656,8 +5663,7 @@ class handler {
   bool is_using_full_key(key_part_map keypart_map, uint actual_key_parts);
   bool is_using_full_unique_key(uint active_index, key_part_map keypart_map,
                                 enum ha_rkey_function find_flag);
-  bool is_using_prohibited_gap_locks(THD *thd, thr_lock_type lock_type,
-                                     bool using_full_unique_key);
+  bool is_using_prohibited_gap_locks(TABLE *table, bool using_full_unique_key);
 
   virtual int read_range_first(const key_range *start_key,
                                const key_range *end_key, bool eq_range_arg,
