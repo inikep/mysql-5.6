@@ -122,12 +122,18 @@ ENDMACRO(RESET_SSL_VARIABLES)
 #     |(OPENSSL_VERSION_PATCH<<4)
 #     |_OPENSSL_VERSION_PRE_RELEASE )
 MACRO(FIND_OPENSSL_VERSION)
+  if(EXISTS "${OPENSSL_INCLUDE_DIR}/openssl/base.h")
+    OPTION(WITH_BORINGSSL "BoringSSL detected" ON)
+    SET(SSL_VERSION_FILE "${OPENSSL_INCLUDE_DIR}/openssl/base.h")
+  else()
+    SET(SSL_VERSION_FILE "${OPENSSL_INCLUDE_DIR}/openssl/opensslv.h")
+  endif()
   FOREACH(version_part
       OPENSSL_VERSION_MAJOR
       OPENSSL_VERSION_MINOR
       OPENSSL_VERSION_PATCH
       )
-    FILE(STRINGS "${OPENSSL_INCLUDE_DIR}/openssl/opensslv.h" ${version_part}
+    FILE(STRINGS "${SSL_VERSION_FILE}" ${version_part}
       REGEX "^#[\t ]*define[\t ]+${version_part}[\t ]+([0-9]+).*")
     STRING(REGEX REPLACE
       "^.*${version_part}[\t ]+([0-9]+).*" "\\1"
@@ -140,7 +146,7 @@ MACRO(FIND_OPENSSL_VERSION)
     # Verify version number. Version information looks like:
     #   #define OPENSSL_VERSION_NUMBER 0x1000103fL
     # Encoded as MNNFFPPS: major minor fix patch status
-    FILE(STRINGS "${OPENSSL_INCLUDE_DIR}/openssl/opensslv.h"
+    FILE(STRINGS "${SSL_VERSION_FILE}"
       OPENSSL_VERSION_NUMBER
       REGEX "^#[ ]*define[\t ]+OPENSSL_VERSION_NUMBER[\t ]+0x[0-9].*"
       )
@@ -363,11 +369,15 @@ MACRO (MYSQL_CHECK_SSL)
       ENDIF()
     ENDIF()
 
+    # "_pic" suffix isn't a standard convention so probe for both with and
+    # without, preferring with _pic
     FIND_LIBRARY(OPENSSL_LIBRARY
-                 NAMES ssl libssl ssleay32 ssleay32MD
+      NAMES ssl${PIC_EXT} libssl${PIC_EXT} ssleay32${PIC_EXT} ssleay32MD${PIC_EXT}
+            ssl libssl ssleay32 ssleay32MD
                  HINTS ${OPENSSL_ROOT_DIR}/lib ${OPENSSL_ROOT_DIR}/lib64)
     FIND_LIBRARY(CRYPTO_LIBRARY
-                 NAMES crypto libcrypto libeay32
+      NAMES crypto${PIC_EXT} libcrypto${PIC_EXT} libeay32${PIC_EXT}
+            crypto libcrypto libeay32
                  HINTS ${OPENSSL_ROOT_DIR}/lib ${OPENSSL_ROOT_DIR}/lib64)
 
     IF(OPENSSL_INCLUDE_DIR)
