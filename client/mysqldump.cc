@@ -94,6 +94,7 @@
 /* ignore table flags */
 #define IGNORE_NONE 0x00 /* no ignore */
 #define IGNORE_DATA 0x01 /* don't dump data for this table */
+#define IGNORE_TABLE 0x02
 
 #define MYSQL_UNIVERSAL_CLIENT_CHARSET "utf8mb4"
 
@@ -754,9 +755,9 @@ static struct my_option my_long_options[] = {
      "Will automatically be re-executed when reconnecting.",
      nullptr, nullptr, nullptr, GET_STR, REQUIRED_ARG, 0, 0, 0, nullptr, 0,
      nullptr},
-    {"ignore-views", 0, "Skip dumping table views.", &opt_ignore_views,
-     &opt_ignore_views, nullptr, GET_BOOL, OPT_ARG, 0, 0, 0, nullptr, 0,
-     nullptr},
+    {"ignore-views", OPT_IGNORE_VIEWS, "Skip dumping table views.",
+     &opt_ignore_views, &opt_ignore_views, nullptr, GET_BOOL, OPT_ARG, 0, 0, 0,
+     nullptr, 0, nullptr},
 #include "authentication_kerberos_clientopt-longopts.h"
     {nullptr, 0, nullptr, nullptr, nullptr, nullptr, GET_NO_ARG, NO_ARG, 0, 0,
      0, nullptr, 0, nullptr}};
@@ -2872,6 +2873,10 @@ static uint get_table_structure(const char *table, char *db, char *table_type,
   DBUG_PRINT("enter", ("db: %s  table: %s", db, table));
 
   *ignore_flag = check_if_ignore_table(table, table_type);
+
+  if (*ignore_flag & IGNORE_TABLE) {
+    return 0;
+  }
 
   is_view = strcmp(table_type, "VIEW") == 0;
 
@@ -5577,9 +5582,12 @@ char check_if_ignore_table(const char *table_name, char *table_type) {
     mysql_free_result(res);
     return result; /* assume table is ok */
   }
-  if (!(row[1]))
+  if (!(row[1])) {
     strmake(table_type, "VIEW", NAME_LEN - 1);
-  else {
+    if (opt_ignore_views) {
+      result = IGNORE_TABLE;
+    }
+  } else {
     strmake(table_type, row[1], NAME_LEN - 1);
 
     /*  If these two types, we want to skip dumping the table. */
