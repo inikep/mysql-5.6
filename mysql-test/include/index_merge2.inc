@@ -45,6 +45,10 @@ while ($1)
 
 -- disable_query_log
 -- disable_result_log
+if ($engine_type == RocksDB)
+{
+    set global rocksdb_force_flush_memtable_now=1;
+}
 analyze table t1;
 -- enable_result_log
 -- enable_query_log
@@ -72,6 +76,10 @@ alter table t1 add primary key (str1, zeroval, str2, str3);
 
 -- disable_query_log
 -- disable_result_log
+if ($engine_type == RocksDB)
+{
+    set global rocksdb_force_flush_memtable_now=1;
+}
 analyze table t1;
 -- enable_result_log
 -- enable_query_log
@@ -107,6 +115,10 @@ while ($1)
 
 -- disable_query_log
 -- disable_result_log
+if ($engine_type == RocksDB)
+{
+    set global rocksdb_force_flush_memtable_now=1;
+}
 analyze table t1;
 -- enable_result_log
 -- enable_query_log
@@ -150,6 +162,10 @@ select count(*) from t1;
 
 -- disable_query_log
 -- disable_result_log
+if ($engine_type == RocksDB)
+{
+    set global rocksdb_force_flush_memtable_now=1;
+}
 analyze table t2;
 -- enable_result_log
 -- enable_query_log
@@ -380,6 +396,10 @@ update t1 set key2=key1,key3=key1;
 
 -- disable_query_log
 -- disable_result_log
+if ($engine_type == RocksDB)
+{
+    set global rocksdb_force_flush_memtable_now=1;
+}
 analyze table t1;
 -- enable_result_log
 -- enable_query_log
@@ -415,6 +435,10 @@ INSERT INTO t1 VALUES
 
 -- disable_query_log
 -- disable_result_log
+if ($engine_type == RocksDB)
+{
+    set global rocksdb_force_flush_memtable_now=1;
+}
 analyze table t1;
 -- enable_result_log
 -- enable_query_log
@@ -470,6 +494,10 @@ INSERT INTO t1 VALUES (1,1,'a'), (2,2,'b');
 
 -- disable_query_log
 -- disable_result_log
+if ($engine_type == RocksDB)
+{
+    set global rocksdb_force_flush_memtable_now=1;
+}
 analyze table t1;
 -- enable_result_log
 -- enable_query_log
