@@ -11310,7 +11310,7 @@ int ha_innobase::bulk_load_end(THD *thd, void *load_ctx, bool is_error) {
     DBUG_EXECUTE_IF("crash_load_bulk_before_trx_commit", DBUG_SUICIDE(););
     /* Sync all pages written without redo log. */
     auto table = m_prebuilt->table;
-    fil_flush(table->space);
+    fil_flush(table->space, FLUSH_FROM_OTHER);
   }
   ut::delete_(loader);
   /* We raise the error in report_error. */
