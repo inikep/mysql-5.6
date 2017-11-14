@@ -372,9 +372,15 @@ typedef struct MYSQL_TIME {
 void init_client_errs(void);
 void finish_client_errs(void);
 extern const char *client_errors[];
+static inline bool isPlaceHolder(int client_errno) {
+  return client_errno >= 2076 &&
+         client_errno <= 2199;
+}
 static inline const char *ER_CLIENT(int client_errno) {
-  if (client_errno >= 2000 && client_errno <= 2075)
+  if (client_errno >= 2000 && client_errno <= 2201 &&
+      !isPlaceHolder(client_errno)) {
     return client_errors[client_errno - 2000];
+  }
   return client_errors[2000 - 2000];
 }
 extern unsigned int mysql_port;
