@@ -443,6 +443,7 @@
 #include "mysql/strings/dtoa.h"
 #include "mysql/strings/int2str.h"
 #include "mysql/strings/m_ctype.h"
+#include "mysql_com.h"
 #include "mysqld_error.h"
 #include "mysys_err.h"
 #include "sql-common/my_decimal.h"
@@ -2787,6 +2788,17 @@ bool Protocol_classic::parse_packet(union COM_DATA *data,
       data->com_stmt_reset.stmt_id = uint4korr(input_raw_packet);
       break;
     }
+    case COM_QUERY_ATTRS: {
+      uchar *pos = input_raw_packet;
+      data->com_query.query_attrs_length = net_field_length_ll((uchar **)&pos);
+      data->com_query.query_attrs = reinterpret_cast<const char *>(pos);
+      pos += data->com_query.query_attrs_length;
+      data->com_query.query = reinterpret_cast<const char *>(pos);
+      data->com_query.length = input_raw_packet + input_packet_length - pos;
+      data->com_query.parameters = nullptr;
+      data->com_query.parameter_count = 0;
+      break;
+    }
     case COM_QUERY: {
       uchar *read_pos = input_raw_packet;
       size_t packet_left = input_packet_length;
@@ -2851,14 +2863,24 @@ int Protocol_classic::get_command(COM_DATA *com_data,
 
   *cmd = (enum enum_server_command)(uchar)input_raw_packet[0];
 
-  if (*cmd >= COM_END) *cmd = COM_END;  // Wrong command
+  if (*cmd >= COM_END && *cmd != COM_QUERY_ATTRS)
+    *cmd = COM_END;  // Wrong command
 
   assert(input_packet_length);
   // Skip 'command'
   input_packet_length--;
   input_raw_packet++;
 
-  return parse_packet(com_data, *cmd);
+  int rc = parse_packet(com_data, *cmd);
+  // Here we pretend that we just received a COM_QUERY requested. This will
+  // make tracking in perfschema easier, since it won't split our workload
+  // according to whether query attributes were sent or not. Ideally, if this
+  // were upstreamed, we would be able to change the COM_QUERY packet
+  // structure via client capabilities.
+  if (*cmd == COM_QUERY_ATTRS) {
+    *cmd = COM_QUERY;
+  }
+  return rc;
 }
 
 uint Protocol_classic::get_rw_status() { return m_thd->net.reading_or_writing; }

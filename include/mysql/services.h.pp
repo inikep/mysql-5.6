@@ -48,6 +48,8 @@ struct COM_QUERY_DATA {
   unsigned int length;
   PS_PARAM *parameters;
   unsigned long parameter_count;
+  const char *query_attrs;
+  unsigned int query_attrs_length;
 };
 union COM_DATA {
   COM_INIT_DB_DATA com_init_db;
