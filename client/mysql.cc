@@ -202,7 +202,7 @@ static char *current_db;
 static char *current_user = nullptr;
 static char *current_prompt = nullptr;
 static char *delimiter_str = nullptr;
-static const char *default_charset = MYSQL_AUTODETECT_CHARSET_NAME;
+static const char *default_charset = (const char *)"latin1";
 #ifdef HAVE_READLINE
 static char *histfile;
 static char *histfile_tmp;
