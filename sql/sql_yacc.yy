@@ -1475,6 +1475,7 @@ void warn_on_deprecated_user_defined_collation(
 */
 %token  FIND 10000
 %token<lexer.keyword> GTID_SYM 10001
+%token<lexer.keyword> GTID_EXECUTED 10002           /* MYSQL */
 
 /*
   Resolve column attribute ambiguity -- force precedence of "UNIQUE KEY" against
@@ -1993,6 +1994,7 @@ void warn_on_deprecated_user_defined_collation(
         show_function_code_stmt
         show_function_status_stmt
         show_grants_stmt
+        show_gtid_executed_stmt
         show_keys_stmt
         show_master_status_stmt
         show_memory_status_stmt
@@ -2500,6 +2502,7 @@ simple_statement:
         | show_function_code_stmt
         | show_function_status_stmt
         | show_grants_stmt
+        | show_gtid_executed_stmt
         | show_keys_stmt
         | show_master_status_stmt
         | show_memory_status_stmt
@@ -13927,6 +13930,13 @@ show_binlog_events_stmt:
           }
         ;
 
+show_gtid_executed_stmt:
+          SHOW GTID_EXECUTED opt_binlog_in binlog_from opt_limit_clause
+          {
+            $$ = NEW_PTN PT_show_gtid_executed(@$, $3, $5);
+          }
+        ;
+
 show_relaylog_events_stmt:
           SHOW RELAYLOG_SYM EVENTS_SYM opt_binlog_in binlog_from opt_limit_clause
           opt_channel
@@ -15743,6 +15753,7 @@ ident_keywords_unambiguous:
         | GRANTS
         | GROUP_REPLICATION
         | GTIDS_SYM
+        | GTID_EXECUTED
         | GTID_ONLY_SYM
         | GTID_SYM
         | HASH_SYM
