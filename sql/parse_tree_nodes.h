@@ -4855,12 +4855,13 @@ class PT_alter_table_stmt final : public PT_table_ddl_stmt_base {
  public:
   explicit PT_alter_table_stmt(
       const POS &pos, MEM_ROOT *mem_root, Table_ident *table_name,
-      Mem_root_array<PT_ddl_table_option *> *opt_actions,
+      bool if_exists, Mem_root_array<PT_ddl_table_option *> *opt_actions,
       Alter_info::enum_alter_table_algorithm algo,
       Alter_info::enum_alter_table_lock lock,
       Alter_info::enum_with_validation validation)
       : PT_table_ddl_stmt_base(pos, mem_root),
         m_table_name(table_name),
+        m_if_exists(if_exists),
         m_opt_actions(opt_actions),
         m_algo(algo),
         m_lock(lock),
@@ -4870,6 +4871,7 @@ class PT_alter_table_stmt final : public PT_table_ddl_stmt_base {
 
  private:
   Table_ident *const m_table_name;
+  bool m_if_exists;
   Mem_root_array<PT_ddl_table_option *> *const m_opt_actions;
   const Alter_info::enum_alter_table_algorithm m_algo;
   const Alter_info::enum_alter_table_lock m_lock;
@@ -4882,12 +4884,13 @@ class PT_alter_table_standalone_stmt final : public PT_table_ddl_stmt_base {
  public:
   explicit PT_alter_table_standalone_stmt(
       const POS &pos, MEM_ROOT *mem_root, Table_ident *table_name,
-      PT_alter_table_standalone_action *action,
+      bool if_exists, PT_alter_table_standalone_action *action,
       Alter_info::enum_alter_table_algorithm algo,
       Alter_info::enum_alter_table_lock lock,
       Alter_info::enum_with_validation validation)
       : PT_table_ddl_stmt_base(pos, mem_root),
         m_table_name(table_name),
+        m_if_exists(if_exists),
         m_action(action),
         m_algo(algo),
         m_lock(lock),
@@ -4897,6 +4900,7 @@ class PT_alter_table_standalone_stmt final : public PT_table_ddl_stmt_base {
 
  private:
   Table_ident *const m_table_name;
+  bool m_if_exists;
   PT_alter_table_standalone_action *const m_action;
   const Alter_info::enum_alter_table_algorithm m_algo;
   const Alter_info::enum_alter_table_lock m_lock;
