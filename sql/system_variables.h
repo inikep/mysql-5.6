@@ -79,7 +79,8 @@ enum enum_binlog_row_value_options {
 // Values for binlog_row_metadata sysvar
 enum enum_binlog_row_metadata {
   BINLOG_ROW_METADATA_MINIMAL = 0,
-  BINLOG_ROW_METADATA_FULL = 1
+  BINLOG_ROW_METADATA_FULL = 1,
+  BINLOG_ROW_METADATA_FACEBOOK = 2
 };
 
 // Values for session_track_gtids sysvar
