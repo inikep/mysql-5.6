@@ -45,8 +45,8 @@
 
   The numbering to use is the MySQL version number
   of the first MySQL version that published a given database schema.
-  The format is Mmmdd with M=Major, m=minor, d=dot,
-  so that MySQL 8.0.4 is encoded as 80004.
+  The format is Mmmdd with M=Major, m=minor, d=dot, and last three digits
+  for Facebook specific schema changes so that MySQL 8.0.4 is encoded as 80004.
 
   In case of -dash version numbers, encode MySQL 8.12.34-56 as 8123456.
 
@@ -231,8 +231,15 @@
 
    - WL#15199: PERFORMANCE_SCHEMA, OTEL METRICS INTERFACE
       New tables setup_meters, setup_metrics added to performance_schema
+
+  80300-001:
+  performance_schema tables changed:
+  - session_query_attrs added.
+
+  The last three digits reprents Facebook specific MySQL Schema changes.
+  Version published is now 80300-001. i.e. 8.3.0 Facebook schema change no. 1.
 */
 
-static const uint PFS_DD_VERSION = 80200;
+static const uint PFS_DD_VERSION = 80300001;
 
 #endif /* PFS_DD_VERSION_H */
