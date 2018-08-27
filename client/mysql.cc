@@ -352,7 +352,7 @@ static int com_quit(String *buffer, char *), com_go(String *buffer, char *),
     com_prompt(String *buffer, char *), com_delimiter(String *buffer, char *),
     com_warnings(String *buffer, char *),
     com_nowarnings(String *buffer, char *),
-    com_resetconnection(String *buffer, char *),
+    com_resetconnection(String *buffer, char *), com_attr(String *buffer, char *),
     com_query_attributes(String *buffer, char *),
     com_ssl_session_data_print(String *buffer, char *);
 static int com_shell(String *buffer, char *);
@@ -434,6 +434,7 @@ static COMMANDS commands[] = {
     {"prompt", 'R', com_prompt, true, "Change your mysql prompt."},
     {"quit", 'q', com_quit, false, "Quit mysql."},
     {"rehash", '#', com_rehash, false, "Rebuild completion hash."},
+    {"setattr", 'z', com_attr, true, "Set query attribute."},
     {"source", '.', com_source, true,
      "Execute an SQL script file. Takes a file name as an argument."},
     {"status", 's', com_status, false,
@@ -4520,6 +4521,26 @@ static int com_shell(String *buffer [[maybe_unused]],
     put_info(strerror(errno), INFO_ERROR, errno);
     return -1;
   }
+  return 0;
+}
+
+static int com_attr(String *buffer [[maybe_unused]], char *line) {
+  static const char *delim = " \t";
+  char *ptr = nullptr;
+  char *buf = strdup(line);
+  const char *cmd __attribute__((unused)) = strtok_r(buf, delim, &ptr);
+  const char *key = strtok_r(nullptr, delim, &ptr);
+  const char *val = strtok_r(nullptr, delim, &ptr);
+
+  if (!key || !val) {
+    put_info("Usage: setattr key value", INFO_ERROR);
+    free(buf);
+    return -1;
+  }
+
+  mysql_options4(&mysql_handle, MYSQL_OPT_QUERY_ATTR_ADD, key, val);
+
+  free(buf);
   return 0;
 }
 
