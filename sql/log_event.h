@@ -129,6 +129,7 @@ int ignored_error_code(int err_code);
 #endif
 #define PREFIX_SQL_LOAD "SQL_LOAD-"
 extern bool opt_log_only_query_comments;
+extern bool opt_log_column_names;
 
 /**
    Maximum length of the name of a temporary file
@@ -2496,7 +2497,8 @@ class Table_map_log_event : public mysql::binlog::event::Table_map_event,
   table_def *create_table_def() {
     assert(m_colcnt > 0);
     return new table_def(m_coltype, m_colcnt, m_field_metadata,
-                         m_field_metadata_size, m_null_bits, m_flags);
+                         m_field_metadata_size, m_null_bits, m_flags,
+                         m_column_names, m_column_names_size);
   }
   static bool rewrite_db_in_buffer(
       char **buf, ulong *event_len,
@@ -2616,6 +2618,7 @@ class Table_map_log_event : public mysql::binlog::event::Table_map_event,
   */
   void init_metadata_fields();
   bool init_fb_format_pk_fields();
+  bool init_fb_format_col_names();
   bool init_signedness_field();
   /**
     Capture and serialize character sets.  Character sets for
@@ -3082,6 +3085,8 @@ class Rows_log_event : public virtual mysql::binlog::event::Rows_event,
   */
   ColumnViewPtr m_column_view{nullptr};
 
+  void set_writeset_from_col_names(TABLE *table, table_def *tabledef,
+                                   MY_BITMAP *after_image);
   int do_apply_event(Relay_log_info const *rli) override;
   int do_update_pos(Relay_log_info *rli) override;
   enum_skip_reason do_shall_skip(Relay_log_info *rli) override;

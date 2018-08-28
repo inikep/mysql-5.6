@@ -568,6 +568,7 @@ The following options may be given as the first argument:
  do not exist and the binary logging cannot break, so you
  can safely set this to TRUE. This variable is deprecated
  and will be removed in a future version.
+ --log-column-names  Writes column name information in table map log events.
  --log-datagram      Enable logging queries to a unix local datagram socket
  --log-datagram-usecs=# 
  Log queries longer than log-datagram-usecs to a unix
@@ -2381,6 +2382,7 @@ lock-wait-timeout 31536000
 log-bin (No default value)
 log-bin-index (No default value)
 log-bin-trust-function-creators FALSE
+log-column-names FALSE
 log-datagram FALSE
 log-datagram-usecs 0
 log-error stderr
@@ -2521,7 +2523,7 @@ performance-schema-max-socket-classes 10
 performance-schema-max-socket-instances -1
 performance-schema-max-sql-text-length 1024
 performance-schema-max-stage-classes 175
-performance-schema-max-statement-classes 223
+performance-schema-max-statement-classes 224
 performance-schema-max-statement-stack 10
 performance-schema-max-table-handles -1
 performance-schema-max-table-instances -1
