@@ -323,8 +323,8 @@ INSERT INTO I_S_published_schema
   VALUES ('80200', '80200', 1,
         '043975d2bcbbf7eed996b8917c41b14363c2c2904658355a414d3ebbb96a8f2b');
 INSERT INTO I_S_published_schema
-  VALUES ('80300', '80300001', 0,
-        '440ace7756cd1a4c541af2996df7cfa21c04f15b8efb29b4153934795f8f0635');
+  VALUES ('80300', '80300002', 0,
+        '813a07efee899d44d3a6cc4f15cbb53f17d9e25c888dbce153570d43372ea0fd');
 INSERT INTO I_S_published_schema
   VALUES ('80300', '80300001', 1,
         'e4ab0147982615885ea8c62171f4d99a2a31669e91f9db2fc11140a1313a8fcc');
