@@ -962,7 +962,6 @@ int mysql_event_tracking_general_notify(
     const char *subclass_name, int error_code, const char *msg,
     size_t msg_len) {
   mysql_event_tracking_general_data event;
-  char user_buff[MAX_USER_HOST_SIZE];
 
   assert(thd);
 
@@ -979,8 +978,8 @@ int mysql_event_tracking_general_notify(
   auto ip = sctx->ip();
   auto host = sctx->host();
 
-  event.user.str = user_buff;
-  event.user.length = make_user_name(sctx, user_buff);
+  event.user.str = sctx->user().str;
+  event.user.length = sctx->user().str ? sctx->user().length : 0;
   event.ip = {ip.str, ip.length};
   event.host = {host.str, host.length};
 
