@@ -978,6 +978,9 @@ DEFINE_BOOL_METHOD(Event_connection_bridge_implementation::notify,
     plugin_data.ip = TO_LEXCSTRING(data->ip);
     plugin_data.database = TO_LEXCSTRING(data->database);
     plugin_data.connection_type = data->connection_type;
+    plugin_data.connection_certificate.str = thd->connection_certificate().c_str();
+    plugin_data.connection_certificate.length = thd->connection_certificate().size();
+    plugin_data.port = mysqld_port;
 
     return event_class_dispatch(thd, MYSQL_AUDIT_CONNECTION_CLASS,
                                 &plugin_data);
@@ -1014,6 +1017,12 @@ DEFINE_BOOL_METHOD(Event_general_bridge_implementation::notify,
         assert(false);
         break;
     };
+
+    plugin_data.database.str = thd->db().str;
+    plugin_data.database.length = thd->db().length;
+    plugin_data.query_id = thd->query_id;
+    plugin_data.affected_rows = thd->get_row_count_func();
+    plugin_data.port = mysqld_port;
 
     plugin_data.general_error_code = data->error_code;
     plugin_data.general_thread_id = data->connection_id;

@@ -89,6 +89,9 @@ struct mysql_event_tracking_connection_data {
         - 5 Shared memory
   */
   int connection_type;
+
+  mysql_cstring_with_length connection_certificate;
+  unsigned int port;
 };
 
 #endif  // !COMPONENTS_SERVICES_DEFS_EVENT_TRACKING_CONNECTION_DEFS_H

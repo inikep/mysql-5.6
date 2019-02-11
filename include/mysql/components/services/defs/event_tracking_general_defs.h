@@ -68,6 +68,11 @@ struct mysql_event_tracking_general_data {
   mysql_cstring_with_length host;
   /** Connection IP */
   mysql_cstring_with_length ip;
+  /* Added in version 402 */
+  long long query_id;
+  mysql_cstring_with_length database;
+  long long affected_rows;
+  unsigned int port;
 };
 
 #endif  // !COMPONENT_SERVICES_DEFS_EVENT_TRACKING_GENERAL_DEFS_H

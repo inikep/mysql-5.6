@@ -934,6 +934,9 @@ int mysql_event_tracking_connection_notify(
   event.ip = {ip.str, ip.length};
   event.database = {db.str, db.length};
   event.connection_type = thd->get_vio_type();
+  event.connection_certificate.str = thd->connection_certificate().c_str();
+  event.connection_certificate.length = thd->connection_certificate().size();
+  event.port = mysqld_port;
 
   struct st_mysql_event_generic event_generic;
   event_generic.event = &event;
@@ -982,6 +985,11 @@ int mysql_event_tracking_general_notify(
   event.user.length = sctx->user().str ? sctx->user().length : 0;
   event.ip = {ip.str, ip.length};
   event.host = {host.str, host.length};
+  event.database.str = thd->db().str;
+  event.database.length = thd->db().length;
+  event.query_id = thd->query_id;
+  event.affected_rows = thd->get_row_count_func();
+  event.port = mysqld_port;
 
   Event_tracking_general_information general_information(
       subclass,
