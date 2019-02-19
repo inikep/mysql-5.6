@@ -255,11 +255,14 @@ namespace info_schema {
       Changed the status column of information_schema.events to show
       correct terminology
 
+
+  80300-001:
+  - information_schema tables changed to have username of 80 chars
 */
 
-static const uint IS_DD_VERSION = 80200;
+static const uint IS_DD_VERSION = 80300001;
 static_assert((IS_DD_VERSION <= MYSQL_VERSION_ID) ||
-                  ((IS_DD_VERSION == 800201) && (MYSQL_VERSION_ID >= 80020)),
+                  ((IS_DD_VERSION == 80300001) && (MYSQL_VERSION_ID >= 80300)),
               "This release can not use a version number from the future");
 
 /**
