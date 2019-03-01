@@ -13950,8 +13950,19 @@ show_columns_stmt:
           }
         ;
 
+gtid_bool:
+         %empty
+         {
+           Lex->with_gtid = false;
+         }
+         | WITH GTID_SYM
+         {
+           Lex->with_gtid = true;
+         }
+        ;
+
 show_binary_logs_stmt:
-          SHOW master_or_binary LOGS_SYM
+          SHOW master_or_binary LOGS_SYM gtid_bool
           {
             if (Lex->is_replication_deprecated_syntax_used())
             {
