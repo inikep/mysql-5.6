@@ -804,11 +804,16 @@ int event_class_dispatch(THD *thd, mysql_event_class_t event_class,
                ? 1
                : 0;
   } else {
+    decltype(thd->audit_class_plugins) plugins_copy{PSI_NOT_INSTRUMENTED};
+    {
+      MUTEX_LOCK(lock, &thd->LOCK_thd_audit_data);
+      plugins_copy = thd->audit_class_plugins;
+    }
     plugin_ref *plugins, *plugins_last;
 
     /* Use the cached set of audit plugins */
-    plugins = thd->audit_class_plugins.begin();
-    plugins_last = thd->audit_class_plugins.end();
+    plugins = plugins_copy.begin();
+    plugins_last = plugins_copy.end();
 
     for (; plugins != plugins_last; plugins++)
       result |= plugins_dispatch(thd, *plugins, &event_generic);

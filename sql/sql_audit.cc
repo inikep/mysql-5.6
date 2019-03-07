@@ -26,6 +26,7 @@
 
 #include "lex_string.h"
 #include "m_string.h"
+#include "mutex_lock.h"  // MUTEX_LOCK
 #include "my_compiler.h"
 #include "my_dbug.h"
 #include "my_inttypes.h"
@@ -478,9 +479,11 @@ inline const char *thd_get_audit_query(THD *thd,
 
   @return false is always returned.
 */
-static bool acquire_lookup_mask(THD *, plugin_ref plugin, void *arg) {
+static bool acquire_lookup_mask(THD *thd, plugin_ref plugin, void *arg) {
   st_mysql_subscribe_event *evt = static_cast<st_mysql_subscribe_event *>(arg);
   st_mysql_audit *audit = plugin_data<st_mysql_audit *>(plugin);
+
+  MUTEX_LOCK(lock, &thd->LOCK_thd_audit_data);
 
   /* Check if this plugin is interested in the event */
   if (!check_audit_mask(audit->class_mask[evt->event_class],
@@ -503,6 +506,8 @@ static bool acquire_lookup_mask(THD *, plugin_ref plugin, void *arg) {
 static bool acquire_plugins(THD *thd, plugin_ref plugin, void *arg) {
   st_mysql_subscribe_event *evt = static_cast<st_mysql_subscribe_event *>(arg);
   st_mysql_audit *data = plugin_data<st_mysql_audit *>(plugin);
+
+  MUTEX_LOCK(lock, &thd->LOCK_thd_audit_data);
 
   /* Check if this plugin is interested in the event */
   if (check_audit_mask(data->class_mask, evt->lookup_mask)) {
@@ -606,6 +611,7 @@ int mysql_audit_acquire_plugins(THD *thd, mysql_event_class_t event_class,
 */
 
 void mysql_audit_release(THD *thd) {
+  MUTEX_LOCK(lock, &thd->LOCK_thd_audit_data);
   plugin_ref *plugins, *plugins_last;
 
   if (!thd || thd->audit_class_plugins.empty()) return;
@@ -645,6 +651,7 @@ void mysql_audit_enable_auditing(THD *thd) { thd->m_audited = true; }
 */
 
 void mysql_audit_init_thd(THD *thd) {
+  MUTEX_LOCK(lock, &thd->LOCK_thd_audit_data);
   thd->audit_class_mask.clear();
   thd->audit_class_mask.resize(MYSQL_AUDIT_CLASS_MASK_SIZE);
 }
