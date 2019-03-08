@@ -155,6 +155,7 @@ void my_init_signals();
 bool gtid_server_init();
 void gtid_server_cleanup();
 void clean_up_mysqld_mutexes();
+void delete_pid_file(myf flags);
 
 enum enum_server_operational_state {
   SERVER_BOOTING,      /* Server is not operational. It is starting */
