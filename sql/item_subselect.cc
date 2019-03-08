@@ -3437,7 +3437,7 @@ bool subselect_hash_sj_engine::setup(
   if (tmp_table_ref == nullptr) return true;
 
   // Assign Table_ref pointer temporarily, while creatung fields:
-  tmp_table->pos_in_table_list = tmp_table_ref;
+  tmp_table->set_pos_in_table_list(tmp_table_ref);
   tmp_table_ref->query_block = m_query_expr->first_query_block();
 
   KEY_PART_INFO *key_parts = tmp_key->key_part;
