@@ -934,8 +934,9 @@ int mysql_event_tracking_connection_notify(
   event.ip = {ip.str, ip.length};
   event.database = {db.str, db.length};
   event.connection_type = thd->get_vio_type();
-  event.connection_certificate.str = thd->connection_certificate().c_str();
-  event.connection_certificate.length = thd->connection_certificate().size();
+  event.connection_certificate.str = thd->get_connection_certificate().c_str();
+  event.connection_certificate.length =
+      thd->get_connection_certificate().size();
   event.port = mysqld_port;
 
   struct st_mysql_event_generic event_generic;
