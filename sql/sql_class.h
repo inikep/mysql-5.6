@@ -4452,6 +4452,9 @@ class THD : public MDL_context_owner,
   Cost_model_server m_cost_model_hypergraph;
 
  public:
+  /* protected by LOCK_thd_query */
+  std::string row_query;
+
   /**
     Initialize the optimizer cost model.
 
