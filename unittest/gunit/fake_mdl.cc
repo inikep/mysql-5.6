@@ -33,7 +33,7 @@ ulonglong slave_high_priority_lock_wait_timeout_nsec = 1.0;
 std::atomic<ulonglong> slave_high_priority_ddl_killed_connections(0);
 std::atomic<ulonglong> slave_high_priority_ddl_executed(0);
 bool support_high_priority(enum enum_sql_command) noexcept { return false; }
-bool Security_context::check_access(ulong, const std::string &, bool) {
+bool Security_context::check_access(ulong, const std::string &, bool) const {
   return false;
 }
 

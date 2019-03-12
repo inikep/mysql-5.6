@@ -320,7 +320,7 @@ bool Security_context::user_matches(Security_context *them) {
 
 bool Security_context::check_access(ulong want_access,
                                     const std::string &db_name /* = "" */,
-                                    bool match_any) {
+                                    bool match_any) const {
   DBUG_TRACE;
   if ((want_access & DB_ACLS) &&
       (is_access_restricted_on_db(want_access, db_name))) {

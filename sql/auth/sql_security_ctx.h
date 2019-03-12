@@ -250,7 +250,7 @@ class Security_context {
     @return True if the security context fulfills the access requirements.
   */
   bool check_access(ulong want_access, const std::string &db_name = "",
-                    bool match_any = false);
+                    bool match_any = false) const;
 
   /**
    Returns the schema level effective privileges (with applied roles)
