@@ -2910,7 +2910,7 @@ class Rows_log_event : public virtual mysql::binlog::event::Rows_event,
                         bool old_row_is_record1);
 #endif
 
-  uint m_row_count; /* The number of rows added to the event */
+  ulonglong m_row_count; /* The number of rows added to the event */
 
  protected:
   /*
