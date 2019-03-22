@@ -317,9 +317,9 @@ MYSQL_LOCK *mysql_lock_tables(THD *thd, TABLE **tables, size_t count,
   int rc;
   MYSQL_LOCK *sql_lock;
   THR_LOCK_DATA *error_pos = nullptr;
-  const ulong timeout = (flags & MYSQL_LOCK_IGNORE_TIMEOUT)
-                            ? LONG_TIMEOUT
-                            : thd->variables.lock_wait_timeout;
+  const ulonglong timeout_nsec = (flags & MYSQL_LOCK_IGNORE_TIMEOUT)
+                                     ? LONG_TIMEOUT_NSEC
+                                     : thd->variables.lock_wait_timeout_nsec;
 
   DBUG_TRACE;
 
@@ -345,9 +345,9 @@ MYSQL_LOCK *mysql_lock_tables(THD *thd, TABLE **tables, size_t count,
   memcpy(sql_lock->locks + sql_lock->lock_count, sql_lock->locks,
          sql_lock->lock_count * sizeof(*sql_lock->locks));
   /* Lock on the copied half of the lock data array. */
-  rc = thr_lock_errno_to_mysql[(int)thr_multi_lock(
+  rc = thr_lock_errno_to_mysql[(int)thr_multi_lock_nsec(
       sql_lock->locks + sql_lock->lock_count, sql_lock->lock_count,
-      &thd->lock_info, timeout, &error_pos)];
+      &thd->lock_info, timeout_nsec, &error_pos)];
 
   DBUG_EXECUTE_IF("mysql_lock_tables_kill_query",
                   thd->killed = THD::KILL_QUERY;);
@@ -771,8 +771,8 @@ bool lock_schema_name(THD *thd, const char *db) {
   mdl_requests.push_front(&global_request);
   mdl_requests.push_front(&backup_lock_request);
 
-  if (thd->mdl_context.acquire_locks(&mdl_requests,
-                                     thd->variables.lock_wait_timeout))
+  if (thd->mdl_context.acquire_locks_nsec(
+          &mdl_requests, thd->variables.lock_wait_timeout_nsec))
     return true;
 
   /*
@@ -797,15 +797,16 @@ bool lock_schema_name(THD *thd, const char *db) {
 
   @param thd               - Thread invoking this function.
   @param tablespace_set    - Set of tablespace names to be lock.
-  @param lock_wait_timeout - Lock timeout.
+  @param lock_wait_timeout_nsec - Lock timeout.
   @param mem_root          - Memory root on which MDL_request objects
                              can be allocated.
 
   @return true - On failure
   @return false - On Success.
 */
-bool lock_tablespace_names(THD *thd, Tablespace_hash_set *tablespace_set,
-                           ulong lock_wait_timeout, MEM_ROOT *mem_root) {
+bool lock_tablespace_names_nsec(THD *thd, Tablespace_hash_set *tablespace_set,
+                                ulonglong lock_wait_timeout_nsec,
+                                MEM_ROOT *mem_root) {
   // Stop if we have nothing to lock
   if (tablespace_set->empty()) return false;
 
@@ -823,8 +824,8 @@ bool lock_tablespace_names(THD *thd, Tablespace_hash_set *tablespace_set,
   }
 
   // Finally, acquire IX MDL locks.
-  if (thd->mdl_context.acquire_locks(&mdl_tablespace_requests,
-                                     lock_wait_timeout))
+  if (thd->mdl_context.acquire_locks_nsec(&mdl_tablespace_requests,
+                                          lock_wait_timeout_nsec))
     return true;
 
   DEBUG_SYNC(thd, "after_wait_locked_tablespace_name_for_table");
@@ -842,7 +843,7 @@ bool lock_tablespace_names(THD *thd, Tablespace_hash_set *tablespace_set,
   @param name        Object name in the schema.
 
   This function cannot be called while holding LOCK_open_mutex.
-  This invariant is enforced by asserts in MDL_context::acquire_locks.
+  This invariant is enforced by asserts in MDL_context::acquire_locks_nsec.
   To avoid deadlocks, we do not try to obtain exclusive metadata
   locks in LOCK TABLES mode, since in this mode there may be
   other metadata locks already taken by the current connection,
@@ -907,8 +908,8 @@ bool lock_object_name(THD *thd, MDL_key::enum_mdl_namespace mdl_type,
   mdl_requests.push_front(&global_request);
   mdl_requests.push_front(&backup_lock_request);
 
-  if (thd->mdl_context.acquire_locks(&mdl_requests,
-                                     thd->variables.lock_wait_timeout))
+  if (thd->mdl_context.acquire_locks_nsec(
+          &mdl_requests, thd->variables.lock_wait_timeout_nsec))
     return true;
 
   /*
@@ -1014,14 +1015,14 @@ static void print_lock_error(int error, const char *msg, const char *table) {
   the backup lock help functions when naming this function.
 
   @param  thd                Thread context.
-  @param  lock_wait_timeout  Time to wait for lock acquisition.
+  @param  lock_wait_timeout_nsec  Time to wait for lock acquisition.
 
   @retval false   No error, meta data lock acquired.
   @retval true    Error, meta data lock not acquired.
 */
 
-bool acquire_shared_global_read_lock(THD *thd,
-                                     unsigned long lock_wait_timeout) {
+bool acquire_shared_global_read_lock_nsec(THD *thd,
+                                          ulonglong lock_wait_timeout_nsec) {
   // If we cannot acquire protection against GRL, err out.
   if (thd->global_read_lock.can_acquire_protection()) return true;
 
@@ -1029,7 +1030,7 @@ bool acquire_shared_global_read_lock(THD *thd,
   MDL_REQUEST_INIT(&grl_request, MDL_key::GLOBAL, "", "",
                    MDL_INTENTION_EXCLUSIVE, MDL_TRANSACTION);
 
-  if (thd->mdl_context.acquire_lock(&grl_request, lock_wait_timeout))
+  if (thd->mdl_context.acquire_lock_nsec(&grl_request, lock_wait_timeout_nsec))
     return true;
 
   /*
@@ -1065,8 +1066,8 @@ bool Global_read_lock::lock_global_read_lock(THD *thd) {
     MDL_REQUEST_INIT(&mdl_request, MDL_key::GLOBAL, "", "", MDL_SHARED,
                      MDL_EXPLICIT);
 
-    if (thd->mdl_context.acquire_lock(&mdl_request,
-                                      thd->variables.lock_wait_timeout)) {
+    if (thd->mdl_context.acquire_lock_nsec(
+            &mdl_request, thd->variables.lock_wait_timeout_nsec)) {
       return true;
     }
 
@@ -1135,8 +1136,8 @@ bool Global_read_lock::make_global_read_lock_block_commit(THD *thd) {
   MDL_REQUEST_INIT(&mdl_request, MDL_key::COMMIT, "", "", MDL_SHARED,
                    MDL_EXPLICIT);
 
-  if (thd->mdl_context.acquire_lock(&mdl_request,
-                                    thd->variables.lock_wait_timeout))
+  if (thd->mdl_context.acquire_lock_nsec(&mdl_request,
+                                         thd->variables.lock_wait_timeout_nsec))
     return true;
 
   m_mdl_blocks_commits_lock = mdl_request.ticket;

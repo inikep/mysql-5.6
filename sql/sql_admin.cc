@@ -160,8 +160,8 @@ static int prepare_for_repair(THD *thd, Table_ref *table_list,
     MDL_REQUEST_INIT(&table_list->mdl_request, MDL_key::TABLE, table_list->db,
                      table_list->table_name, MDL_EXCLUSIVE, MDL_TRANSACTION);
 
-    if (lock_table_names(thd, table_list, table_list->next_global,
-                         thd->variables.lock_wait_timeout, 0))
+    if (lock_table_names_nsec(thd, table_list, table_list->next_global,
+                              thd->variables.lock_wait_timeout_nsec, 0))
       return 0;
     has_mdl_lock = true;
 
@@ -677,7 +677,8 @@ static Check_result check_for_upgrade(THD *thd, dd::String_type &sname,
   // Ok we have successfully checked table for upgrade. Record
   // this fact in the DD.
 
-  if (acquire_shared_global_read_lock(thd, thd->variables.lock_wait_timeout)) {
+  if (acquire_shared_global_read_lock_nsec(
+          thd, thd->variables.lock_wait_timeout_nsec)) {
     return error;
   }
 
@@ -844,8 +845,8 @@ static bool mysql_admin_table(
                 admin statements won't cause its automatic acquisition
                 in open_and_lock_tables().
               */
-              acquire_shared_backup_lock(thd,
-                                         thd->variables.lock_wait_timeout)) {
+              acquire_shared_backup_lock_nsec(
+                  thd, thd->variables.lock_wait_timeout_nsec)) {
             result_code = HA_ADMIN_FAILED;
             goto send_result;
           }
@@ -878,8 +879,8 @@ static bool mysql_admin_table(
                 admin statements won't cause its automatic acquisition
                 in open_and_lock_tables().
               */
-              acquire_shared_backup_lock(thd,
-                                         thd->variables.lock_wait_timeout)) {
+              acquire_shared_backup_lock_nsec(
+                  thd, thd->variables.lock_wait_timeout_nsec)) {
             result_code = HA_ADMIN_FAILED;
             goto send_result;
           }
@@ -1330,8 +1331,8 @@ static bool mysql_admin_table(
         if (!result_code)  // recreation went ok
         {
           DEBUG_SYNC(thd, "ha_admin_open_ltable");
-          if (acquire_shared_backup_lock(thd,
-                                         thd->variables.lock_wait_timeout)) {
+          if (acquire_shared_backup_lock_nsec(
+                  thd, thd->variables.lock_wait_timeout_nsec)) {
             result_code = HA_ADMIN_FAILED;
           } else {
             table->mdl_request.set_type(MDL_SHARED_READ);
@@ -1828,8 +1829,8 @@ static bool open_table_and_lock_histograms(THD *thd, Table_ref *table,
   }
 
   DBUG_EXECUTE_IF("histogram_fail_during_lock_for_write", { return true; });
-  if (thd->mdl_context.acquire_locks(&mdl_requests,
-                                     thd->variables.lock_wait_timeout)) {
+  if (thd->mdl_context.acquire_locks_nsec(
+          &mdl_requests, thd->variables.lock_wait_timeout_nsec)) {
     return true;
   }
   return false;
@@ -1871,12 +1872,14 @@ bool Sql_cmd_analyze_table::handle_histogram_command_inner(
   // UPDATE/DROP histograms. Commit on success. Rollback on error.
   switch (get_histogram_command()) {
     case Histogram_command::UPDATE_HISTOGRAM:
-      if (acquire_shared_backup_lock(thd, thd->variables.lock_wait_timeout) ||
+      if (acquire_shared_backup_lock_nsec(
+              thd, thd->variables.lock_wait_timeout_nsec) ||
           update_histogram(thd, table, results))
         return true;
       break;
     case Histogram_command::DROP_HISTOGRAM:
-      if (acquire_shared_backup_lock(thd, thd->variables.lock_wait_timeout) ||
+      if (acquire_shared_backup_lock_nsec(
+              thd, thd->variables.lock_wait_timeout_nsec) ||
           drop_histogram(thd, table, results))
         return true;
       break;

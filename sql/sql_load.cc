@@ -367,8 +367,8 @@ bool Sql_cmd_load_table::execute_bulk(THD *thd) {
   Table_ref *table_ref = thd->lex->query_tables;
 
   // Acquire MDL lock on table, BACKUP_LOCK and GLOBAL lock objects.
-  if (lock_table_names(thd, table_ref, nullptr,
-                       thd->variables.lock_wait_timeout, 0)) {
+  if (lock_table_names_nsec(thd, table_ref, nullptr,
+                            thd->variables.lock_wait_timeout_nsec, 0)) {
     return true;
   }
 
