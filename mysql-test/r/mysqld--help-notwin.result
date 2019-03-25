@@ -847,6 +847,9 @@ The following options may be given as the first argument:
  --optimizer-force-index-for-range 
  If enabled, FORCE INDEX will also try to force a range
  plan.
+ --optimizer-full-scan 
+ Enable full table and index scans.
+ (Defaults to on; use --skip-optimizer-full-scan to disable.)
  --optimizer-max-subgraph-pairs=# 
  Maximum depth of subgraph pairs a query can have before
  the hypergraph join optimizer starts reducing the search
@@ -2570,6 +2573,7 @@ offline-mode FALSE
 old FALSE
 old-alter-table FALSE
 optimizer-force-index-for-range FALSE
+optimizer-full-scan TRUE
 optimizer-max-subgraph-pairs 100000
 optimizer-prune-level 1
 optimizer-search-depth 62
