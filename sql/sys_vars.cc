@@ -7636,3 +7636,9 @@ static Sys_var_charptr Sys_debug_set_operations_secondary_overflow_at(
 #ifndef NDEBUG
 Debug_shutdown_actions Debug_shutdown_actions::instance;
 #endif
+
+static Sys_var_bool Sys_improved_dup_key_error(
+    "improved_dup_key_error",
+    "Include the table name in the error text when receiving a duplicate "
+    "key error and log the query into a new duplicate key query log file.",
+    GLOBAL_VAR(opt_improved_dup_key_error), CMD_LINE(OPT_ARG), DEFAULT(false));
