@@ -517,6 +517,7 @@ static bool add_system_variable_assignment(THD *thd, LEX_CSTRING prefix,
   set_var *var = new (thd->mem_root) set_var(var_type, var_tracker, val);
   if (var == nullptr) return true;
 
+  var->thd_id = lex->thread_id_opt;
   return lex->var_list.push_back(var);
 }
 
@@ -4133,8 +4134,9 @@ bool PT_set_system_variable::do_contextualize(Parse_context *pc) {
 }
 
 bool PT_option_value_type::do_contextualize(Parse_context *pc) {
-  pc->thd->lex->option_type = type;
-  return super::do_contextualize(pc) || value->contextualize(pc);
+  pc->thd->lex->option_type = option_type;
+  pc->thd->lex->thread_id_opt = thread_id;
+  return Parse_tree_node::do_contextualize(pc) || value->contextualize(pc);
 }
 
 bool PT_option_value_list_head::do_contextualize(Parse_context *pc) {
@@ -4206,6 +4208,8 @@ bool PT_start_option_value_list_transaction::do_contextualize(
 
 bool PT_start_option_value_list_following_option_type_eq::do_contextualize(
     Parse_context *pc) {
+  pc->thd->lex->option_type = option_type;
+  pc->thd->lex->thread_id_opt = thread_id;
   if (super::do_contextualize(pc) || head->contextualize(pc)) return true;
 
   if (sp_create_assignment_instr(pc->thd, head_pos.raw.end)) return true;
@@ -4219,6 +4223,7 @@ bool PT_start_option_value_list_following_option_type_eq::do_contextualize(
 
 bool PT_start_option_value_list_following_option_type_transaction::
     do_contextualize(Parse_context *pc) {
+  pc->thd->lex->option_type = type;
   if (super::do_contextualize(pc) || characteristics->contextualize(pc))
     return true;
 
@@ -4231,7 +4236,6 @@ bool PT_start_option_value_list_following_option_type_transaction::
 }
 
 bool PT_start_option_value_list_type::do_contextualize(Parse_context *pc) {
-  pc->thd->lex->option_type = type;
   return super::do_contextualize(pc) || list->contextualize(pc);
 }
 

@@ -56,7 +56,8 @@
 #include "sql/item.h"
 #include "sql/item_func.h"
 #include "sql/log.h"
-#include "sql/mysqld.h"  // system_charset_info
+#include "sql/mysqld.h"              // system_charset_info
+#include "sql/mysqld_thd_manager.h"  // Global_THD_manager
 #include "sql/persisted_variable.h"
 #include "sql/protocol_classic.h"
 #include "sql/session_tracker.h"
@@ -81,6 +82,7 @@
 
 using std::min;
 using std::string;
+using set_var_list_map = std::unordered_map<ulong, List<set_var_base>>;
 
 static collation_unordered_map<string, sys_var *> *static_system_variable_hash;
 
@@ -1406,6 +1408,64 @@ sys_var *check_find_sys_var(THD *thd, const char *str, size_t length,
 }
 
 /**
+  Helper function to set variables.
+  Use the thd -> list<var> map to iterate over all threads
+  For each thread, for each variable in its list, perform the specified function
+  @param thd            Current thread
+  @param thd_var_map    Map of threads to list of variables to be updated
+  @param func           Function to be executed for each variable
+  @retval
+    0   ok
+  @retval
+    1   ERROR
+*/
+
+static int process_set_variable_map(THD *thd, set_var_list_map &thd_var_map,
+                                    int (*func)(THD *, set_var_base *)) {
+  DBUG_ENTER("process_set_variable_map");
+  int error = 0;
+
+  for (auto var_iter : thd_var_map) {
+    ulong thd_id = var_iter.first;
+    // Thread id of the current thread is 0
+    if (!thd_id) {
+      List_iterator_fast<set_var_base> it(var_iter.second);
+      set_var_base *var;
+      while ((var = it++)) {
+        if ((error = func(thd, var))) break;
+      }
+    } else {
+      Find_thd_with_id find_thd_with_id(thd_id);
+      THD_ptr thd_ptr =
+          Global_THD_manager::get_instance()->find_thd(&find_thd_with_id);
+      if (!thd_ptr) {
+        my_error(ER_NO_SUCH_THREAD, MYF(0), thd_id);
+        DBUG_RETURN(1);
+      }
+
+      Security_context *sctx = thd->security_context();
+      if (!sctx->check_access(SUPER_ACL) &&
+          !sctx->has_global_grant(STRING_WITH_LEN("SYSTEM_VARIABLES_ADMIN"))
+               .first) {
+        my_error(ER_SPECIFIC_ACCESS_DENIED_ERROR, MYF(0),
+                 "SUPER or SYSTEM_VARIABLES_ADMIN");
+        DBUG_RETURN(1);
+      }
+
+      List_iterator_fast<set_var_base> it(var_iter.second);
+      set_var_base *var;
+      while ((var = it++)) {
+        if ((error = func(thd_ptr.get(), var))) break;
+      }
+    }
+
+    if (error) break;
+  }
+
+  DBUG_RETURN(error);
+}
+
+/**
   Execute update of all variables.
 
   First run a check of all variables that all updates will go ok.
@@ -1416,8 +1476,8 @@ sys_var *check_find_sys_var(THD *thd, const char *str, size_t length,
 
   @param thd            Thread id
   @param var_list       List of variables to update
-  @param opened         True means tables are open and this function will lock
-                        them.
+  @param opened         True means tables are open and this function will
+  lock them.
 
   @retval
     0   ok
@@ -1436,27 +1496,51 @@ int sql_set_variables(THD *thd, List<set_var_base> *var_list, bool opened) {
 
   LEX *lex = thd->lex;
   set_var_base *var;
+  const ulong current_thd_id = thd->thread_id();
+  /*
+    This map stores a list of variables to be updated for each thread
+    specified by the user, essentially grouping variabled by thread ID.
+    Variable updates are processed per thread.
+  */
+  set_var_list_map thd_var_map;
+
+  while ((var = it++)) {
+    ulong thd_id_opt = var->thd_id;
+    if (thd_id_opt == current_thd_id) thd_id_opt = 0;
+    thd_var_map[thd_id_opt].push_back(var);
+  }
+
   if (!thd->lex->unit->is_prepared()) {
     lex->set_using_hypergraph_optimizer(
         thd->optimizer_switch_flag(OPTIMIZER_SWITCH_HYPERGRAPH_OPTIMIZER));
 
     const Prepared_stmt_arena_holder ps_arena_holder(thd);
-    while ((var = it++)) {
-      if ((error = var->resolve(thd))) goto err;
-    }
+
+    if ((error = process_set_variable_map(
+             thd, thd_var_map, [](THD *each_thd, set_var_base *svar) {
+               return svar->resolve(each_thd);
+             })))
+      goto err;
+
     if ((error = thd->is_error())) goto err;
     thd->lex->unit->set_prepared();
     if (!thd->stmt_arena->is_regular()) thd->lex->save_cmd_properties(thd);
   }
+
   if (opened && lock_tables(thd, lex->query_tables, lex->table_count, 0)) {
     error = 1;
     goto err;
   }
+
   thd->lex->set_exec_started();
+  if ((error = process_set_variable_map(thd, thd_var_map,
+                                        [](THD *each_thd, set_var_base *svar) {
+                                          return svar->check(each_thd);
+                                        })))
+    goto err;
+
   it.rewind();
   while ((var = it++)) {
-    if ((error = var->check(thd))) goto err;
-
     set_var *setvar = dynamic_cast<set_var *>(var);
     if (setvar &&
         (setvar->type == OPT_PERSIST || setvar->type == OPT_PERSIST_ONLY) &&
@@ -1465,34 +1549,33 @@ int sql_set_variables(THD *thd, List<set_var_base> *var_list, bool opened) {
         There are certain variables that can process NULL as a default value
         TODO: there should be no exceptions!
       */
-      static const std::set<std::string> exceptions = {
-          "basedir",
-          "character_sets_dir",
-          "ft_stopword_file",
-          "lc_messages_dir",
-          "plugin_dir",
-          "relay_log",
-          "replica_load_tmpdir",
-          "socket",
-          "tmpdir",
-          "init_file",
-          "admin_ssl_ca",
-          "admin_ssl_capath",
-          "admin_ssl_cert",
-          "admin_ssl_cipher",
-          "admin_tls_ciphersuites",
-          "admin_ssl_key",
-          "admin_ssl_crl",
-          "admin_ssl_crlpath",
-          "ssl_ca",
-          "ssl_capath",
-          "ssl_cert",
-          "ssl_cipher",
-          "tls_ciphersuites",
-          "ssl_key",
-          "ssl_crl",
-          "ssl_crlpath",
-          "group_replication_recovery_tls_ciphersuites"};
+      static const std::set<std::string> exceptions = {"basedir",
+                                                       "character_sets_dir",
+                                                       "ft_stopword_file",
+                                                       "lc_messages_dir",
+                                                       "plugin_dir",
+                                                       "relay_log",
+                                                       "relay_log_info_file",
+                                                       "replica_load_tmpdir",
+                                                       "socket",
+                                                       "tmpdir",
+                                                       "init_file",
+                                                       "admin_ssl_ca",
+                                                       "admin_ssl_capath",
+                                                       "admin_ssl_cert",
+                                                       "admin_ssl_cipher",
+                                                       "admin_tls_ciphersuites",
+                                                       "admin_ssl_key",
+                                                       "admin_ssl_crl",
+                                                       "admin_ssl_crlpath",
+                                                       "ssl_ca",
+                                                       "ssl_capath",
+                                                       "ssl_cert",
+                                                       "ssl_cipher",
+                                                       "tls_ciphersuites",
+                                                       "ssl_key",
+                                                       "ssl_crl",
+                                                       "ssl_crlpath"};
 
       if (setvar->value && setvar->value->is_null() &&
           exceptions.find(setvar->m_var_tracker.get_var_name()) ==
@@ -1523,11 +1606,12 @@ int sql_set_variables(THD *thd, List<set_var_base> *var_list, bool opened) {
   }
   if ((error = thd->is_error())) goto err;
 
-  it.rewind();
-  while ((var = it++)) {
-    if ((error = var->update(thd)))  // Returns 0, -1 or 1
-      goto err;
-  }
+  if ((error = process_set_variable_map(
+           thd, thd_var_map, [](THD *each_thd, set_var_base *svar) {
+             return svar->update(each_thd); /* Returns 0, -1 or 1 */
+           })))
+    goto err;
+
   if (!error) {
     /* At this point SET statement is considered a success. */
     Persisted_variables_cache *pv = nullptr;
