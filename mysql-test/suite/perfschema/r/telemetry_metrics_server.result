@@ -10,31 +10,31 @@ INSTALL COMPONENT 'file://component_test_server_telemetry_metrics';
 SELECT test_component_metric_log('TEST - Check registration with slot holes:');
 SELECT count(*) FROM performance_schema.setup_metrics;
 count(*)
-424
+362
 SELECT test_register_metric_a();
 test_register_metric_a()
 0
 SELECT count(*) FROM performance_schema.setup_metrics;
 count(*)
-425
+363
 SELECT test_register_metric_b();
 test_register_metric_b()
 0
 SELECT count(*) FROM performance_schema.setup_metrics;
 count(*)
-426
+364
 SELECT test_unregister_metric_a();
 test_unregister_metric_a()
 0
 SELECT count(*) FROM performance_schema.setup_metrics;
 count(*)
-425
+363
 SELECT test_unregister_metric_b();
 test_unregister_metric_b()
 0
 SELECT count(*) FROM performance_schema.setup_metrics;
 count(*)
-424
+362
 SELECT test_component_metric_log('TEST - All metrics exported except ones in mysql.x group:');
 UPDATE performance_schema.setup_meters SET enabled = 'YES';
 UPDATE performance_schema.setup_meters SET enabled = 'NO' WHERE NAME='mysql.x';
@@ -96,7 +96,7 @@ SELECT test_component_metric_log('TEST - Restart server with restricted num. of 
 # restart: --performance_schema_max_meter_classes=1 --performance_schema_max_metric_classes=10
 SHOW STATUS LIKE 'Performance_schema_meter_lost';
 Variable_name	Value
-Performance_schema_meter_lost	11
+Performance_schema_meter_lost	9
 SHOW STATUS LIKE 'Performance_schema_metric_lost';
 Variable_name	Value
 Performance_schema_metric_lost	24
@@ -121,10 +121,6 @@ TEST - No metrics exported with all meters disabled:
 *** Meter change - silently enumerate metrics for mysql.inno.buffer_pool
 *** Meter change notification: mysql.inno.data updated
 *** Meter change - silently enumerate metrics for mysql.inno.data
-*** Meter change notification: mysql.x updated
-*** Meter change - silently enumerate metrics for mysql.x
-*** Meter change notification: mysql.x.stmt updated
-*** Meter change - silently enumerate metrics for mysql.x.stmt
 *** Meter change notification: mysql.stats updated
 *** Meter change - silently enumerate metrics for mysql.stats
 *** Meter change notification: mysql.stats.com updated
@@ -150,9 +146,7 @@ test_report_metrics > report start:
 > meter 'mysql.stats.connection'  (desc='MySql connection stats', frequency=10) is disabled, skip enumeration
 > meter 'mysql.stats.handler'  (desc='MySql handler stats', frequency=10) is disabled, skip enumeration
 > meter 'mysql.stats.ssl'  (desc='MySql TLS related stats', frequency=10) is disabled, skip enumeration
-> meter 'mysql.x'  (desc='MySql X plugin metrics', frequency=10) is disabled, skip enumeration
-> meter 'mysql.x.stmt'  (desc='MySql X plugin statement statistics', frequency=10) is disabled, skip enumeration
-test_report_metrics < done reporting (total meters=12, metrics=0)
+test_report_metrics < done reporting (total meters=10, metrics=0)
 TEST - Reload component:
 test_server_telemetry_metrics_component_deinit:
  - Meter change notification callback unregistered.
@@ -181,10 +175,6 @@ TEST - All metrics exported except ones in mysql.x group:
 *** Meter change - silently enumerate metrics for mysql.inno.buffer_pool
 *** Meter change notification: mysql.inno.data updated
 *** Meter change - silently enumerate metrics for mysql.inno.data
-*** Meter change notification: mysql.x updated
-*** Meter change - silently enumerate metrics for mysql.x
-*** Meter change notification: mysql.x.stmt updated
-*** Meter change - silently enumerate metrics for mysql.x.stmt
 *** Meter change notification: mysql.stats updated
 *** Meter change - silently enumerate metrics for mysql.stats
 *** Meter change notification: mysql.stats.com updated
@@ -199,8 +189,6 @@ TEST - All metrics exported except ones in mysql.x group:
 *** Meter change - silently enumerate metrics for mysql.myisam
 *** Meter change notification: mysql.perf_schema updated
 *** Meter change - silently enumerate metrics for mysql.perf_schema
-*** Meter change notification: mysql.x updated
-*** Meter change - silently enumerate metrics for mysql.x
 test_report_metrics > report start:
 > meter 'mysql.inno' (desc='MySql InnoDB metrics', frequency=10) start:
  > metric 'dblwr_pages_written': unit='', desc='Number of pages that have been written for doublewrite operations (innodb_dblwr_pages_written)'
@@ -584,29 +572,8 @@ test_report_metrics > report start:
  > metric 'session_cache_timeouts': unit='', desc='The number of SSL session cache timeouts (Ssl_session_cache_timeouts)'
  > metric 'used_session_cache_entries': unit='', desc='How many SSL session cache entries were used (Ssl_used_session_cache_entries)'
 < meter 'mysql.stats.ssl' end (13 metrics)
-> meter 'mysql.x'  (desc='MySql X plugin metrics', frequency=10) is disabled, skip enumeration
-> meter 'mysql.x.stmt' (desc='MySql X plugin statement statistics', frequency=10) start:
- > metric 'create_collection': unit='', desc='The number of create collection statements received (Mysqlx_stmt_create_collection)'
- > metric 'create_collection_index': unit='', desc='The number of create collection index statements received (Mysqlx_stmt_create_collection_index)'
- > metric 'disable_notices': unit='', desc='The number of disable notice statements received (Mysqlx_stmt_disable_notices)'
- > metric 'drop_collection': unit='', desc='The number of drop collection statements received (Mysqlx_stmt_drop_collection)'
- > metric 'drop_collection_index': unit='', desc='The number of drop collection index statements received (Mysqlx_stmt_drop_collection_index)'
- > metric 'enable_notices': unit='', desc='The number of enable notice statements received (Mysqlx_stmt_enable_notices)'
- > metric 'ensure_collection': unit='', desc='The number of ensure collection statements received (Mysqlx_stmt_ensure_collection)'
- > metric 'execute_mysqlx': unit='', desc='The number of StmtExecute messages received with namespace set to mysqlx (Mysqlx_stmt_execute_mysqlx)'
- > metric 'execute_sql': unit='', desc='The number of StmtExecute requests received for the SQL namespace (Mysqlx_stmt_execute_sql)'
- > metric 'get_collection_options': unit='', desc='The number of get collection object statements received (Mysqlx_stmt_get_collection_options)'
- > metric 'kill_client': unit='', desc='The number of kill client statements received (Mysqlx_stmt_kill_client)'
- > metric 'list_clients': unit='', desc='The number of list client statements received (Mysqlx_stmt_list_clients)'
- > metric 'list_notices': unit='', desc='The number of list notice statements received (Mysqlx_stmt_list_notices)'
- > metric 'list_objects': unit='', desc='The number of list object statements received (Mysqlx_stmt_list_objects)'
- > metric 'modify_collection_options': unit='', desc='The number of modify collection options statements received (Mysqlx_stmt_modify_collection_options)'
- > metric 'ping': unit='', desc='The number of ping statements received (Mysqlx_stmt_ping)'
-< meter 'mysql.x.stmt' end (16 metrics)
-test_report_metrics < done reporting (total meters=12, metrics=378)
+test_report_metrics < done reporting (total meters=10, metrics=362)
 TEST - All metrics exported:
-*** Meter change notification: mysql.x updated
-*** Meter change - silently enumerate metrics for mysql.x
 test_report_metrics > report start:
 > meter 'mysql.inno' (desc='MySql InnoDB metrics', frequency=10) start:
  > metric 'dblwr_pages_written': unit='', desc='Number of pages that have been written for doublewrite operations (innodb_dblwr_pages_written)'
@@ -990,73 +957,7 @@ test_report_metrics > report start:
  > metric 'session_cache_timeouts': unit='', desc='The number of SSL session cache timeouts (Ssl_session_cache_timeouts)'
  > metric 'used_session_cache_entries': unit='', desc='How many SSL session cache entries were used (Ssl_used_session_cache_entries)'
 < meter 'mysql.stats.ssl' end (13 metrics)
-> meter 'mysql.x' (desc='MySql X plugin metrics', frequency=10) start:
- > metric 'aborted_clients': unit='', desc='The number of clients that were disconnected because of an input or output error (Mysqlx_aborted_clients)'
- > metric 'bytes_received': unit='By', desc='The total number of bytes received through the network, measured before decompression (Mysqlx_bytes_received)'
- > metric 'bytes_received_compressed_payload': unit='By', desc='The number of bytes received as compressed message payloads, measured before decompression (Mysqlx_bytes_received_compressed_payload)'
- > metric 'bytes_received_uncompressed_frame': unit='By', desc='The number of bytes received as compressed message payloads, measured after decompression (Mysqlx_bytes_received_uncompressed_frame)'
- > metric 'bytes_sent': unit='By', desc='The total number of bytes sent through the network (Mysqlx_bytes_sent)'
- > metric 'bytes_sent_compressed_payload': unit='By', desc='The number of bytes sent as compressed message payloads, measured after compression (Mysqlx_bytes_sent_compressed_payload)'
- > metric 'bytes_sent_uncompressed_frame': unit='By', desc='The number of bytes sent as compressed message payloads, measured before compression (Mysqlx_bytes_sent_uncompressed_frame)'
- > metric 'connection_accept_errors': unit='', desc='The number of connections which have caused accept errors (Mysqlx_connection_accept_errors)'
- > metric 'connection_errors': unit='', desc='The number of connections which have caused errors (Mysqlx_connection_errors)'
- > metric 'connections_accepted': unit='', desc='The number of connections which have been accepted (Mysqlx_connections_accepted)'
- > metric 'connections_closed': unit='', desc='The number of connections which have been closed (Mysqlx_connections_closed)'
- > metric 'connections_rejected': unit='', desc='The number of connections which have been rejected (Mysqlx_connections_rejected)'
- > metric 'crud_create_view': unit='', desc='The number of create view requests received (Mysqlx_crud_create_view)'
- > metric 'crud_delete': unit='', desc='The number of delete requests received (Mysqlx_crud_delete)'
- > metric 'crud_drop_view': unit='', desc='The number of drop view requests received (Mysqlx_crud_drop_view)'
- > metric 'crud_find': unit='', desc='The number of find requests received (Mysqlx_crud_find)'
- > metric 'crud_insert': unit='', desc='The number of insert requests received (Mysqlx_crud_insert)'
- > metric 'crud_modify_view': unit='', desc='The number of modify view requests received (Mysqlx_crud_modify_view)'
- > metric 'crud_update': unit='', desc='The number of update requests received (Mysqlx_crud_update)'
- > metric 'cursor_close': unit='', desc='The number of cursor-close messages received (Mysqlx_cursor_close)'
- > metric 'cursor_fetch': unit='', desc='The number of cursor-fetch messages received (Mysqlx_cursor_fetch)'
- > metric 'cursor_open': unit='', desc='The number of cursor-open messages received (Mysqlx_cursor_open)'
- > metric 'errors_sent': unit='', desc='The number of errors sent to clients (Mysqlx_errors_sent)'
- > metric 'errors_unknown_message_type': unit='', desc='The number of unknown message types that have been received (Mysqlx_errors_unknown_message_type)'
- > metric 'expect_close': unit='', desc='The number of expectation blocks closed (Mysqlx_expect_close)'
- > metric 'expect_open': unit='', desc='The number of expectation blocks opened (Mysqlx_expect_open)'
- > metric 'init_error': unit='', desc='The number of errors during initialisation (Mysqlx_init_error)'
- > metric 'messages_sent': unit='', desc='The total number of messages of all types sent to clients (Mysqlx_messages_sent)'
- > metric 'notice_global_sent': unit='', desc='The number of global notifications sent to clients (Mysqlx_notice_global_sent)'
- > metric 'notice_other_sent': unit='', desc='The number of other types of notices sent back to clients (Mysqlx_notice_other_sent)'
- > metric 'notice_warning_sent': unit='', desc='The number of warning notices sent back to clients (Mysqlx_notice_warning_sent)'
- > metric 'notified_by_group_replication': unit='', desc='Number of Group Replication notifications sent to clients (Mysqlx_notified_by_group_replication)'
- > metric 'prep_deallocate': unit='', desc='The number of prepared-statement-deallocate messages received (Mysqlx_prep_deallocate)'
- > metric 'prep_execute': unit='', desc='The number of prepared-statement-execute messages received (Mysqlx_prep_execute)'
- > metric 'prep_prepare': unit='', desc='The number of prepared-statement messages received (Mysqlx_prep_prepare)'
- > metric 'rows_sent': unit='', desc='The number of rows sent back to clients (Mysqlx_rows_sent)'
- > metric 'sessions': unit='', desc='The number of sessions that have been opened (Mysqlx_sessions)'
- > metric 'sessions_accepted': unit='', desc='The number of session attempts which have been accepted (Mysqlx_sessions_accepted)'
- > metric 'sessions_closed': unit='', desc='The number of sessions that have been closed (Mysqlx_sessions_closed)'
- > metric 'sessions_fatal_error': unit='', desc='The number of sessions that have closed with a fatal error (Mysqlx_sessions_fatal_error)'
- > metric 'sessions_killed': unit='', desc='The number of sessions which have been killed (Mysqlx_sessions_killed)'
- > metric 'sessions_rejected': unit='', desc='The number of session attempts which have been rejected (Mysqlx_sessions_rejected)'
- > metric 'ssl_accepts': unit='', desc='The number of accepted SSL connections (Mysqlx_ssl_accepts)'
- > metric 'ssl_finished_accepts': unit='', desc='The number of successful SSL connections to the server (Mysqlx_ssl_finished_accepts)'
- > metric 'worker_threads': unit='', desc='The number of worker threads available (Mysqlx_worker_threads)'
- > metric 'worker_threads_active': unit='', desc='The number of worker threads currently used (Mysqlx_worker_threads_active)'
-< meter 'mysql.x' end (46 metrics)
-> meter 'mysql.x.stmt' (desc='MySql X plugin statement statistics', frequency=10) start:
- > metric 'create_collection': unit='', desc='The number of create collection statements received (Mysqlx_stmt_create_collection)'
- > metric 'create_collection_index': unit='', desc='The number of create collection index statements received (Mysqlx_stmt_create_collection_index)'
- > metric 'disable_notices': unit='', desc='The number of disable notice statements received (Mysqlx_stmt_disable_notices)'
- > metric 'drop_collection': unit='', desc='The number of drop collection statements received (Mysqlx_stmt_drop_collection)'
- > metric 'drop_collection_index': unit='', desc='The number of drop collection index statements received (Mysqlx_stmt_drop_collection_index)'
- > metric 'enable_notices': unit='', desc='The number of enable notice statements received (Mysqlx_stmt_enable_notices)'
- > metric 'ensure_collection': unit='', desc='The number of ensure collection statements received (Mysqlx_stmt_ensure_collection)'
- > metric 'execute_mysqlx': unit='', desc='The number of StmtExecute messages received with namespace set to mysqlx (Mysqlx_stmt_execute_mysqlx)'
- > metric 'execute_sql': unit='', desc='The number of StmtExecute requests received for the SQL namespace (Mysqlx_stmt_execute_sql)'
- > metric 'get_collection_options': unit='', desc='The number of get collection object statements received (Mysqlx_stmt_get_collection_options)'
- > metric 'kill_client': unit='', desc='The number of kill client statements received (Mysqlx_stmt_kill_client)'
- > metric 'list_clients': unit='', desc='The number of list client statements received (Mysqlx_stmt_list_clients)'
- > metric 'list_notices': unit='', desc='The number of list notice statements received (Mysqlx_stmt_list_notices)'
- > metric 'list_objects': unit='', desc='The number of list object statements received (Mysqlx_stmt_list_objects)'
- > metric 'modify_collection_options': unit='', desc='The number of modify collection options statements received (Mysqlx_stmt_modify_collection_options)'
- > metric 'ping': unit='', desc='The number of ping statements received (Mysqlx_stmt_ping)'
-< meter 'mysql.x.stmt' end (16 metrics)
-test_report_metrics < done reporting (total meters=12, metrics=424)
+test_report_metrics < done reporting (total meters=10, metrics=362)
 TEST - Register duplicate meters/metrics:
 test_duplicate_metrics > called
 *** Meter change notification: mysql.test4 added
@@ -1082,8 +983,6 @@ TEST - Restart server with restricted num. of classes:
 *** Meter change notification: mysql.stats.handler removed
 *** Meter change notification: mysql.stats.ssl removed
 *** Meter change notification: mysql.myisam removed
-*** Meter change notification: mysql.x removed
-*** Meter change notification: mysql.x.stmt removed
 *** Meter change notification: mysql.inno removed
 *** Meter change notification: mysql.inno.buffer_pool removed
 *** Meter change notification: mysql.inno.data removed
