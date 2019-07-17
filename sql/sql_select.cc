@@ -752,12 +752,18 @@ bool optimize_secondary_engine(THD *thd) {
 
 /* Call out to handler to handle this select command */
 bool ha_handle_single_table_select(THD *thd, Query_expression *unit) {
-  /* Simple non-UNION non-NESTED single-table query only */
+  /* Simple non-UNION non-NESTED query only */
   if (!unit->is_simple()) {
     return false;
   }
 
   Query_block *select_lex = unit->first_query_block();
+
+  /* Single table query only */
+  if (select_lex->m_table_list.elements != 1) {
+    return false;
+  }
+
   Table_ref *table_list = select_lex->m_table_list.first;
   if (!table_list) {
     return false;
@@ -785,7 +791,10 @@ bool ha_handle_single_table_select(THD *thd, Query_expression *unit) {
 bool Sql_cmd_dml::execute_inner(THD *thd) {
   Query_expression *unit = lex->unit;
 
-  if (ha_handle_single_table_select(thd, unit)) return false;
+  if (ha_handle_single_table_select(thd, unit)) {
+    // We've handled the query
+    return thd->is_error();
+  }
 
   if (unit->optimize(thd, /*materialize_destination=*/nullptr,
                      /*create_iterators=*/true, /*finalize_access_paths=*/true))
