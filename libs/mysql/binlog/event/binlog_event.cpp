@@ -73,6 +73,7 @@ static const std::unordered_map<Log_event_type, const std::string>
                             {XA_PREPARE_LOG_EVENT, "XA_prepare"},
                             {PARTIAL_UPDATE_ROWS_EVENT, "Update_rows_partial"},
                             {TRANSACTION_PAYLOAD_EVENT, "Transaction_payload"},
+                            {METADATA_EVENT, "Metadata"},
                             {GTID_TAGGED_LOG_EVENT, "Gtid_tagged_log_event"},
                             {UNKNOWN_EVENT, "Unknown"}};
 

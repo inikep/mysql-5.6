@@ -257,7 +257,7 @@ Transaction_boundary_parser::get_event_boundary_type(
     case mysql::binlog::event::HEARTBEAT_LOG_EVENT_V2:
     case mysql::binlog::event::PREVIOUS_GTIDS_LOG_EVENT:
     case mysql::binlog::event::STOP_EVENT:
-    case mysql::binlog::event::SLAVE_EVENT:
+    case mysql::binlog::event::METADATA_EVENT:
     case mysql::binlog::event::DELETE_FILE_EVENT:
     case mysql::binlog::event::TRANSACTION_CONTEXT_EVENT:
       boundary_type = EVENT_BOUNDARY_TYPE_IGNORE;

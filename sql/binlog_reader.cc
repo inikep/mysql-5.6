@@ -317,6 +317,9 @@ Binlog_read_error::Error_type binlog_event_deserialize(
     case mysql::binlog::event::TRANSACTION_PAYLOAD_EVENT:
       ev = new Transaction_payload_log_event(buf, fde);
       break;
+    case binary_log::METADATA_EVENT:
+      ev = new Metadata_log_event(buf, fde);
+      break;
     default:
       /*
         Create an object of Ignorable_log_event for unrecognized sub-class.
