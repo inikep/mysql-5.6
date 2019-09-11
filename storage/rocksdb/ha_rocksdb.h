@@ -33,9 +33,10 @@
 #include "my_dbug.h"
 #include "my_icp.h" /* icp_result */
 #include "mysql/psi/mysql_rwlock.h"
-#include "sql/handler.h"
+#include "sql/handler.h"    /* handler */
 #include "sql/sql_bitmap.h" /* Key_map */
 #include "sql/table.h"
+#include "sql_string.h"
 
 /* RocksDB header files */
 #include "rocksdb/cache.h"
@@ -470,8 +471,6 @@ class ha_rocksdb : public my_core::handler {
                 HA_PARTIAL_COLUMN_READ | HA_ONLINE_ANALYZE);
   }
 
-  /* TODO(yzha) - 070a257a1c3 Issue #108: Index-only scans do not work for
-   * partitioned tables and extended keys  */
   bool init_with_fields() /* override */;
 
   /** @brief
