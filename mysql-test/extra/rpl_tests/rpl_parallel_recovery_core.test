@@ -140,8 +140,8 @@ while ($iterations)
   --let $assert_text = Assert that t3 has 0 records in it
   --source include/assert.inc
 
-  --let $assert_cond = [SELECT count(*) FROM t4 WHERE c1 = 2] = 1
-  --let $assert_text = Assert that t4 has 1 records in it
+  --let $assert_cond = [SELECT count(*) FROM t4 WHERE c1 = 2] = 0
+  --let $assert_text = Assert that t4 has 0 records in it
   --source include/assert.inc
 
   --let $assert_cond = [SELECT count(*) FROM t5 WHERE c1 = 2] = 0
@@ -189,8 +189,8 @@ while ($iterations)
   --source include/wait_for_slave_param.inc
   --source include/wait_for_slave_sql_to_stop.inc
 
-  --let $assert_cond = [SELECT count(*) FROM t3 WHERE c1 = 2] = 1
-  --let $assert_text = Assert that t3 has 1 records in it
+  --let $assert_cond = [SELECT count(*) FROM t3 WHERE c1 = 2] = 0
+  --let $assert_text = Assert that t3 has 0 records in it
   --source include/assert.inc
 
   --let $assert_cond = [SELECT count(*) FROM t5 WHERE c1 = 2] = 0

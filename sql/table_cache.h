@@ -132,7 +132,8 @@ class Table_cache {
   inline void link_unused_table(TABLE *table);
   inline void unlink_unused_table(TABLE *table);
 
-  inline void free_unused_tables_if_necessary(THD *thd);
+  inline void free_unused_tables_if_necessary(THD *thd,
+                                              bool acquire_lock = true);
 
  public:
   bool init();
@@ -151,7 +152,7 @@ class Table_cache {
 
   inline void release_table(THD *thd, TABLE *table);
 
-  inline bool add_used_table(THD *thd, TABLE *table);
+  inline bool add_used_table(THD *thd, TABLE *table, bool acquire_lock = true);
   inline void remove_table(TABLE *table);
 
   /** Get number of TABLE instances in the cache. */
@@ -313,7 +314,7 @@ void Table_cache::unlink_unused_table(TABLE *table) {
         this call if table_cache_size was changed dynamically.
 */
 
-void Table_cache::free_unused_tables_if_necessary(THD *thd) {
+void Table_cache::free_unused_tables_if_necessary(THD *thd, bool acquire_lock) {
   /*
     We have too many TABLE instances around let us try to get rid of them.
 
@@ -322,7 +323,7 @@ void Table_cache::free_unused_tables_if_necessary(THD *thd) {
     at server run time.
   */
   if (m_table_count > table_cache_size_per_instance && m_unused_tables) {
-    mysql_mutex_lock(&LOCK_open);
+    if (acquire_lock) mysql_mutex_lock(&LOCK_open);
     while (m_table_count > table_cache_size_per_instance && m_unused_tables) {
       TABLE *table_to_free = m_unused_tables;
       remove_table(table_to_free);
@@ -331,7 +332,7 @@ void Table_cache::free_unused_tables_if_necessary(THD *thd) {
       global_aggregated_stats.get_shard(thd->thread_id())
           .table_open_cache_overflows++;
     }
-    mysql_mutex_unlock(&LOCK_open);
+    if (acquire_lock) mysql_mutex_unlock(&LOCK_open);
   }
 }
 
@@ -347,7 +348,7 @@ void Table_cache::free_unused_tables_if_necessary(THD *thd) {
    @retval true  - failure.
 */
 
-bool Table_cache::add_used_table(THD *thd, TABLE *table) {
+bool Table_cache::add_used_table(THD *thd, TABLE *table, bool acquire_lock) {
   Table_cache_element *el;
 
   assert_owner();
@@ -383,7 +384,7 @@ bool Table_cache::add_used_table(THD *thd, TABLE *table) {
 
   m_table_count++;
 
-  free_unused_tables_if_necessary(thd);
+  free_unused_tables_if_necessary(thd, acquire_lock);
 
   return false;
 }
