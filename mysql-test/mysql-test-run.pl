@@ -306,6 +306,7 @@ our @DEFAULT_SUITES = qw(
   rocksdb_rpl
   rocksdb_stress
   rocksdb_sys_vars
+  rpl_mts
 );
 
 our $DEFAULT_SUITES = join ',', @DEFAULT_SUITES;
