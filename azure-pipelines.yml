@@ -188,6 +188,8 @@ jobs:
         -DWITH_BOOST=$(BOOST_DIR)
         -DMYSQL_MAINTAINER_MODE=ON
         -DWITH_SYSTEM_LIBS=ON
+        -DWITH_LZ4=bundled
+        -DWITH_ZSTD=bundled
         -DWITH_MECAB=system
         -DWITH_PROTOBUF=bundled
         -DWITH_NUMA=ON
