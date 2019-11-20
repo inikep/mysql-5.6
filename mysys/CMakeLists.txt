@@ -192,6 +192,7 @@ ADD_CONVENIENCE_LIBRARY(mysys ${MYSYS_SOURCES}
   strings
   ext::zlib
   ext::zstd
+  ext::lz4
   ${LIBNSL}
   ${LIBM}
   ${LIBRT}
