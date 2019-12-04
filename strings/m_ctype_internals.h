@@ -25,6 +25,8 @@
 
 #include "mysql/strings/m_ctype.h"
 
+extern bool fast_integer_to_string;
+
 constexpr int MY_CS_CTYPE_TABLE_SIZE = 257;
 constexpr int MY_CS_TO_LOWER_TABLE_SIZE = 256;
 constexpr int MY_CS_TO_UPPER_TABLE_SIZE = 256;

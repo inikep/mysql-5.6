@@ -54,6 +54,7 @@ SET(STRINGS_SOURCES
   sql_chars.cc
   str_alloc.cc
   xml.cc
+  fast_int2str.cc
 )
 
 MYSQL_ADD_EXECUTABLE(uca9dump uca9-dump.cc SKIP_INSTALL)
