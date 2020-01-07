@@ -46,7 +46,6 @@
 #include <mysql/psi/mysql_table.h>
 #include <mysql/thread_pool_priv.h>
 #include <mysys_err.h>
-#include "my_bit.h"
 #include "my_stacktrace.h"
 #include "my_sys.h"
 #include "scope_guard.h"
@@ -93,6 +92,8 @@
 #include "./rdb_mutex_wrapper.h"
 #include "./rdb_psi.h"
 #include "./rdb_threads.h"
+
+#include "my_rapidjson_size_t.h"
 
 #include <rapidjson/document.h>
 
@@ -3122,8 +3123,7 @@ class Rdb_transaction {
       return true;
     } else {
       my_core::thd_binlog_pos(m_thd, &m_mysql_log_file_name,
-                              &m_mysql_log_offset, &m_mysql_gtid,
-                              &m_mysql_max_gtid);
+                              &m_mysql_log_offset);
       binlog_manager.update(m_mysql_log_file_name, m_mysql_log_offset,
                             m_mysql_max_gtid, get_write_batch());
       return commit_no_binlog();
@@ -4758,11 +4758,14 @@ static void rocksdb_recover_binlog_pos(
           pos, file_buf);
 
   if (binlog_max_gtid && *gtid_buf) {
-    global_sid_lock->rdlock();
-    binlog_max_gtid->parse(global_sid_map, gtid_buf);
-    global_sid_lock->unlock();
+    global_tsid_lock->rdlock();
+    auto res = binlog_max_gtid->parse(global_tsid_map, gtid_buf);
+    global_tsid_lock->unlock();
     // NO_LINT_DEBUG
-    fprintf(stderr, "RocksDB: Last MySQL Gtid %s\n", gtid_buf);
+    if (res == mysql::utils::Return_status::ok)
+      fprintf(stderr, "RocksDB: Last MySQL Gtid %s\n", gtid_buf);
+    else
+      fprintf(stderr, "RocksDB: Last MySQL Gtid is corrupted\n");
   }
 }
 
@@ -6806,7 +6809,7 @@ Rdb_table_handler *Rdb_open_tables_map::get_table_handler(
     table_handler->m_ref_count = 0;
     table_handler->m_table_name_length = table_name_str.length();
     table_handler->m_table_name = tmp_name;
-    strxmov(table_handler->m_table_name, table_name, NullS);
+    my_stpmov(table_handler->m_table_name, table_name_str.c_str());
 
     m_table_map.emplace(table_name_str, table_handler);
 
@@ -8954,7 +8957,7 @@ ulong ha_rocksdb::index_flags(uint inx, uint part, bool all_parts) const {
                      HA_READ_ORDER | HA_READ_RANGE | HA_READ_PREV;
 
   DBUG_EXECUTE_IF("myrocks_verify_tbl_share_primary_idx",
-                  { assert(table_arg->primary_key == MAX_INDEXES); };);
+                  { assert(table_share->primary_key == MAX_INDEXES); };);
 
   if (check_keyread_allowed(inx, part, all_parts)) {
     base_flags |= HA_KEYREAD_ONLY;
@@ -9140,7 +9143,7 @@ int ha_rocksdb::index_read_map_impl(uchar *const buf, const uchar *const key,
 
   DBUG_EXECUTE_IF(
       "myrocks_busy_loop_on_row_read", volatile int debug_i = 0;
-      while (1) { debug_i++; });
+      while (1) { int temp = debug_i; temp++; debug_i = temp; });
 
   int rc = 0;
 
@@ -9258,7 +9261,8 @@ int ha_rocksdb::index_read_map_impl(uchar *const buf, const uchar *const key,
 
   bool use_all_keys = false;
   if (find_flag == HA_READ_KEY_EXACT &&
-      my_count_bits(keypart_map) == kd.get_key_parts()) {
+      static_cast<unsigned int>(std::popcount(keypart_map)) ==
+          kd.get_key_parts()) {
     use_all_keys = true;
   }
 

@@ -25,6 +25,8 @@
 
 #include <string>
 
+#undef ZSTD  // defined in storage/rocksdb/CMakeLists.txt
+
 namespace mysql::binlog::event::compression {
 
 // ZSTD version boundary below which instrumented

@@ -1,5 +1,3 @@
-RETURN() # MyRocks is disabled
-
 # TODO: Copyrights
 
 # This is a strong requirement coming from RocksDB. No conditional checks here.
@@ -141,6 +139,7 @@ IF(CMAKE_COMPILER_IS_GNUCXX AND NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 12)
     MESSAGE(STATUS "AVX-512: add -Wno-uninitialized for xxhash.cc (check https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105593)")
     ADD_CXX_COMPILE_FLAGS_TO_FILES(-Wno-uninitialized -Wno-maybe-uninitialized FILES ../../rocksdb/util/xxhash.cc ${BUNDLED_LZ4_PATH}/xxhash.c)
   ENDIF()
+  ADD_CXX_COMPILE_FLAGS_TO_FILES(-Wno-restrict FILES ../../rocksdb/table/iterator.cc ../../rocksdb/table/unique_id.cc)
 ENDIF()
 
 INCLUDE_DIRECTORIES(
@@ -228,7 +227,7 @@ IF (WITH_BZ2)
 ENDIF()
 
 IF (WITH_ZSTD)
-  SET(rocksdb_static_libs ${rocksdb_static_libs} ${ZSTD_LIBRARY})
+  SET(rocksdb_static_libs ${rocksdb_static_libs} ext::zstd)
   ADD_DEFINITIONS(-DZSTD)
   ADD_DEFINITIONS(-DZSTD_STATIC_LINKING_ONLY)
 ENDIF()
@@ -246,7 +245,7 @@ CHECK_INCLUDE_FILES(zlib.h HAVE_ZLIB_H)
 
 IF (HAVE_ZLIB_H)
   ADD_DEFINITIONS(-DZLIB)
-  SET(rocksdb_static_libs ${rocksdb_static_libs} ${ZLIB_LIBRARY})
+  SET(rocksdb_static_libs ${rocksdb_static_libs} ext::zlib)
 ENDIF()
 
 SET(rocksdb_static_libs ${rocksdb_static_libs} "-ldl" "-lpthread")

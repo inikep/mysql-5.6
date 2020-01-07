@@ -27,8 +27,8 @@
 #include <ctype.h>
 
 /* MySQL header files */
-#include "m_ctype.h"
 #include "my_dir.h"
+#include "mysql/strings/m_ctype.h"
 
 /* MyRocks header files */
 #include "./ha_rocksdb.h"
