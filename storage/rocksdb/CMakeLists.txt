@@ -1,5 +1,3 @@
-RETURN() # MyRocks is disabled
-
 # TODO: Copyrights
 
 # This is a strong requirement coming from RocksDB. No conditional checks here.
@@ -101,6 +99,12 @@ IF(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   append_cflags_if_supported(-Wno-deprecated-dynamic-exception-spec)
 ENDIF()
 
+# Suppress googletest warnings for clang-12 or newer
+IF(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 12)
+  ADD_CXX_COMPILE_FLAGS_TO_FILES(-Wno-deprecated-copy FILES ../../rocksdb/options/db_options.cc ../../rocksdb/db/db_impl/db_impl.cc)
+  ADD_CXX_COMPILE_FLAGS_TO_FILES(-Wno-unused-but-set-variable FILES ../../rocksdb/utilities/env_mirror.cc)
+ENDIF()
+
 # Suppress warnings for all gcc versions
 IF(CMAKE_COMPILER_IS_GNUCXX)
   # "cmake/maintainer.cmake" sets "-Wmissing-format-attribute" which cause warnings with RocksDB
@@ -110,6 +114,11 @@ ENDIF()
 # Suppress warnings for gcc-6.x or newer
 IF(CMAKE_COMPILER_IS_GNUCXX AND NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 6)
   ADD_CXX_COMPILE_FLAGS_TO_FILES(-Wno-logical-op FILES ../../rocksdb/file/filename.cc)
+ENDIF()
+
+# Suppress warnings for gcc-8 or newer
+IF(CMAKE_COMPILER_IS_GNUCXX AND NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8)
+  remove_compile_flags(-Wextra-semi)
 ENDIF()
 
 # Suppress warnings for gcc-9 or newer
