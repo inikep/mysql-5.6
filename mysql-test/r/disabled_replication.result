@@ -42,7 +42,7 @@ ERROR HY000: You are not using binary logging
 SHOW BINARY LOG STATUS;
 File	Position	Binlog_Do_DB	Binlog_Ignore_DB	Executed_Gtid_Set
 SHOW REPLICAS;
-Server_Id	Host	Port	Source_Id	Replica_UUID
+Server_Id	Host	Port	Source_Id	Replica_UUID	Is_semi_sync_slave	Replication_status
 RESET BINARY LOGS AND GTIDS;
 SHOW BINLOG EVENTS;
 Log_name	Pos	Event_type	Server_id	End_log_pos	Info
