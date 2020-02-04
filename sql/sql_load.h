@@ -49,7 +49,7 @@ class Sql_cmd_load_table final : public Sql_cmd {
                      enum_source_type source_type, const LEX_STRING &filename,
                      ulong file_count, bool in_key_order,
                      On_duplicate on_duplicate, Table_ident *table,
-                     List<String> *opt_partitions,
+                     bool opt_compressed, List<String> *opt_partitions,
                      const CHARSET_INFO *opt_charset,
                      String *opt_xml_rows_identified_by,
                      const Field_separators &field_separators,
@@ -83,6 +83,7 @@ class Sql_cmd_load_table final : public Sql_cmd {
       m_opt_set_exprs = std::move(*opt_set_exprs);
     }
 
+    m_exchange.load_compressed = opt_compressed;
     m_exchange.cs = opt_charset;
 
     if (opt_xml_rows_identified_by != nullptr)
@@ -160,9 +161,12 @@ class Sql_cmd_load_table final : public Sql_cmd {
   bool read_xml_field(THD *thd, COPY_INFO &info, Table_ref *table_list,
                       READ_INFO &read_info, ulong skip_lines);
 
-  bool write_execute_load_query_log_event(
-      THD *thd, const char *db, const char *table_name, bool is_concurrent,
-      enum enum_duplicates duplicates, bool transactional_table, int errocode);
+  bool write_execute_load_query_log_event(THD *thd, const char *db,
+                                          const char *table_name,
+                                          bool is_concurrent,
+                                          enum enum_duplicates duplicates,
+                                          bool transactional_table,
+                                          int errocode, bool compressed);
 
  private:
   /// true if BULK LOAD.
