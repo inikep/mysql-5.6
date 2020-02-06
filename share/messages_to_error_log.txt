@@ -12288,6 +12288,15 @@ ER_GRP_RPL_MEMBER_INFO_DOES_NOT_EXIST
 ER_USAGE_DEPRECATION_COUNTER
   eng "Deprecated '%s' used %s times, last time used '%s'."
 
+ER_IB_SLOWRM_GET_TIME
+  eng "%s"
+
+ER_IB_SLOWRM_CREATE_DIR
+  eng "%s"
+
+ER_IB_SLOWRM_MOVE_FILE
+  eng "%s"
+
 #
 # End of 8.0 error messages intended to be written to the server error log.
 #
