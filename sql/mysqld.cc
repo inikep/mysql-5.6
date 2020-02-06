@@ -1456,6 +1456,7 @@ ulong max_nonsuper_connections = 0;
 std::atomic<ulong> nonsuper_connections(0);
 ulong opt_max_running_queries = 0, opt_max_waiting_queries = 0;
 ulong rpl_stop_replica_timeout = LONG_TIMEOUT;
+bool rpl_slave_flow_control = true;
 bool thread_cache_size_specified = false;
 bool host_cache_size_specified = false;
 bool table_definition_cache_specified = false;
