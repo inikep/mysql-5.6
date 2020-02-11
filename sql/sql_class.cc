@@ -59,7 +59,7 @@
 #include "mysql/strings/m_ctype.h"
 #include "mysys_err.h"  // EE_OUTOFMEMORY
 #include "pfs_statement_provider.h"
-#include "rpl_source.h"  // unregister_slave
+#include "rpl_source.h"  // unregister_replica
 #include "scope_guard.h"
 #include "server_component/mysql_server_event_tracking_bridge_imp.h"
 #include "sql/auth/auth_acls.h"
