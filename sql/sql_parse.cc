@@ -2232,6 +2232,27 @@ bool dispatch_command(THD *thd, const COM_DATA *com_data,
         thd->query_perf->start();
       }
 
+      // Check checksum if enabled
+      if (enable_query_checksum) {
+        bool failed = false;
+        for (const auto &p : thd->query_attrs_list) {
+          if (p.first == "query_checksum") {
+            unsigned long checksum =
+                crc32(0, (const uchar *)com_data->com_query.query,
+                      com_data->com_query.length);
+            unsigned long expected = std::stoul(p.second);
+            if (expected != checksum) {
+              my_error(ER_QUERY_CHECKSUM_FAILED, MYF(0), expected, checksum);
+              failed = true;
+            }
+          }
+        }
+        // Abort further processing
+        if (failed) {
+          break;
+        }
+      }
+
       if (alloc_query(thd, com_data->com_query.query,
                       com_data->com_query.length)) {
         MYSQL_NOTIFY_STATEMENT_QUERY_ATTRIBUTES(thd->m_statement_psi, false);
