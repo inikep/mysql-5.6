@@ -182,6 +182,7 @@ static bool ignore_errors = false, wait_flag = false, quick = false,
             ignore_spaces = false, sigint_received = false, opt_syslog = false,
             opt_binhex = false;
 static bool opt_binary_as_hex_set_explicitly = false;
+static bool opt_checksum = false;
 static bool debug_info_flag, debug_check_flag;
 static bool column_types_flag;
 static bool preserve_comments = true;
@@ -352,8 +353,10 @@ static int com_quit(String *buffer, char *), com_go(String *buffer, char *),
     com_prompt(String *buffer, char *), com_delimiter(String *buffer, char *),
     com_warnings(String *buffer, char *),
     com_nowarnings(String *buffer, char *),
-    com_resetconnection(String *buffer, char *), com_attr(String *buffer, char *),
+    com_resetconnection(String *buffer, char *),
+    com_attr(String *buffer, char *),
     com_query_attributes(String *buffer, char *),
+    com_resp_attr(String *str, char *),
     com_ssl_session_data_print(String *buffer, char *);
 static int com_shell(String *buffer, char *);
 
@@ -435,6 +438,7 @@ static COMMANDS commands[] = {
     {"quit", 'q', com_quit, false, "Quit mysql."},
     {"rehash", '#', com_rehash, false, "Rebuild completion hash."},
     {"setattr", 'z', com_attr, true, "Set query attribute."},
+    {"getattr", 'z', com_resp_attr, true, "Get response attribute."},
     {"source", '.', com_source, true,
      "Execute an SQL script file. Takes a file name as an argument."},
     {"status", 's', com_status, false,
@@ -1943,6 +1947,11 @@ static struct my_option my_long_options[] = {
      "with --disable-reconnect. This option is enabled by default.",
      &opt_reconnect, &opt_reconnect, nullptr, GET_BOOL, NO_ARG, 1, 0, 0,
      nullptr, 0, nullptr},
+    {"checksum", OPT_CHECKSUM,
+     "Use query and resultset checksums to verify the integrity of the query "
+     "and resultset in transit. This is disabled by default.",
+     &opt_checksum, &opt_checksum, 0, GET_BOOL, NO_ARG, 0, 0, 0, nullptr, 0,
+     nullptr},
     {"silent", 's',
      "Be more silent. Print results with a tab as separator, "
      "each row on new line.",
@@ -3418,6 +3427,8 @@ static int mysql_real_query_for_lazy(const char *buf, size_t length,
     }
 
     if (set_params && global_attrs->set_params(&mysql_handle)) break;
+    if (opt_checksum)
+      mysql_options4(&mysql_handle, MYSQL_OPT_QUERY_ATTR_ADD, "checksum", "ON");
     if (!mysql_real_query(&mysql_handle, buf, (ulong)length)) break;
     error = put_error(&mysql_handle);
     if ((mysql_errno(&mysql_handle) != CR_SERVER_GONE_ERROR &&
@@ -4529,6 +4540,31 @@ static int com_attr(String *buffer [[maybe_unused]], char *line) {
   }
 
   mysql_options4(&mysql_handle, MYSQL_OPT_QUERY_ATTR_ADD, key, val);
+
+  free(buf);
+  return 0;
+}
+
+static int com_resp_attr(String *, char *line) {
+  static const char *delim = " \t";
+  char *ptr = nullptr;
+  char *buf = strdup(line);
+  const char *cmd __attribute__((unused)) = strtok_r(buf, delim, &ptr);
+  const char *key = strtok_r(nullptr, delim, &ptr);
+
+  if (!key) {
+    put_info("Usage: getattr key", INFO_ERROR);
+    free(buf);
+    return -1;
+  }
+
+  const char *value;
+  size_t len;
+  if (!mysql_resp_attr_find(&mysql_handle, key, &value, &len)) {
+    char *tmp = strndup(value, len);
+    put_info(tmp, INFO_INFO);
+    free(tmp);
+  }
 
   free(buf);
   return 0;
