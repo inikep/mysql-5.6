@@ -1406,6 +1406,11 @@ bool THD::release_resources_done() const {
          enum_thd_life_cycle_stages::RESOURCES_RELEASED;
 }
 
+bool THD::release_resources_not_done() const {
+  return m_thd_life_cycle_stage <
+         enum_thd_life_cycle_stages::RESOURCES_RELEASED;
+}
+
 bool THD::is_being_disposed() const {
 #ifndef NDEBUG
   if (current_thd != this) mysql_mutex_assert_owner(&LOCK_thd_data);
