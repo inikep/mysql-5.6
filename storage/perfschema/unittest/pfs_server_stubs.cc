@@ -52,6 +52,8 @@ void compute_digest_hash(const sql_digest_storage *, unsigned char *) {}
 
 void reset_status_vars() {}
 
+bool THD::release_resources_not_done() const { return false; }
+
 struct System_status_var *get_thd_status_var(THD *, bool *) {
   return nullptr;
 }

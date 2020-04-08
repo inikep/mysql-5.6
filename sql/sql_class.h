@@ -2890,6 +2890,7 @@ class THD : public MDL_context_owner,
     @returns true if THD resources are released.
   */
   bool release_resources_done() const;
+  bool release_resources_not_done() const;
   /**
     Check if THD is being disposed (i.e. m_thd_life_cycle_stage >=
     SCHEDULED_FOR_DISPOSAL)
