@@ -1015,7 +1015,8 @@ int mysql_event_tracking_general_notify(
 
   if (event.event_subclass &
       (EVENT_TRACKING_GENERAL_ERROR | EVENT_TRACKING_GENERAL_STATUS |
-       EVENT_TRACKING_GENERAL_RESULT)) {
+       EVENT_TRACKING_GENERAL_RESULT | EVENT_TRACKING_GENERAL_WARNING_INSTR |
+       EVENT_TRACKING_GENERAL_ERROR_INSTR)) {
     Ignore_event_tracking_error_handler handler(thd, subclass_name);
     return handler.get_result(event_tracking_dispatch(thd, &event_generic));
   }

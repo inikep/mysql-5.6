@@ -1020,6 +1020,12 @@ DEFINE_BOOL_METHOD(Event_general_bridge_implementation::notify,
       case EVENT_TRACKING_GENERAL_RESULT:
         plugin_data.event_subclass = MYSQL_AUDIT_GENERAL_RESULT;
         break;
+      case EVENT_TRACKING_GENERAL_WARNING_INSTR:
+        plugin_data.event_subclass = MYSQL_AUDIT_GENERAL_WARNING_INSTR;
+        break;
+      case EVENT_TRACKING_GENERAL_ERROR_INSTR:
+        plugin_data.event_subclass = MYSQL_AUDIT_GENERAL_ERROR_INSTR;
+        break;
       default:
         assert(false);
         break;

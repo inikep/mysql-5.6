@@ -53,6 +53,16 @@ Component: event_tracking_consumer_a. Event : EVENT_TRACKING_GENERAL_STATUS. Dat
 Component: event_tracking_producer_a. Event: EVENT_TRACKING_GENERAL_STATUS. Consumer returned: Success.
 -------------------------------------------------------------
 -------------------------------------------------------------
+Component: event_tracking_producer_a. Event : EVENT_TRACKING_GENERAL_WARNING_INSTR.
+Component: event_tracking_consumer_a. Event : EVENT_TRACKING_GENERAL_WARNING_INSTR. Data : [ User: user, Host: example.com ].
+Component: event_tracking_producer_a. Event: EVENT_TRACKING_GENERAL_WARNING_INSTR. Consumer returned: Success.
+-------------------------------------------------------------
+-------------------------------------------------------------
+Component: event_tracking_producer_a. Event : EVENT_TRACKING_GENERAL_ERROR_INSTR.
+Component: event_tracking_consumer_a. Event : EVENT_TRACKING_GENERAL_ERROR_INSTR. Data : [ User: user, Host: example.com ].
+Component: event_tracking_producer_a. Event: EVENT_TRACKING_GENERAL_ERROR_INSTR. Consumer returned: Success.
+-------------------------------------------------------------
+-------------------------------------------------------------
 Component: event_tracking_producer_a. Event : EVENT_TRACKING_QUERY_START.
 Component: event_tracking_consumer_a. Event : EVENT_TRACKING_QUERY_START. Data : [ SQL Command: SQLCOM_SELECT, Query: SELECT * FROM demodb.demo_table; ].
 Component: event_tracking_producer_a. Event: EVENT_TRACKING_QUERY_START. Consumer returned: Success.

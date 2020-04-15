@@ -1155,6 +1155,16 @@ bool Event_tracking_general_implementation::callback(
       event_name.assign(EVENT_NAME(EVENT_TRACKING_GENERAL_STATUS));
       break;
     }
+    case EVENT_TRACKING_GENERAL_WARNING_INSTR: {
+      retrieve_and_compare(true, true, true, Event_types::GENERAL_INFORMATION);
+      event_name.assign(EVENT_NAME(EVENT_TRACKING_GENERAL_WARNING_INSTR));
+      break;
+    }
+    case EVENT_TRACKING_GENERAL_ERROR_INSTR: {
+      retrieve_and_compare(true, true, true, Event_types::GENERAL_INFORMATION);
+      event_name.assign(EVENT_NAME(EVENT_TRACKING_GENERAL_ERROR_INSTR));
+      break;
+    }
     default:
       return true;
   };

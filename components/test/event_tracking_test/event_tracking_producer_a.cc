@@ -174,6 +174,16 @@ bool Event_producer::generate_events() {
       if (generate_event(general_service, &general_data,
                          EVENT_NAME(EVENT_TRACKING_GENERAL_STATUS)))
         return true;
+
+      general_data.event_subclass = EVENT_TRACKING_GENERAL_WARNING_INSTR;
+      if (generate_event(general_service, &general_data,
+                         EVENT_NAME(EVENT_TRACKING_GENERAL_WARNING_INSTR)))
+        return true;
+
+      general_data.event_subclass = EVENT_TRACKING_GENERAL_ERROR_INSTR;
+      if (generate_event(general_service, &general_data,
+                         EVENT_NAME(EVENT_TRACKING_GENERAL_ERROR_INSTR)))
+        return true;
     }
   }
 

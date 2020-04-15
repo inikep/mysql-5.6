@@ -49,6 +49,8 @@ LEX_CSTRING event_names[][6] = {
         {STRING_WITH_LEN("MYSQL_AUDIT_GENERAL_ERROR")},
         {STRING_WITH_LEN("MYSQL_AUDIT_GENERAL_RESULT")},
         {STRING_WITH_LEN("MYSQL_AUDIT_GENERAL_STATUS")},
+        {STRING_WITH_LEN("MYSQL_AUDIT_GENERAL_WARNING_INSTR")},
+        {STRING_WITH_LEN("MYSQL_AUDIT_GENERAL_ERROR_INSTR")},
     },
     /** MYSQL_AUDIT_CONNECTION_CLASS */
     {
@@ -531,6 +533,7 @@ static int audit_null_notify(MYSQL_THD thd, mysql_event_class_t event_class,
   const LEX_CSTRING event_data = get_token(&order_str);
   LEX_CSTRING event_command = get_token(&order_str);
   bool consume_event = true;
+  int temp;
 
   /* prone to races, oh well */
   increment_counter(&number_of_calls);
@@ -559,6 +562,14 @@ static int audit_null_notify(MYSQL_THD thd, mysql_event_class_t event_class,
         increment_counter(&number_of_calls_general_status);
         break;
       }
+      case MYSQL_AUDIT_GENERAL_WARNING_INSTR:
+        temp = number_of_calls_general_warning_instr + 1;
+        number_of_calls_general_warning_instr = temp;
+        break;
+      case MYSQL_AUDIT_GENERAL_ERROR_INSTR:
+        temp = number_of_calls_general_error_instr + 1;
+        number_of_calls_general_error_instr = temp;
+        break;
       default:
         break;
     }
