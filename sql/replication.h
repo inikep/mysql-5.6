@@ -777,7 +777,7 @@ typedef struct Raft_replication_observer {
 
      @param param Observer common parameter
      @param cache IO_CACHE containing binlog events for the txn
-     @param noop  Is this a Raft NOOP event being faked as a Rotate Event
+     @param no_op Is this a Raft NOOP event being faked as a Rotate Event
 
      @retval 0 Sucess
      @retval 1 Failure
