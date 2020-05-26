@@ -5040,6 +5040,12 @@ extract_log_event_basic_info(
     const mysql::binlog::event::Format_description_event *fd_event);
 
 /**
+
+  Set the global print_sql_string option
+ */
+void my_b_set_print_sql_string(bool option);
+
+/**
   @} (end of group Replication)
 */
 
