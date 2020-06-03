@@ -936,10 +936,16 @@ class Rows_event : public Binary_log_event {
     */
     COMPLETE_ROWS_F = (1U << 3),
     /**
+      Indicates that this event is for writing a row as part of a blind
+      'replace into' statement optimization where pk constraints are ignored.
+      Note that we are using the MSB to make this forward compatible
+    */
+    BLIND_REPLACE_INTO_F = (1U << 15),
+    /**
       Flags for everything. Please update when you add new flags.
      */
-    ALL_FLAGS = STMT_END_F | NO_FOREIGN_KEY_CHECKS_F | RELAXED_UNIQUE_CHECKS_F |
-                COMPLETE_ROWS_F
+    ALL_FLAGS = STMT_END_F | NO_FOREIGN_KEY_CHECKS_F | COMPLETE_ROWS_F |
+                BLIND_REPLACE_INTO_F
   };
 
   /**
@@ -1081,8 +1087,8 @@ class Rows_event : public Binary_log_event {
     an empty string.
    */
   std::string get_enum_flag_string() const {
-    assert((STMT_END_F | NO_FOREIGN_KEY_CHECKS_F | RELAXED_UNIQUE_CHECKS_F |
-            COMPLETE_ROWS_F) == ALL_FLAGS);
+    assert((STMT_END_F | NO_FOREIGN_KEY_CHECKS_F | COMPLETE_ROWS_F |
+            BLIND_REPLACE_INTO_F) == ALL_FLAGS);
     if (!m_flags) return "";
     std::stringstream ss;
     ss << " flags:";
@@ -1090,6 +1096,7 @@ class Rows_event : public Binary_log_event {
     if (m_flags & NO_FOREIGN_KEY_CHECKS_F) ss << " NO_FOREIGN_KEY_CHECKS_F";
     if (m_flags & RELAXED_UNIQUE_CHECKS_F) ss << " RELAXED_UNIQUE_CHECKS_F";
     if (m_flags & COMPLETE_ROWS_F) ss << " COMPLETE_ROWS_F";
+    if (m_flags & BLIND_REPLACE_INTO_F) ss << " BLIND_REPLACE_INTO_F";
     if (m_flags & ~ALL_FLAGS) {
       assert(false);
       auto unknown_flags = m_flags & ~ALL_FLAGS;
@@ -1112,6 +1119,7 @@ class Rows_event : public Binary_log_event {
     if (flag & NO_FOREIGN_KEY_CHECKS_F) str.append(" No foreign Key checks");
     if (flag & RELAXED_UNIQUE_CHECKS_F) str.append(" No unique key checks");
     if (flag & COMPLETE_ROWS_F) str.append(" Complete Rows");
+    if (flag & BLIND_REPLACE_INTO_F) str.append(" Blind Replace Into");
     if (flag & ~ALL_FLAGS) str.append(" Unknown Flag");
     return str;
   }
