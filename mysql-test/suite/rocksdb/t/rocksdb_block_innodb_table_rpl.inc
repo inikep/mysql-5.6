@@ -19,9 +19,9 @@ create table t0(a int primary key) engine=InnoDB charset=latin1;
 --echo # with enable_user_tables_engine_check=OFF on both master and slave
 --echo #
 connection slave;
-stop slave sql_thread;
+stop replica sql_thread;
 SET @@global.enable_user_tables_engine_check=OFF;
-start slave sql_thread;
+start replica sql_thread;
 connection master;
 SET @@session.enable_user_tables_engine_check=OFF;
 create table t1(a int primary key) engine=InnoDB charset=latin1;

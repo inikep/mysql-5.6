@@ -22,9 +22,9 @@ include/sync_slave_sql_with_master.inc
 # Create table on master where engine is not substituted
 # with enable_user_tables_engine_check=OFF on both master and slave
 #
-stop slave sql_thread;
+stop replica sql_thread;
 SET @@global.enable_user_tables_engine_check=OFF;
-start slave sql_thread;
+start replica sql_thread;
 SET @@session.enable_user_tables_engine_check=OFF;
 create table t1(a int primary key) engine=InnoDB charset=latin1;
 # Print storage engines of both tables created on master

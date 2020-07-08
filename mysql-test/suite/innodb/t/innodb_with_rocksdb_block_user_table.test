@@ -16,8 +16,9 @@ create table t1(a int primary key) engine=InnoDB;
 create temporary table temp_t1(a int primary key) engine=InnoDB;
 show create table temp_t1;
 drop table temp_t1;
---Error ER_ILLEGAL_HA_CREATE_OPTION
 create temporary table temp_t1(a int primary key) engine=Rocksdb;
+show create table temp_t1;
+drop table temp_t1;
 
 create table mysql.enable_user_tables_engine_check_test(a int primary key);
 show create table mysql.enable_user_tables_engine_check_test;
@@ -44,8 +45,9 @@ drop table t1;
 create temporary table temp_t1(a int primary key) engine=InnoDB;
 show create table temp_t1;
 drop table temp_t1;
---Error ER_ILLEGAL_HA_CREATE_OPTION
 create temporary table temp_t1(a int primary key) engine=Rocksdb;
+show create table temp_t1;
+drop table temp_t1;
 
 create table mysql.enable_user_tables_engine_check_test(a int primary key);
 show create table mysql.enable_user_tables_engine_check_test;
