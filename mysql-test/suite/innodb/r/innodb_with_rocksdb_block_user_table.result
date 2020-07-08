@@ -23,7 +23,13 @@ temp_t1	CREATE TEMPORARY TABLE `temp_t1` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 drop table temp_t1;
 create temporary table temp_t1(a int primary key) engine=Rocksdb;
-ERROR HY000: Table storage engine 'ROCKSDB' does not support the create option 'TEMPORARY'
+show create table temp_t1;
+Table	Create Table
+temp_t1	CREATE TEMPORARY TABLE `temp_t1` (
+  `a` int NOT NULL,
+  PRIMARY KEY (`a`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+drop table temp_t1;
 create table mysql.enable_user_tables_engine_check_test(a int primary key);
 show create table mysql.enable_user_tables_engine_check_test;
 Table	Create Table
@@ -70,7 +76,13 @@ temp_t1	CREATE TEMPORARY TABLE `temp_t1` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 drop table temp_t1;
 create temporary table temp_t1(a int primary key) engine=Rocksdb;
-ERROR HY000: Table storage engine 'ROCKSDB' does not support the create option 'TEMPORARY'
+show create table temp_t1;
+Table	Create Table
+temp_t1	CREATE TEMPORARY TABLE `temp_t1` (
+  `a` int NOT NULL,
+  PRIMARY KEY (`a`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+drop table temp_t1;
 create table mysql.enable_user_tables_engine_check_test(a int primary key);
 show create table mysql.enable_user_tables_engine_check_test;
 Table	Create Table
