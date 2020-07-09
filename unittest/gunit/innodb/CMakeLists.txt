@@ -87,6 +87,9 @@ MYSQL_ADD_EXECUTABLE(merge_innodb_tests-t ${ALL_INNODB_TESTS}
 #TARGET_LINK_LIBRARIES(merge_innodb_tests-t tbb -L${TBB_LIBDIR} -Wl,-rpath=${TBB_LIBDIR})
 #INCLUDE_DIRECTORIES(${TBB_INCDIR})
 
+# Necessary to make sure that we can use the jemalloc API calls.
+MY_TARGET_LINK_OPTIONS(merge_innodb_tests-t "${WITH_MYSQLD_LDFLAGS}")
+
 ADD_DEPENDENCIES(merge_innodb_tests-t GenError)
 
 FOREACH(test ${TESTS})
@@ -98,6 +101,10 @@ FOREACH(test ${TESTS})
     LINK_LIBRARIES gunit_large server_unittest_library
     DEPENDENCIES GenError
     )
+
+  # Necessary to make sure that we can use the jemalloc API calls.
+  MY_TARGET_LINK_OPTIONS(${test}-t "${WITH_MYSQLD_LDFLAGS}")
+
 ENDFOREACH()
 
 ADD_SUBDIRECTORY(lob)

@@ -20,6 +20,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+IF(WITH_JEMALLOC)
+  STRING(REPLACE "-ljemalloc" "" CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
+ENDIF()
+
 INCLUDE(cmake/version.cmake)
 SET(CMAKE_MODULE_PATH
   ${CMAKE_MODULE_PATH}

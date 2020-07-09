@@ -76,3 +76,5 @@ TARGET_LINK_LIBRARIES(pfs_connect_attr-t
   server_unittest_library
   ${MYSQLD_EXTRA_LIBRARIES}
   )
+
+MY_TARGET_LINK_OPTIONS(pfs_connect_attr-t "${WITH_MYSQLD_LDFLAGS}")

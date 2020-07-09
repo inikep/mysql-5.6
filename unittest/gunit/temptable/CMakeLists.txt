@@ -50,6 +50,9 @@ TARGET_LINK_LIBRARIES(merge_temptable_tests-t
 
 TARGET_LINK_LIBRARIES(merge_temptable_tests-t perfschema)
 
+# Necessary to make sure that we can use the jemalloc API calls.
+MY_TARGET_LINK_OPTIONS(merge_temptable_tests-t "${WITH_MYSQLD_LDFLAGS}")
+
 ADD_DEPENDENCIES(merge_temptable_tests-t GenError)
 
 FOREACH(test ${TESTS})
@@ -62,6 +65,9 @@ FOREACH(test ${TESTS})
     gunit_large
     server_unittest_library
     )
+
+  # Necessary to make sure that we can use the jemalloc API calls.
+  MY_TARGET_LINK_OPTIONS(${test}-t "${WITH_MYSQLD_LDFLAGS}")
 
   ADD_DEPENDENCIES(${test}-t GenError)
 

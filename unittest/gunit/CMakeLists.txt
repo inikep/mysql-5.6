@@ -361,6 +361,9 @@ MYSQL_ADD_EXECUTABLE(merge_large_tests-t ${ALL_LARGE_TESTS}
   LINK_LIBRARIES gunit_large server_unittest_library
   )
 
+# Necessary to make sure that we can use the jemalloc API calls.
+MY_TARGET_LINK_OPTIONS(merge_large_tests-t "${WITH_MYSQLD_LDFLAGS}")
+
 FOREACH(test ${TESTS})
   MYSQL_ADD_EXECUTABLE(${test}-t ${test}-t.cc
     COMPILE_DEFINITIONS ${DISABLE_PSI_DEFINITIONS}
@@ -395,6 +398,9 @@ FOREACH(test ${SERVER_TESTS})
     LINK_LIBRARIES gunit_large server_unittest_library
     SKIP_INSTALL
     )
+
+  # Necessary to make sure that we can use the jemalloc API calls.
+  MY_TARGET_LINK_OPTIONS(${test}-t "${WITH_MYSQLD_LDFLAGS}")
 ENDFOREACH()
 
 ADD_LIBRARY(rpl_channel_credentials_lib STATIC

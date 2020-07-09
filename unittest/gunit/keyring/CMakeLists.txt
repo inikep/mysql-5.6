@@ -69,11 +69,17 @@ TARGET_LINK_LIBRARIES(merge_keyring_file_tests-t
   server_unittest_library
   )
 
+# Necessary to make sure that we can use the jemalloc API calls.
+MY_TARGET_LINK_OPTIONS(merge_keyring_file_tests-t "${WITH_MYSQLD_LDFLAGS}")
+
 ADD_DEPENDENCIES(merge_keyring_file_tests-t GenError)
 
 FOREACH(test ${TESTS})
   MYSQL_ADD_EXECUTABLE(${test}-t ${test}-t.cc
     ENABLE_EXPORTS SKIP_INSTALL EXCLUDE_FROM_ALL)
+
+  # Necessary to make sure that we can use the jemalloc API calls.
+  MY_TARGET_LINK_OPTIONS(${test}-t "${WITH_MYSQLD_LDFLAGS}")
 
   TARGET_LINK_LIBRARIES(${test}-t
     keyring_test
