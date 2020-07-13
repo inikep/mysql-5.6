@@ -92,6 +92,7 @@ struct mysql_event_tracking_connection_data {
 
   mysql_cstring_with_length connection_certificate;
   unsigned int port;
+  mysql_cstring_with_length shard;
 };
 
 #endif  // !COMPONENTS_SERVICES_DEFS_EVENT_TRACKING_CONNECTION_DEFS_H

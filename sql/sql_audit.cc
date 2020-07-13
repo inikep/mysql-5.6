@@ -946,6 +946,10 @@ int mysql_event_tracking_connection_notify(
       thd->get_connection_certificate().size();
   event.port = mysqld_port;
 
+  std::string shard_str = thd->shard_id();
+  event.shard.str = shard_str.c_str();
+  event.shard.length = shard_str.size();
+
   struct st_mysql_event_generic event_generic;
   event_generic.event = &event;
   event_generic.event_information = nullptr;
@@ -998,6 +1002,10 @@ int mysql_event_tracking_general_notify(
   event.query_id = thd->query_id;
   event.affected_rows = thd->get_row_count_func();
   event.port = mysqld_port;
+
+  std::string shard_str = thd->shard_id();
+  event.shard.str = shard_str.c_str();
+  event.shard.length = shard_str.size();
 
   Event_tracking_general_information general_information(
       subclass,

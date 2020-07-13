@@ -988,6 +988,7 @@ DEFINE_BOOL_METHOD(Event_connection_bridge_implementation::notify,
     plugin_data.connection_certificate.length =
         thd->get_connection_certificate().size();
     plugin_data.port = mysqld_port;
+    plugin_data.shard = TO_LEXCSTRING(data->shard);
 
     return event_class_dispatch(thd, MYSQL_AUDIT_CONNECTION_CLASS,
                                 &plugin_data);
@@ -1036,6 +1037,7 @@ DEFINE_BOOL_METHOD(Event_general_bridge_implementation::notify,
     plugin_data.query_id = thd->query_id;
     plugin_data.affected_rows = thd->get_row_count_func();
     plugin_data.port = mysqld_port;
+    plugin_data.shard = TO_LEXCSTRING(data->shard);
 
     plugin_data.general_error_code = data->error_code;
     plugin_data.general_thread_id = data->connection_id;
