@@ -278,6 +278,10 @@ our @DEFAULT_SUITES = qw(
   parts
   perfschema
   query_rewrite_plugins
+  rocksdb
+  rocksdb_rpl
+  rocksdb_stress
+  rocksdb_sys_vars
   rpl
   rpl_gtid
   rpl_nogtid
