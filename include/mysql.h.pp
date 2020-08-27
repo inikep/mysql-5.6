@@ -686,6 +686,7 @@ int mysql_session_track_get_next(MYSQL *mysql,
                                          const char **data, size_t *length);
 int mysql_resp_attr_find(MYSQL *mysql, const char *lookup,
                                  const char **data, size_t *length);
+enum connect_stage mysql_get_connect_stage(MYSQL *mysql);
 void mysql_set_local_infile_handler(
     MYSQL *mysql, int (*local_infile_init)(void **, const char *, void *),
     int (*local_infile_read)(void *, char *, unsigned int),
