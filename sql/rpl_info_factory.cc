@@ -207,6 +207,8 @@ Relay_log_info *Rpl_info_factory::create_rli(uint rli_option,
     return nullptr;
   }
 
+  rli->populate_recovery_binlog_max_gtid();
+
   if (init_repository(rli_table_data, rli_option, &handler)) {
     msg = "Failed to initialize the applier metadata repository";
     is_error = true;

@@ -621,16 +621,15 @@ int ReplicaInitializer::init_replica() {
     /* Extract engine_binlog_max_gtid using global_tsid_map */
     mysql_bin_log.engine_binlog_max_gtid.to_string(global_tsid_map, buf,
                                                    /* need_lock */ true);
+    mysql_bin_log.set_recovery_binlog_max_gtid(buf);
 
     /* Now set rli->recovery_max_engine_gtid (and optionally add
        it into rli->recovery_tsid_map */
     for (const auto &channel : channel_map) {
-      channel.second->rli->recovery_tsid_lock.rdlock();
-      auto status [[maybe_unused]] =
-          channel.second->rli->recovery_max_engine_gtid.parse(
-              &channel.second->rli->recovery_tsid_map, buf);
-      channel.second->rli->recovery_tsid_lock.unlock();
+      channel.second->rli->populate_recovery_binlog_max_gtid();
     }
+
+    LogErr(SYSTEM_LEVEL, ER_RPL_SLAVE_MAX_GTID_RECOVERED, buf);
   }
 
   if (is_slave && mysql_bin_log.engine_binlog_pos != ULLONG_MAX &&
