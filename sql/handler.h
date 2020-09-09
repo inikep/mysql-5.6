@@ -4216,7 +4216,7 @@ class handler {
   std::mt19937 m_random_number_engine;
   double m_sampling_percentage;
 
- /* TODO(yzha) - we needed these to be public for MYSQL_TABLE_IO_WAIT */
+  /* TODO(yzha) - we needed these to be public for MYSQL_TABLE_IO_WAIT */
  public:
   /** Internal state of the batch instrumentation. */
   enum batch_mode_t {
