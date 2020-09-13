@@ -302,6 +302,7 @@ our @DEFAULT_SUITES = qw(
   engines/iuds
   engines/funcs
   funcs_1
+  grant
   jp
   stress
   rocksdb
