@@ -367,6 +367,7 @@ extern ulonglong opt_mts_dependency_size;
 extern double opt_mts_dependency_refill_threshold;
 extern ulonglong opt_mts_dependency_max_keys;
 extern ulonglong opt_mts_pending_jobs_size_max;
+extern ulong opt_mts_dependency_order_commits;
 extern ulong rpl_stop_replica_timeout;
 extern bool rpl_skip_tx_api;
 extern ulong what_to_log, flush_time;
