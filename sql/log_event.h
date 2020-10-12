@@ -2136,6 +2136,7 @@ class Rotate_log_event : public mysql::binlog::event::Rotate_event,
 #if defined(MYSQL_SERVER)
   int do_update_pos(Relay_log_info *rli) override;
   enum_skip_reason do_shall_skip(Relay_log_info *rli) override;
+  int do_apply_event(Relay_log_info const *rli) override;
 #endif
 };
 
