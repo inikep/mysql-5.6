@@ -259,13 +259,16 @@ namespace info_schema {
   80300-001:
   - information_schema tables changed to have username of 80 chars
 
-  80032-002:
+  80300-002:
   - add DB_METADATA to INFORMATION_SCHEMA.SCHEMATA_EXTENSIONS
+
+  80300-003:
+  - Fixed the sys view to rely on performance_schema default collation
 */
 
-static const uint IS_DD_VERSION = 80300002;
+static const uint IS_DD_VERSION = 80300003;
 static_assert((IS_DD_VERSION <= MYSQL_VERSION_ID) ||
-                  ((IS_DD_VERSION == 80300002) && (MYSQL_VERSION_ID >= 80300)),
+                  ((IS_DD_VERSION == 80300003) && (MYSQL_VERSION_ID >= 80300)),
               "This release can not use a version number from the future");
 
 /**
