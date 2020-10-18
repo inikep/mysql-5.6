@@ -33,6 +33,7 @@
 #include <boost/algorithm/string.hpp>
 #include <chrono>
 #include <exception>
+#include <memory>
 #include <sstream>
 #include <string>
 
@@ -1884,6 +1885,7 @@ bool MYSQL_BIN_LOG::write_transaction(THD *thd, binlog_cache_data *cache_data,
   } else {
     std::unique_ptr<Binlog_cache_storage> temp_binlog_cache =
         std::make_unique<Binlog_cache_storage>();
+    temp_binlog_cache->open(4096, 4096);
 
     temp_binlog_cache->open(
         cache_data->is_transactional() ? binlog_cache_size
@@ -7483,8 +7485,9 @@ int MYSQL_BIN_LOG::new_file_impl(
 
       if (no_op) op_type = RaftReplicateMsgOpType::OP_TYPE_NOOP;
 
-      error = RUN_HOOK(raft_replication, before_flush,
-                       (current_thd, temp_binlog_cache->get_io_cache(), op_type));
+      error =
+          RUN_HOOK(raft_replication, before_flush,
+                   (current_thd, temp_binlog_cache->get_io_cache(), op_type));
 
       if (!error) {
         error = RUN_HOOK(raft_replication, before_commit, (current_thd));
