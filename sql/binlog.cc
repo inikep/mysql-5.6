@@ -10116,13 +10116,13 @@ void MYSQL_BIN_LOG::handle_binlog_flush_or_sync_error(THD *thd,
 
 int MYSQL_BIN_LOG::register_log_entities(THD *thd, int context, bool need_lock,
                                          bool is_relay_log) {
+  assert(!mysql_bin_log.is_apply_log);
   if (need_lock)
     mysql_mutex_lock(&LOCK_log);
   else
     mysql_mutex_assert_owner(&LOCK_log);
 
   ulong cur_log_ext = 0;
-  ulonglong binlog_end_pos = 0;
 
   Raft_replication_observer::st_setup_flush_arg arg;
   arg.log_file_cache = m_binlog_file->get_io_cache();
@@ -10130,7 +10130,7 @@ int MYSQL_BIN_LOG::register_log_entities(THD *thd, int context, bool need_lock,
   arg.log_name = log_file_name;
   arg.cur_log_ext = &cur_log_ext;
   arg.endpos_log_name = binlog_file_name;
-  arg.endpos = &binlog_end_pos;
+  arg.endpos = &atomic_binlog_end_pos;
   arg.signal_cnt = &signal_cnt;
   arg.lock_log = &LOCK_log;
   arg.lock_index = &LOCK_index;
