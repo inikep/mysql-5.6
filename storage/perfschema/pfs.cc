@@ -6585,6 +6585,12 @@ void pfs_start_statement_vc(PSI_statement_locker *locker, const char *db,
   state->m_rows_deleted = 0;
   state->m_rows_inserted = 0;
   state->m_rows_updated = 0;
+  state->m_tmp_table_bytes_written = 0;
+  state->m_filesort_bytes_written = 0;
+  state->m_index_dive_count = 0;
+  state->m_index_dive_cpu = 0;
+  state->m_compilation_cpu = 0;
+  state->m_elapsed_time = 0;
   state->m_created_tmp_disk_tables = 0;
   state->m_created_tmp_tables = 0;
   state->m_select_full_join = 0;
@@ -6660,6 +6666,12 @@ void pfs_start_statement_vc(PSI_statement_locker *locker, const char *db,
       pfs->m_rows_deleted = 0;
       pfs->m_rows_inserted = 0;
       pfs->m_rows_updated = 0;
+      pfs->m_tmp_table_bytes_written = 0;
+      pfs->m_filesort_bytes_written = 0;
+      pfs->m_index_dive_count = 0;
+      pfs->m_index_dive_cpu = 0;
+      pfs->m_compilation_cpu = 0;
+      pfs->m_elapsed_time = 0;
       pfs->m_created_tmp_disk_tables = 0;
       pfs->m_created_tmp_tables = 0;
       pfs->m_select_full_join = 0;
@@ -6849,6 +6861,31 @@ void pfs_inc_statement_rows_updated_vc(PSI_statement_locker *locker,
   INC_STATEMENT_ATTR_BODY(locker, m_rows_updated, count);
 }
 
+void pfs_inc_statement_tmp_table_bytes_written_vc(PSI_statement_locker *locker,
+                                                  ulonglong count) {
+  INC_STATEMENT_ATTR_BODY(locker, m_tmp_table_bytes_written, count);
+}
+
+void pfs_inc_statement_filesort_bytes_written_vc(PSI_statement_locker *locker,
+                                                 ulonglong count) {
+  INC_STATEMENT_ATTR_BODY(locker, m_filesort_bytes_written, count);
+}
+
+void pfs_inc_statement_index_dive_count_vc(PSI_statement_locker *locker,
+                                           ulong count) {
+  INC_STATEMENT_ATTR_BODY(locker, m_index_dive_count, count);
+}
+
+void pfs_inc_statement_index_dive_cpu_vc(PSI_statement_locker *locker,
+                                         ulonglong count) {
+  INC_STATEMENT_ATTR_BODY(locker, m_index_dive_cpu, count);
+}
+
+void pfs_inc_statement_compilation_cpu_vc(PSI_statement_locker *locker,
+                                          ulonglong count) {
+  INC_STATEMENT_ATTR_BODY(locker, m_compilation_cpu, count);
+}
+
 void pfs_inc_statement_created_tmp_disk_tables_vc(PSI_statement_locker *locker,
                                                   ulong count) {
   INC_STATEMENT_ATTR_BODY(locker, m_created_tmp_disk_tables, count);
@@ -6957,6 +6994,9 @@ void pfs_end_statement_vc(PSI_statement_locker *locker, void *stmt_da) {
   if (flags & STATE_FLAG_TIMED) {
     timer_end = get_statement_timer();
     wait_time = timer_end - state->m_timer_start;
+    time_normalizer *normalizer = time_normalizer::get_statement();
+    /* store the elapsed time into statement metrics tables */
+    state->m_elapsed_time = normalizer->wait_to_pico(wait_time);
   }
 
   auto *thread = reinterpret_cast<PFS_thread *>(state->m_thread);
@@ -7118,6 +7158,12 @@ void pfs_end_statement_vc(PSI_statement_locker *locker, void *stmt_da) {
     stat->m_rows_examined += state->m_rows_examined;
     stat->m_rows_deleted += state->m_rows_deleted;
     stat->m_rows_updated += state->m_rows_updated;
+    stat->m_tmp_table_bytes_written += state->m_tmp_table_bytes_written;
+    stat->m_filesort_bytes_written += state->m_filesort_bytes_written;
+    stat->m_index_dive_count += state->m_index_dive_count;
+    stat->m_index_dive_cpu += state->m_index_dive_cpu;
+    stat->m_compilation_cpu += state->m_compilation_cpu;
+    stat->m_elapsed_time += state->m_elapsed_time;
     stat->m_rows_inserted += state->m_rows_inserted;
     stat->m_created_tmp_disk_tables += state->m_created_tmp_disk_tables;
     stat->m_created_tmp_tables += state->m_created_tmp_tables;
@@ -7206,6 +7252,14 @@ void pfs_end_statement_vc(PSI_statement_locker *locker, void *stmt_da) {
       digest_stat->m_stat.m_rows_deleted += state->m_rows_deleted;
       digest_stat->m_stat.m_rows_inserted += state->m_rows_inserted;
       digest_stat->m_stat.m_rows_updated += state->m_rows_updated;
+      digest_stat->m_stat.m_tmp_table_bytes_written +=
+          state->m_tmp_table_bytes_written;
+      digest_stat->m_stat.m_filesort_bytes_written +=
+          state->m_filesort_bytes_written;
+      digest_stat->m_stat.m_index_dive_count += state->m_index_dive_count;
+      digest_stat->m_stat.m_index_dive_cpu += state->m_index_dive_cpu;
+      digest_stat->m_stat.m_compilation_cpu += state->m_compilation_cpu;
+      digest_stat->m_stat.m_elapsed_time += state->m_elapsed_time;
       digest_stat->m_stat.m_created_tmp_disk_tables +=
           state->m_created_tmp_disk_tables;
       digest_stat->m_stat.m_created_tmp_tables += state->m_created_tmp_tables;
@@ -7252,6 +7306,14 @@ void pfs_end_statement_vc(PSI_statement_locker *locker, void *stmt_da) {
         sub_stmt_stat->m_rows_deleted += state->m_rows_deleted;
         sub_stmt_stat->m_rows_inserted += state->m_rows_inserted;
         sub_stmt_stat->m_rows_updated += state->m_rows_updated;
+        sub_stmt_stat->m_tmp_table_bytes_written +=
+            state->m_tmp_table_bytes_written;
+        sub_stmt_stat->m_filesort_bytes_written +=
+            state->m_filesort_bytes_written;
+        sub_stmt_stat->m_index_dive_count += state->m_index_dive_count;
+        sub_stmt_stat->m_index_dive_cpu += state->m_index_dive_cpu;
+        sub_stmt_stat->m_compilation_cpu += state->m_compilation_cpu;
+        sub_stmt_stat->m_elapsed_time += state->m_elapsed_time;
         sub_stmt_stat->m_created_tmp_disk_tables +=
             state->m_created_tmp_disk_tables;
         sub_stmt_stat->m_created_tmp_tables += state->m_created_tmp_tables;
@@ -7302,6 +7364,14 @@ void pfs_end_statement_vc(PSI_statement_locker *locker, void *stmt_da) {
           prepared_stmt_stat->m_rows_deleted += state->m_rows_deleted;
           prepared_stmt_stat->m_rows_inserted += state->m_rows_inserted;
           prepared_stmt_stat->m_rows_updated += state->m_rows_updated;
+          prepared_stmt_stat->m_tmp_table_bytes_written +=
+              state->m_tmp_table_bytes_written;
+          prepared_stmt_stat->m_filesort_bytes_written +=
+              state->m_filesort_bytes_written;
+          prepared_stmt_stat->m_index_dive_count += state->m_index_dive_count;
+          prepared_stmt_stat->m_index_dive_cpu += state->m_index_dive_cpu;
+          prepared_stmt_stat->m_compilation_cpu += state->m_compilation_cpu;
+          prepared_stmt_stat->m_elapsed_time += state->m_elapsed_time;
           prepared_stmt_stat->m_created_tmp_disk_tables +=
               state->m_created_tmp_disk_tables;
           prepared_stmt_stat->m_created_tmp_tables +=
@@ -9580,6 +9650,11 @@ PSI_statement_service_v5 pfs_statement_service_v5 = {
     pfs_inc_statement_rows_deleted_vc,
     pfs_inc_statement_rows_inserted_vc,
     pfs_inc_statement_rows_updated_vc,
+    pfs_inc_statement_tmp_table_bytes_written_vc,
+    pfs_inc_statement_filesort_bytes_written_vc,
+    pfs_inc_statement_index_dive_count_vc,
+    pfs_inc_statement_index_dive_cpu_vc,
+    pfs_inc_statement_compilation_cpu_vc,
     pfs_inc_statement_created_tmp_disk_tables_vc,
     pfs_inc_statement_created_tmp_tables_vc,
     pfs_inc_statement_select_full_join_vc,
@@ -9626,6 +9701,11 @@ SERVICE_IMPLEMENTATION(performance_schema, psi_statement_v5) = {
     pfs_inc_statement_rows_deleted_vc,
     pfs_inc_statement_rows_inserted_vc,
     pfs_inc_statement_rows_updated_vc,
+    pfs_inc_statement_tmp_table_bytes_written_vc,
+    pfs_inc_statement_filesort_bytes_written_vc,
+    pfs_inc_statement_index_dive_count_vc,
+    pfs_inc_statement_index_dive_cpu_vc,
+    pfs_inc_statement_compilation_cpu_vc,
     pfs_inc_statement_created_tmp_disk_tables_vc,
     pfs_inc_statement_created_tmp_tables_vc,
     pfs_inc_statement_select_full_join_vc,
