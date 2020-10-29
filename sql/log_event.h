@@ -368,6 +368,17 @@ struct hash<Dependency_key> {
 */
 #define LOG_EVENT_MTS_ISOLATE_F 0x200
 
+/**
+ * Intermediate values from 0x400 to 0x4000 are unused and Oracle
+ * can use them.
+ */
+
+/**
+ * RAFT: These binlog files have been created by a MySQL Raft based
+ * binlog system.
+ */
+#define LOG_EVENT_RAFT_LOG_F 0x8000
+
 /** @}*/
 
 /**
@@ -901,6 +912,7 @@ class Log_event {
     common_header->log_pos = 0;
   }
   void set_relay_log_event() { common_header->flags |= LOG_EVENT_RELAY_LOG_F; }
+  void set_raft_log_event() { common_header->flags |= LOG_EVENT_RAFT_LOG_F; }
   bool is_artificial_event() const {
     return common_header->flags & LOG_EVENT_ARTIFICIAL_F;
   }
