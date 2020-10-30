@@ -34,6 +34,7 @@
 #include "mysqld_error.h"
 #include "sql-common/my_decimal.h"
 #include "sql/field.h"
+#include "sql/handler.h"
 #include "sql/sql_class.h"
 #include "sql/sql_gipk.h"
 #include "sql/sql_time.h"

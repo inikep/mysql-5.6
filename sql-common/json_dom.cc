@@ -82,6 +82,7 @@
 #include "sql/current_thd.h"
 #include "sql/derror.h"
 #include "sql/field.h"
+#include "sql/handler.h"
 #include "sql/psi_memory_key.h"
 #include "sql/sql_class.h"
 #include "sql/sql_error.h"
