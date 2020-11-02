@@ -3161,6 +3161,13 @@ class Gtid_state {
   */
   int32 get_gtid_wait_count() { return atomic_gtid_wait_count; }
 
+  /**
+    Remove gtid from logged_gtid when binlog gets trimmed.
+    @param trimmed_gtids The gtids to remove from logged_gtids
+  */
+  enum_return_status remove_logged_gtid_on_trim(
+      const std::vector<std::string> &trimmed_gtids);
+
 #endif  // ifdef MYSQL_SERVER
   /**
     Computes the next available GNO.
