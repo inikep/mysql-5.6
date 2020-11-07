@@ -551,6 +551,12 @@ class MYSQL_BIN_LOG : public TC_LOG {
                             char *buff);
   bool is_open() const { return atomic_log_state != LOG_CLOSED; }
 
+  // Set to true if 'open' binlog was found during the trx log recovery
+  bool open_binlog_found = false;
+
+  // The starting position of the first gtid event in the trx log file
+  my_off_t first_gtid_start_pos = 0;
+
   /* True if this binlog is an apply-log (in raft mode apply logs are the binlog
    * used as trx log on follower instances)
    *
@@ -727,13 +733,14 @@ class MYSQL_BIN_LOG : public TC_LOG {
     used in the case of the rest of the transaction be added to the
     relaylog.
     @param max_prev_hlc max hlc in all previous binlogs (out param)
+    @param startup True if the server is starting up.
     @return false on success, true on error.
   */
   bool init_gtid_sets(
       Gtid_set *all_gtids, Gtid_set *lost_gtids, bool verify_checksum,
       bool need_lock,
       mysql::binlog::event::Transaction_boundary_parser *trx_parser,
-      Gtid_monitoring_info *partial_trx, uint64_t *max_prev_hlc = NULL);
+      Gtid_monitoring_info *partial_trx, uint64_t *max_prev_hlc = NULL, bool startup = false);
 
   /**
    * This function is used by binlog_change_to_apply to update
@@ -1163,6 +1170,15 @@ class MYSQL_BIN_LOG : public TC_LOG {
 
   bool open_index_file(const char *index_file_name_arg, const char *log_name,
                        bool need_lock_index);
+
+  /*
+   * Opens the index file for the transaction log. If a binlog apply index file
+   * is found, then it opens the apply index file. Otherwise it opens the binlog
+   * index file
+   *
+   * @return 0 on success, 1 on error
+   */
+  int init_index_file();
 
   /**
     Use this to start writing a new log file
