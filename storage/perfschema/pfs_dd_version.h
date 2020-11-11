@@ -288,10 +288,13 @@
   80300-008:
   - add replica_statistics table
 
+  80300-009:
+  - add client attributes
+
   The last three digits reprents Facebook specific MySQL Schema changes.
-  Version published is now 80300-008. i.e. 8.3.0 Facebook schema change no. 8.
+  Version published is now 80300-009. i.e. 8.3.0 Facebook schema change no. 9.
 */
 
-static const uint PFS_DD_VERSION = 80300008;
+static const uint PFS_DD_VERSION = 80300009;
 
 #endif /* PFS_DD_VERSION_H */

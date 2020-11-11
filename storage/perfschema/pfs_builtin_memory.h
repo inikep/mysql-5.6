@@ -142,6 +142,8 @@ extern PFS_builtin_memory_class builtin_memory_table_share_lock;
 extern PFS_builtin_memory_class builtin_memory_program;
 extern PFS_builtin_memory_class builtin_memory_prepared_stmt;
 
+extern PFS_builtin_memory_class builtin_memory_client_attrs;
+
 extern PFS_builtin_memory_class builtin_memory_scalable_buffer;
 
 extern PFS_builtin_memory_class builtin_memory_data_container;
