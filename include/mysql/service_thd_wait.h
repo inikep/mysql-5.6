@@ -92,7 +92,9 @@ enum THD_wait_type : int {
   THD_WAIT_SYNC = 10,
   THD_WAIT_TRX_DELAY = 11,
   THD_WAIT_FOR_HLC = 12,
-  THD_WAIT_LAST = 13
+  THD_WAIT_NET_IO = 13,
+  THD_WAIT_YIELD = 14,
+  THD_WAIT_LAST = 15
 };
 
 inline const char *THD_wait_type_str(THD_wait_type twt) {
@@ -136,6 +138,12 @@ inline const char *THD_wait_type_str(THD_wait_type twt) {
     case THD_WAIT_FOR_HLC:
       return "Waiting for HLC";
 
+    case THD_WAIT_NET_IO:
+      return "Waiting for NET IO";
+
+    case THD_WAIT_YIELD:
+      return "Waiting for YIELD";
+
     case THD_WAIT_LAST:
       return "<Unused LAST marker value>";
   }  // switch
@@ -158,5 +166,6 @@ void thd_wait_end();
 // e.g. ha_innodb (static plugin)
 void thd_wait_begin(THD *thd, int wait_type);
 void thd_wait_end(THD *thd);
+THD *thd_get_current_thd();
 #endif /* MYSQL_DYNAMIC_PLUGIN */
 #endif /* MYSQL_SERVICE_THD_WAIT_INCLUDED */
