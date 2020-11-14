@@ -3424,6 +3424,10 @@ void mysql_extension_free(MYSQL_EXTENSION *ext) {
         SSL_free(ext->mysql_async_context->connect_context->ssl);
         ext->mysql_async_context->connect_context->ssl = nullptr;
       }
+      if (ext->mysql_async_context->connect_context->auth_context) {
+        my_free(ext->mysql_async_context->connect_context->auth_context);
+        ext->mysql_async_context->connect_context->auth_context = nullptr;
+      }
       my_free(ext->mysql_async_context->connect_context);
       ext->mysql_async_context->connect_context = nullptr;
     }
