@@ -966,7 +966,7 @@ MYSQL_ADD_PLUGIN(mysql_native_password
 
 TARGET_LINK_LIBRARIES(sql_main ${MYSQLD_STATIC_PLUGIN_LIBS}
   mysql_server_component_services mysys strings vio
-  mysql_binlog_event ${LIBWRAP} ${LIBDL} OpenSSL::SSL OpenSSL::Crypto
+  mysql_binlog_event ${LIBWRAP} ${LIBDL} OpenSSL::SSL OpenSSL::Crypto ${LIBCAP}
   extra::rapidjson extra::boost)
 
 # sql/immutable_string.h uses
