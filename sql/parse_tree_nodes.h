@@ -543,6 +543,9 @@ class PT_derived_table : public PT_table_reference {
 
   bool do_contextualize(Parse_context *pc) override;
 
+  // Mark this table as system.
+  void mark_system() { m_system = true; }
+
  protected:
   void add_json_info(Json_object *obj) override;
 
@@ -552,6 +555,9 @@ class PT_derived_table : public PT_table_reference {
   const char *const m_table_alias;
   /// List of explicitly specified column names; if empty, no list.
   const Create_col_name_list column_names;
+
+  // Tmp table should be marked as SYSTEM_TMP_TABLE.
+  bool m_system{false};
 };
 
 class PT_table_factor_joined_table : public PT_table_reference {
