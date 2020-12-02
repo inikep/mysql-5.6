@@ -271,11 +271,16 @@ struct st_VioSSLFd {
   bool owned;
 };
 
+typedef int (*cert_validator_ptr)(int preverify_ok, X509_STORE_CTX *x509_ctx);
+
 int sslaccept(struct st_VioSSLFd *, MYSQL_VIO, long timeout,
               unsigned long *errptr);
 int sslconnect(struct st_VioSSLFd *, MYSQL_VIO, long timeout,
                SSL_SESSION *session, unsigned long *errptr, SSL **ssl,
-               const char *sni_servername);
+               const char *sni_servername,
+               const cert_validator_ptr validator_callback = nullptr,
+               void *validator_callback_context = nullptr,
+               int validator_context_index = -1);
 
 struct st_VioSSLFd *new_VioSSLConnectorFdFromContext(
     SSL_CTX *context, enum enum_ssl_init_error *error);
