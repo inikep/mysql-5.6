@@ -928,6 +928,8 @@ struct PFS_statement_stat_row {
   ulonglong m_max_controlled_memory;
   ulonglong m_max_total_memory;
   ulonglong m_count_secondary;
+  ulonglong m_filesort_disk_usage_peak;
+  ulonglong m_tmp_table_disk_usage_peak;
 
   /** Build a row from a memory buffer. */
   inline void set(time_normalizer *normalizer, const PFS_statement_stat *stat) {
@@ -970,6 +972,8 @@ struct PFS_statement_stat_row {
       m_max_controlled_memory = stat->m_max_controlled_memory;
       m_max_total_memory = stat->m_max_total_memory;
       m_count_secondary = stat->m_count_secondary;
+      m_filesort_disk_usage_peak = stat->m_filesort_disk_usage_peak;
+      m_tmp_table_disk_usage_peak = stat->m_tmp_table_disk_usage_peak;
     } else {
       m_timer1_row.reset();
 
@@ -1006,6 +1010,8 @@ struct PFS_statement_stat_row {
       m_max_controlled_memory = 0;
       m_max_total_memory = 0;
       m_count_secondary = 0;
+      m_filesort_disk_usage_peak = 0;
+      m_tmp_table_disk_usage_peak = 0;
     }
   }
 
