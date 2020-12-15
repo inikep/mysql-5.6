@@ -1529,6 +1529,7 @@ ulong max_nonsuper_connections = 0;
 std::atomic<ulong> nonsuper_connections(0);
 ulong opt_max_running_queries = 0, opt_max_waiting_queries = 0;
 ulong rpl_stop_replica_timeout = LONG_TIMEOUT;
+ulong opt_max_db_connections = 0;
 bool rpl_skip_tx_api = false;
 bool rpl_slave_flow_control = true;
 bool thread_cache_size_specified = false;
@@ -10540,6 +10541,7 @@ int mysqld_main(int argc, char **argv)
   db_ac->update_max_running_queries(opt_max_running_queries);
   db_ac->update_max_waiting_queries(opt_max_waiting_queries);
   db_ac->update_queue_weights(admission_control_weights);
+  db_ac->update_max_connections(opt_max_db_connections);
 
   if (init_server_components()) unireg_abort(MYSQLD_ABORT_EXIT);
 
@@ -12304,6 +12306,14 @@ static int get_db_ac_total_waiting_queries(THD *thd MY_ATTRIBUTE((unused)),
   return 0;
 }
 
+static int get_db_ac_total_rejected_connections(THD *thd MY_ATTRIBUTE((unused)),
+                                                SHOW_VAR *var, char *buff) {
+  var->type = SHOW_LONGLONG;
+  var->value = buff;
+  *((longlong *)buff) = db_ac->get_total_rejected_connections();
+  return 0;
+}
+
 #ifdef ENABLED_PROFILING
 static int show_flushstatustime(THD *thd, SHOW_VAR *var, char *buff) {
   var->type = SHOW_LONGLONG;
@@ -12851,6 +12861,9 @@ SHOW_VAR status_vars[] = {
      SHOW_LONGLONG_STATUS, SHOW_SCOPE_ALL},
     {"Database_admission_control_aborted_queries",
      (char *)&get_db_ac_total_aborted_queries, SHOW_FUNC, SHOW_SCOPE_GLOBAL},
+    {"Database_admission_control_rejected_connections",
+     (char *)&get_db_ac_total_rejected_connections, SHOW_FUNC,
+     SHOW_SCOPE_GLOBAL},
     {"Database_admission_control_running_queries",
      (char *)&get_db_ac_total_running_queries, SHOW_FUNC, SHOW_SCOPE_GLOBAL},
     {"Database_admission_control_timeout_queries",
