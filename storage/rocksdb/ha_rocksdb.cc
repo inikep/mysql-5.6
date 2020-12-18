@@ -5838,6 +5838,13 @@ static int rocksdb_init_internal(void *const p) {
       DBUG_RETURN(HA_EXIT_FAILURE);
     }
   }
+#else
+  if (rocksdb_wsenv_path != nullptr && *rocksdb_wsenv_path) {
+    // We've turned on WSEnv in the wrong build
+    // NO_LINT_DEBUG
+    sql_print_error("RocksDB: WSEnvironment not supported. ");
+    DBUG_RETURN(HA_EXIT_FAILURE);
+  }
 #endif
 
   if (opt_rocksdb_fault_injection_options != nullptr &&
