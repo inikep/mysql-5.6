@@ -3248,7 +3248,7 @@ void THD::set_time() {
   Records the CPU time spent since start_cputime, and records this into
   perfschema via MYSQL_SET_STATEMENT_CPU_TIME.
 */
-void THD::get_cpu_time() {
+ulonglong THD::get_cpu_time() {
   struct timespec end_cputime;
   ulonglong cpu_time = 0;
   set_timespec(&end_cputime, 0);
