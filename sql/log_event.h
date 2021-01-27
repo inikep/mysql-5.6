@@ -4300,6 +4300,16 @@ class Metadata_log_event : public mysql::binlog::event::Metadata_event,
   bool write_raft_prev_opid(Basic_ostream *ostream);
 
   /**
+   * Write rotate event tag to metadata event previous to rotate event
+   * Central to raft correctness
+   *
+   * @param ostream - stream to write into
+   *
+   * @returns - 0 on success, 1 on false
+   */
+  bool write_rotate_tag(Basic_ostream *ostream);
+
+  /**
    * Write type and length to file
    *
    * @param ostream - stream to write to
@@ -4355,6 +4365,16 @@ class Metadata_log_event : public mysql::binlog::event::Metadata_event,
    * @returns - number of bytes written
    */
   uint32 write_raft_str(uchar *obuffer);
+
+  /**
+   * Write rotate event tag to metadata event previous to rotate event
+   * Central to raft correctness
+   *
+   * @param obuffer - buffer to write into
+   *
+   * @returns - 0 on success, 1 on false
+   */
+  uint32 write_rotate_tag(uchar *obuffer);
 
   /**
    * Write type and length to memory buffer
