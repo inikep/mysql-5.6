@@ -313,10 +313,13 @@
   - add SUM_FILESORT_DISK_USAGE to statements tables.
   - add SUM_TMP_TABLE_DISK_USAGE to statements tables.
 
+  80300-016:
+  - add throttle_rate column to write_throttling_rules table
+
   The last three digits reprents Facebook specific MySQL Schema changes.
-  Version published is now 80300-015. i.e. 8.3.0 Facebook schema change no. 15.
+  Version published is now 80300-016. i.e. 8.3.0 Facebook schema change no. 16.
 */
 
-static const uint PFS_DD_VERSION = 80300015;
+static const uint PFS_DD_VERSION = 80300016;
 
 #endif /* PFS_DD_VERSION_H */
