@@ -4485,7 +4485,7 @@ class handler {
   */
   PSI_table *m_psi;
 
-  std::mt19937 m_random_number_engine;
+  std::mt19937 *m_random_number_engine;
   double m_sampling_percentage;
 
  private:
@@ -4606,6 +4606,7 @@ class handler {
         insert_id_for_cur_row(0),
         auto_inc_intervals_count(0),
         m_psi(nullptr),
+        m_random_number_engine(nullptr),
         m_psi_batch_mode(PSI_BATCH_MODE_NONE),
         m_psi_numrows(0),
         m_psi_locker(nullptr),
@@ -4623,6 +4624,7 @@ class handler {
     assert(m_psi_locker == nullptr);
     assert(m_lock_type == F_UNLCK);
     assert(inited == NONE);
+    assert(m_random_number_engine == nullptr);
   }
 
   /**
