@@ -4811,6 +4811,7 @@ class handler {
     assert(m_psi_locker == nullptr);
     assert(m_lock_type == F_UNLCK);
     assert(inited == NONE);
+    assert(m_random_number_engine == nullptr);
   }
 
   /**

@@ -3079,20 +3079,22 @@ int handler::ha_sample_init(void *&scan_ctx, double sampling_percentage,
   assert(inited == NONE);
   assert(m_random_number_engine == nullptr);
 
-  // Initialize the random number generator.
-  // The common use case is: the random number generator is used only once.
-  // If we call ha_sample_init/ha_sample_end multiple times for a handler
-  // object, we may have changed MEM_ROOT, so we need to create a new one.
-  m_random_number_engine = new (*THR_MALLOC) std::mt19937;
-  if (m_random_number_engine == nullptr) return HA_ERR_OUT_OF_MEM;
-  m_random_number_engine->seed(sampling_seed);
   m_sampling_percentage = sampling_percentage;
 
   const int result = sample_init(scan_ctx, sampling_percentage, sampling_seed,
                                  sampling_method, tablesample);
   inited = (result != 0) ? NONE : SAMPLING;
-  // Reset pointer here, since ha_sample_end() will not be called.
-  if (result != 0) m_random_number_engine = nullptr;
+
+  // Initialise the random number generator on successful initialization.
+  if (result == 0) {
+    // Initialize the random number generator.
+    // The common use case is: the random number generator is used only once.
+    // If we call ha_sample_init/ha_sample_end multiple times for a handler
+    // object, we may have changed MEM_ROOT, so we need to create a new one.
+    m_random_number_engine = new (*THR_MALLOC) std::mt19937;
+    if (m_random_number_engine == nullptr) return HA_ERR_OUT_OF_MEM;
+    m_random_number_engine->seed(sampling_seed);
+  }
   return result;
 }
 
@@ -3140,6 +3142,7 @@ int handler::sample_next(void *scan_ctx [[maybe_unused]], uchar *buf) {
   int res = rnd_next(buf);
 
   std::uniform_real_distribution<double> rnd(0.0, 1.0);
+  assert(m_random_number_engine);
   while (!res && rnd(*m_random_number_engine) > (m_sampling_percentage / 100.0))
     res = rnd_next(buf);
 
