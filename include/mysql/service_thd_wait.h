@@ -60,7 +60,7 @@
 
 class THD;
 
-/*
+/**
   One should only report wait events that could potentially block for a
   long time. A mutex wait is too short of an event to report. The reason
   is that an event which is reported leads to a new thread starts
@@ -73,9 +73,13 @@ class THD;
   holds true for global read locks, table locks and other meta data locks.
   Another event of interest is going to sleep for an extended time.
 
-  Note that user-level locks no longer use THD_WAIT_USER_LOCK wait type.
+  @note User-level locks no longer use THD_WAIT_USER_LOCK wait type.
   Since their implementation relies on metadata locks manager it uses
   THD_WAIT_META_DATA_LOCK instead.
+
+  @note THD_WAIT_ADMIT is a fake wait type communicating that query has been
+  parsed and is ready for execution. The query attributes and sql command
+  are available at this point.
 */
 
 enum THD_wait_type : int {
@@ -86,7 +90,7 @@ enum THD_wait_type : int {
   THD_WAIT_GLOBAL_LOCK = 4,
   THD_WAIT_META_DATA_LOCK = 5,
   THD_WAIT_TABLE_LOCK = 6,
-  THD_WAIT_USER_LOCK = 7,
+  THD_WAIT_INNODB_CONC = 7,
   THD_WAIT_BINLOG = 8,
   THD_WAIT_GROUP_COMMIT = 9,
   THD_WAIT_SYNC = 10,
@@ -94,7 +98,8 @@ enum THD_wait_type : int {
   THD_WAIT_FOR_HLC = 12,
   THD_WAIT_NET_IO = 13,
   THD_WAIT_YIELD = 14,
-  THD_WAIT_LAST = 15
+  THD_WAIT_ADMIT = 15,
+  THD_WAIT_LAST = 16
 };
 
 inline const char *THD_wait_type_str(THD_wait_type twt) {
@@ -120,8 +125,8 @@ inline const char *THD_wait_type_str(THD_wait_type twt) {
     case THD_WAIT_TABLE_LOCK:
       return "Waiting for table lock";
 
-    case THD_WAIT_USER_LOCK:
-      return "Waiting for user lock";
+    case THD_WAIT_INNODB_CONC:
+      return "Waiting for InnoDB concurrency control";
 
     case THD_WAIT_BINLOG:
       return "Waiting for binlog";
@@ -143,6 +148,9 @@ inline const char *THD_wait_type_str(THD_wait_type twt) {
 
     case THD_WAIT_YIELD:
       return "Waiting for YIELD";
+
+    case THD_WAIT_ADMIT:
+      return "Waiting for WAIT ADMIT";
 
     case THD_WAIT_LAST:
       return "<Unused LAST marker value>";
