@@ -391,6 +391,7 @@ SET(SQL_SHARED_SOURCES
   histograms/table_histograms.cc
   histograms/value_map.cc
   hostname_cache.cc
+  index_statistics.cc
   init.cc
   log_resource.cc
   item.cc
