@@ -7075,7 +7075,8 @@ void pfs_end_statement_vc(PSI_statement_locker *locker, void *stmt_da) {
   PFS_program *pfs_program = nullptr;
   PFS_prepared_stmt *pfs_prepared_stmt = nullptr;
 
-  PFS_statement_stat *stat = nullptr;
+  PFS_statement_stat dummy_stat = {};
+  PFS_statement_stat *stat = &dummy_stat;
   PFS_statement_stat *sub_stmt_stat = nullptr;
   PFS_statement_stat *prepared_stmt_stat = nullptr;
 
@@ -7086,8 +7087,10 @@ void pfs_end_statement_vc(PSI_statement_locker *locker, void *stmt_da) {
       assert(thread != nullptr);
 
       event_name_array = thread->write_instr_class_statements_stats();
-      /* Aggregate to EVENTS_STATEMENTS_SUMMARY_BY_THREAD_BY_EVENT_NAME */
-      stat = &event_name_array[index];
+      if (event_name_array != nullptr) {
+        /* Aggregate to EVENTS_STATEMENTS_SUMMARY_BY_THREAD_BY_EVENT_NAME */
+        stat = &event_name_array[index];
+      }
 
       if (pfs_flags & STATE_FLAG_DIGEST) {
         digest_storage = state->m_digest;
