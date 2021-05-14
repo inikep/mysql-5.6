@@ -93,7 +93,7 @@
 */
 
 static_assert((PFS_DD_VERSION <= MYSQL_VERSION_ID) ||
-                  ((PFS_DD_VERSION == 80300017) && (MYSQL_VERSION_ID == 80300)),
+                  ((PFS_DD_VERSION == 80300018) && (MYSQL_VERSION_ID == 80300)),
               "This release can not use a version number from the future");
 
 class KEY;
