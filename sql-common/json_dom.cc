@@ -1441,6 +1441,20 @@ bool Json_wrapper::to_binary(const JsonSerializationErrorHandler &error_handler,
     /* purecov: end */
   }
 
+#ifdef MYSQL_SERVER
+  if (is_legacy_json()) {
+    const char *msg =
+        "Serializing FB json values can lead to unexpected results";
+    if (current_thd->variables.serialize_fb_json_raise_error) {
+      my_printf_error(ER_INVALID_JSON_BINARY_DATA, "%s", MYF(0), msg);
+      return true;
+    } else {
+      push_warning_printf(current_thd, Sql_condition::SL_WARNING,
+                          ER_INVALID_JSON_BINARY_DATA, "%s", msg);
+    }
+  }
+#endif  // ifdef MYSQL_SERVER
+
   if (m_is_dom)
     return json_binary::serialize(m_dom.m_value, error_handler, str);
 
