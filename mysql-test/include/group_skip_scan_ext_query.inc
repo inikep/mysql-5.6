@@ -1,6 +1,8 @@
 # This query uses group skip scan.
 let $hint = ;
-let $check_query = $query $hint $cond;
+let $orig_query = $query $hint $cond;
+let $check_query = `select replace('$orig_query', 'SELECT', 'SELECT /*+ GROUP_BY_LIS(t) */')`;
+
 --replace_regex $elide_costs
 eval EXPLAIN FORMAT=TREE $check_query;
 FLUSH STATUS;
@@ -14,8 +16,7 @@ eval create table group_query $check_query;
 --enable_query_log
 
 # This query doesn't use loose index scan.
-let $hint= IGNORE INDEX(k1) ;
-let $check_query = $query $hint $cond;
+let $check_query = `select replace('$orig_query', 'SELECT', 'SELECT /*+ NO_GROUP_BY_LIS(t) */')`;
 --disable_query_log
 eval create table no_group_query $check_query;
 --enable_query_log

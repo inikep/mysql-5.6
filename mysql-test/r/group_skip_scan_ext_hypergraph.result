@@ -2,13 +2,13 @@ CREATE TABLE t (a INT, b INT, c INT, d INT, KEY k1(a, b, c, d)) ENGINE=innodb;
 ANALYZE TABLE t;
 Table	Op	Msg_type	Msg_text
 test.t	analyze	status	OK
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15) or (t.b = 3)))  (rows=12)
     -> Covering index skip scan for grouping on t using k1  (rows=77)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
 a	MAX(d)	MIN(d)
 1	10	1
 10	10	1
@@ -34,13 +34,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)))  (rows=12)
     -> Covering index skip scan for grouping on t using k1  (rows=51)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
 a	MAX(d)	MIN(d)
 1	10	1
 10	10	1
@@ -66,13 +66,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c IS NULL) GROUP BY a;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c IS NULL) GROUP BY a;
 EXPLAIN
 -> Filter: (((t.b = 2) or (t.b = 15)) and ((t.c = 3) or (t.c is null)))  (rows=12)
     -> Covering index skip scan for grouping on t using k1  (rows=51)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c IS NULL) GROUP BY a;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c IS NULL) GROUP BY a;
 a	MAX(d)	MIN(d)
 1	10	1
 10	10	1
@@ -98,13 +98,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b is null) or (t.b = 15)))  (rows=12)
     -> Covering index skip scan for grouping on t using k1  (rows=51)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
 a	MAX(d)	MIN(d)
 11	30	30
 12	-15	-20
@@ -120,13 +120,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 2) AND (c = 3 OR c = 40) GROUP BY a;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 2) AND (c = 3 OR c = 40) GROUP BY a;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b is null) or (t.b = 2)))  (rows=12)
     -> Covering index skip scan for grouping on t using k1  (rows=51)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 2) AND (c = 3 OR c = 40) GROUP BY a;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 2) AND (c = 3 OR c = 40) GROUP BY a;
 a	MAX(d)	MIN(d)
 1	10	1
 10	10	1
@@ -152,13 +152,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15) or (t.b = 3)))  (rows=12)
     -> Covering index skip scan for deduplication on t using k1  (rows=77)
 
 FLUSH STATUS;
-SELECT a FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
+SELECT /*+ GROUP_BY_LIS(t) */ a FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
 a
 1
 10
@@ -184,13 +184,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a, b;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a, b;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)))  (rows=56)
     -> Covering index skip scan for grouping on t using k1  (rows=113)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a, b;
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 1	2	10	1
 10	2	10	1
@@ -217,14 +217,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15) or (t.b = 3)))  (rows=56)
     -> Covering index skip scan for grouping on t using k1  (rows=113)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40)
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 1	2	10	1
@@ -263,13 +263,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT DISTINCT a FROM t  WHERE a = 1 AND (b = 2 OR b = 15);
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT a FROM t  WHERE a = 1 AND (b = 2 OR b = 15);
 EXPLAIN
 -> Filter: ((t.a = 1) and ((t.b = 2) or (t.b = 15)))  (rows=1)
     -> Covering index skip scan for deduplication on t using k1 over (a = 1)  (rows=1)
 
 FLUSH STATUS;
-SELECT DISTINCT a FROM t  WHERE a = 1 AND (b = 2 OR b = 15);
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT a FROM t  WHERE a = 1 AND (b = 2 OR b = 15);
 a
 1
 
@@ -284,14 +284,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND (c = 3 OR c = 40) AND (d = 1 OR d = 9)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND (c = 3 OR c = 40) AND (d = 1 OR d = 9)
 GROUP BY a, b;
 EXPLAIN
 -> Filter: ((t.a = 1) and ((t.d = 1) or (t.d = 9)) and ((t.c = 3) or (t.c = 40)))  (rows=0.182)
     -> Covering index skip scan for grouping on t using k1 over (d = 1) OR (d = 9)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND (c = 3 OR c = 40) AND (d = 1 OR d = 9)
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND (c = 3 OR c = 40) AND (d = 1 OR d = 9)
 GROUP BY a, b;
 a	MAX(d)	MIN(d)
 1	9	1
@@ -311,14 +311,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)) and ((t.a = 1) or (t.a = 12)))  (rows=1)
     -> Covering index skip scan for grouping on t using k1 over (a = 1 AND b = 2) OR (a = 1 AND b = 15) OR (2 more)  (rows=1)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 1	2	10	1
@@ -336,14 +336,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a < 2 OR a > 11) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a < 2 OR a > 11) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)) and ((t.a < 2) or (t.a > 11)))  (rows=1.32)
     -> Covering index skip scan for grouping on t using k1 over (NULL < a < 2) OR (11 < a)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a < 2 OR a > 11) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a < 2 OR a > 11) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 1	2	10	1
@@ -361,13 +361,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT DISTINCT a, b FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT a, b FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)) and ((t.a = 1) or (t.a = 12)))  (rows=1)
     -> Covering index skip scan for deduplication on t using k1 over (a = 1 AND b = 2) OR (a = 1 AND b = 15) OR (2 more)  (rows=1)
 
 FLUSH STATUS;
-SELECT DISTINCT a, b FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT a, b FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 a	b
 1	2
 12	15
@@ -384,13 +384,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT DISTINCT a FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15);
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT a FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15);
 EXPLAIN
 -> Filter: (((t.b = 2) or (t.b = 15)) and ((t.a = 1) or (t.a = 12)))  (rows=1)
     -> Covering index skip scan for deduplication on t using k1 over (a = 1) OR (a = 12)  (rows=1)
 
 FLUSH STATUS;
-SELECT DISTINCT a FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15);
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT a FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15);
 a
 1
 12
@@ -406,14 +406,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b < 4 OR b > 10) AND (c = 3 OR c = 40)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b < 4 OR b > 10) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.a = 1) or (t.a = 12)) and ((t.b < 4) or (t.b > 10)))  (rows=2.65)
     -> Covering index skip scan for grouping on t using k1 over (a = 1 AND NULL < b < 4) OR (a = 1 AND 10 < b) OR (2 more)  (rows=7)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b < 4 OR b > 10) AND (c = 3 OR c = 40)
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b < 4 OR b > 10) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 1	1	10	1
@@ -433,14 +433,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a > 9) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a > 9) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
 GROUP BY a;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)) and ((t.a = 1) or (t.a > 9)))  (rows=1.73)
     -> Covering index skip scan for grouping on t using k1 over (a = 1) OR (9 < a)  (rows=3)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a > 9) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a > 9) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
 GROUP BY a;
 a	MAX(d)	MIN(d)
 1	10	1
@@ -459,14 +459,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT COUNT(DISTINCT a, b) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ COUNT(DISTINCT a, b) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 EXPLAIN
 -> Aggregate: count(distinct t.a,t.b)  (rows=1)
     -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)) and ((t.a = 1) or (t.a = 12)))  (rows=1)
         -> Covering index skip scan for deduplication on t using k1 over (a = 1 AND b = 2) OR (a = 1 AND b = 15) OR (2 more)  (rows=1)
 
 FLUSH STATUS;
-SELECT COUNT(DISTINCT a, b) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+SELECT /*+ GROUP_BY_LIS(t) */ COUNT(DISTINCT a, b) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 COUNT(DISTINCT a, b)
 3
 
@@ -481,14 +481,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT SUM(DISTINCT a), AVG(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ SUM(DISTINCT a), AVG(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 EXPLAIN
 -> Aggregate: sum(distinct t.a), avg(distinct t.a)  (rows=1)
     -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)))  (rows=51)
         -> Covering index skip scan for deduplication on t using k1  (rows=51)
 
 FLUSH STATUS;
-SELECT SUM(DISTINCT a), AVG(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+SELECT /*+ GROUP_BY_LIS(t) */ SUM(DISTINCT a), AVG(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 SUM(DISTINCT a)	AVG(DISTINCT a)
 78	6.5000
 
@@ -503,14 +503,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT SUM(DISTINCT a), AVG(DISTINCT a), COUNT(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ SUM(DISTINCT a), AVG(DISTINCT a), COUNT(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 EXPLAIN
 -> Aggregate: sum(distinct t.a), avg(distinct t.a), count(distinct t.a)  (rows=1)
     -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)))  (rows=51)
         -> Covering index skip scan for deduplication on t using k1  (rows=51)
 
 FLUSH STATUS;
-SELECT SUM(DISTINCT a), AVG(DISTINCT a), COUNT(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+SELECT /*+ GROUP_BY_LIS(t) */ SUM(DISTINCT a), AVG(DISTINCT a), COUNT(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 SUM(DISTINCT a)	AVG(DISTINCT a)	COUNT(DISTINCT a)
 78	6.5000	12
 
@@ -525,7 +525,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE (a > 11) AND (b = 2 OR b = 15) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (a > 11) AND (b = 2 OR b = 15) AND
 (c = 3 OR c = 1 OR c = 2 OR c = 4)
 GROUP BY a;
 EXPLAIN
@@ -534,7 +534,7 @@ EXPLAIN
         -> Covering index range scan on t using k1 over (11 < a)  (rows=4)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE (a > 11) AND (b = 2 OR b = 15) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (a > 11) AND (b = 2 OR b = 15) AND
 (c = 3 OR c = 1 OR c = 2 OR c = 4)
 GROUP BY a;
 a	MAX(d)	MIN(d)
@@ -551,13 +551,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2) GROUP BY a, b;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2) GROUP BY a, b;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.d > 7) or (t.d = 2)))  (rows=56)
     -> Covering index skip scan for grouping on t using k1 over (d = 2) OR (7 < d)  (rows=113)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2) GROUP BY a, b;
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2) GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 1	1	10	2
 1	2	10	2
@@ -623,14 +623,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2 OR d IS NULL)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2 OR d IS NULL)
 GROUP BY a, b;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.d > 7) or (t.d = 2) or (t.d is null)))  (rows=56)
     -> Covering index skip scan for grouping on t using k1 over (d = NULL) OR (d = 2) OR (7 < d)  (rows=113)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2 OR d IS NULL)
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2 OR d IS NULL)
 GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 1	1	10	2
@@ -698,7 +698,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND
 (d  < -24 OR d = 3 OR d IS NULL)
 GROUP BY a, b;
 EXPLAIN
@@ -706,7 +706,7 @@ EXPLAIN
     -> Covering index skip scan for grouping on t using k1 over (NULL <= d < -24) OR (d = 3)  (rows=57)
 
 FLUSH STATUS;
-SELECT a, b, MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND
 (d  < -24 OR d = 3 OR d IS NULL)
 GROUP BY a, b;
 a	b	MIN(d)
@@ -748,14 +748,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND (d  <  1 OR d = 9)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND (d  <  1 OR d = 9)
 GROUP BY a, b;
 EXPLAIN
 -> Filter: ((t.a > 5) and ((t.c = 3) or (t.c = 40)) and ((t.d < 1) or (t.d = 9)))  (rows=24.3)
     -> Covering index skip scan for grouping on t using k1 over (NULL < d < 1) OR (d = 9)  (rows=57)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND (d  <  1 OR d = 9)
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND (d  <  1 OR d = 9)
 GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 10	1	9	9
@@ -798,7 +798,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d  =  1 OR d = 9 OR d IS NULL)
 GROUP BY a, b;
 EXPLAIN
@@ -806,7 +806,7 @@ EXPLAIN
     -> Covering index skip scan for grouping on t using k1 over (d = NULL) OR (d = 1) OR (d = 9)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d  =  1 OR d = 9 OR d IS NULL)
 GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
@@ -828,7 +828,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d  =  0 OR d = 9 OR d IS NULL)
 GROUP BY a, b;
 EXPLAIN
@@ -836,7 +836,7 @@ EXPLAIN
     -> Covering index skip scan for grouping on t using k1 over (d = NULL) OR (d = 0) OR (d = 9)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d  =  0 OR d = 9 OR d IS NULL)
 GROUP BY a, b;
 a	b	MIN(d)	MAX(d)
@@ -858,7 +858,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d  > 0 AND d < 2 OR d > 3 AND d < 5 OR d IS NULL)
 GROUP BY a, b;
 EXPLAIN
@@ -866,7 +866,7 @@ EXPLAIN
     -> Covering index skip scan for grouping on t using k1 over (d = NULL) OR (0 < d < 2) OR (3 < d < 5)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d  > 0 AND d < 2 OR d > 3 AND d < 5 OR d IS NULL)
 GROUP BY a, b;
 a	b	MIN(d)	MAX(d)
@@ -888,7 +888,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d < 2 OR d > 5 OR d IS NULL)
 GROUP BY a, b;
 EXPLAIN
@@ -896,7 +896,7 @@ EXPLAIN
     -> Covering index skip scan for grouping on t using k1 over (NULL <= d < 2) OR (5 < d)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, b, MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d < 2 OR d > 5 OR d IS NULL)
 GROUP BY a, b;
 a	b	MIN(d)
@@ -922,7 +922,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b , max(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b , max(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
 (d is NULL or d = -10 or d = -23)
 GROUP BY a, b;
 EXPLAIN
@@ -930,7 +930,7 @@ EXPLAIN
     -> Covering index skip scan for grouping on t using k1 over (d = NULL) OR (d = -23) OR (d = -10)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, b , max(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, b , max(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
 (d is NULL or d = -10 or d = -23)
 GROUP BY a, b;
 a	b	max(d)
@@ -948,7 +948,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b , min(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b , min(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
 (d is NULL or d = -10 or d = -23)
 GROUP BY a, b;
 EXPLAIN
@@ -956,7 +956,7 @@ EXPLAIN
     -> Covering index skip scan for grouping on t using k1 over (d = NULL) OR (d = -23) OR (d = -10)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, b , min(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, b , min(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
 (d is NULL or d = -10 or d = -23)
 GROUP BY a, b;
 a	b	min(d)
@@ -974,13 +974,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MIN(b), MAX(b) FROM t  WHERE a > 9 GROUP BY a;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MIN(b), MAX(b) FROM t  WHERE a > 9 GROUP BY a;
 EXPLAIN
 -> Filter: (t.a > 9)  (rows=1)
     -> Covering index skip scan for grouping on t using k1 over (9 < a)  (rows=1)
 
 FLUSH STATUS;
-SELECT a, MIN(b), MAX(b) FROM t  WHERE a > 9 GROUP BY a;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MIN(b), MAX(b) FROM t  WHERE a > 9 GROUP BY a;
 a	MIN(b)	MAX(b)
 10	1	5
 11	2	15
@@ -1127,13 +1127,13 @@ ALTER TABLE t ADD KEY k1(a DESC, b, c DESC, d);
 ANALYZE TABLE t;
 Table	Op	Msg_type	Msg_text
 test.t	analyze	status	OK
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15) or (t.b = 3)))  (rows=12)
     -> Covering index skip scan for grouping on t using k1  (rows=77)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
 a	MAX(d)	MIN(d)
 1	10	1
 10	10	1
@@ -1159,13 +1159,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)))  (rows=12)
     -> Covering index skip scan for grouping on t using k1  (rows=51)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
 a	MAX(d)	MIN(d)
 1	10	1
 10	10	1
@@ -1191,13 +1191,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c IS NULL) GROUP BY a;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c IS NULL) GROUP BY a;
 EXPLAIN
 -> Filter: (((t.b = 2) or (t.b = 15)) and ((t.c = 3) or (t.c is null)))  (rows=12)
     -> Covering index skip scan for grouping on t using k1  (rows=51)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c IS NULL) GROUP BY a;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c IS NULL) GROUP BY a;
 a	MAX(d)	MIN(d)
 1	10	1
 10	10	1
@@ -1223,13 +1223,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b is null) or (t.b = 15)))  (rows=12)
     -> Covering index skip scan for grouping on t using k1  (rows=51)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
 a	MAX(d)	MIN(d)
 11	30	30
 12	-15	-20
@@ -1245,13 +1245,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 2) AND (c = 3 OR c = 40) GROUP BY a;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 2) AND (c = 3 OR c = 40) GROUP BY a;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b is null) or (t.b = 2)))  (rows=12)
     -> Covering index skip scan for grouping on t using k1  (rows=51)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 2) AND (c = 3 OR c = 40) GROUP BY a;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 2) AND (c = 3 OR c = 40) GROUP BY a;
 a	MAX(d)	MIN(d)
 1	10	1
 10	10	1
@@ -1277,13 +1277,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15) or (t.b = 3)))  (rows=12)
     -> Covering index skip scan for deduplication on t using k1  (rows=77)
 
 FLUSH STATUS;
-SELECT a FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
+SELECT /*+ GROUP_BY_LIS(t) */ a FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
 a
 1
 10
@@ -1309,13 +1309,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a, b;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a, b;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)))  (rows=56)
     -> Covering index skip scan for grouping on t using k1  (rows=113)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a, b;
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 1	2	10	1
 10	2	10	1
@@ -1342,14 +1342,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15) or (t.b = 3)))  (rows=56)
     -> Covering index skip scan for grouping on t using k1  (rows=113)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40)
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 1	2	10	1
@@ -1388,13 +1388,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT DISTINCT a FROM t  WHERE a = 1 AND (b = 2 OR b = 15);
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT a FROM t  WHERE a = 1 AND (b = 2 OR b = 15);
 EXPLAIN
 -> Filter: ((t.a = 1) and ((t.b = 2) or (t.b = 15)))  (rows=1)
     -> Covering index skip scan for deduplication on t using k1 over (a = 1)  (rows=1)
 
 FLUSH STATUS;
-SELECT DISTINCT a FROM t  WHERE a = 1 AND (b = 2 OR b = 15);
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT a FROM t  WHERE a = 1 AND (b = 2 OR b = 15);
 a
 1
 
@@ -1409,14 +1409,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND (c = 3 OR c = 40) AND (d = 1 OR d = 9)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND (c = 3 OR c = 40) AND (d = 1 OR d = 9)
 GROUP BY a, b;
 EXPLAIN
 -> Filter: ((t.a = 1) and ((t.d = 1) or (t.d = 9)) and ((t.c = 3) or (t.c = 40)))  (rows=0.182)
     -> Covering index skip scan for grouping on t using k1 over (d = 1) OR (d = 9)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND (c = 3 OR c = 40) AND (d = 1 OR d = 9)
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND (c = 3 OR c = 40) AND (d = 1 OR d = 9)
 GROUP BY a, b;
 a	MAX(d)	MIN(d)
 1	9	1
@@ -1436,14 +1436,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)) and ((t.a = 1) or (t.a = 12)))  (rows=1)
     -> Covering index skip scan for grouping on t using k1 over (a = 12 AND b = 2) OR (a = 12 AND b = 15) OR (2 more)  (rows=1)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 1	2	10	1
@@ -1461,14 +1461,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a < 2 OR a > 11) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a < 2 OR a > 11) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)) and ((t.a < 2) or (t.a > 11)))  (rows=1.32)
     -> Covering index skip scan for grouping on t using k1 over (a < 11) OR (2 < a < NULL)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a < 2 OR a > 11) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a < 2 OR a > 11) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 1	2	10	1
@@ -1486,13 +1486,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT DISTINCT a, b FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT a, b FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)) and ((t.a = 1) or (t.a = 12)))  (rows=1)
     -> Covering index skip scan for deduplication on t using k1 over (a = 12 AND b = 2) OR (a = 12 AND b = 15) OR (2 more)  (rows=1)
 
 FLUSH STATUS;
-SELECT DISTINCT a, b FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT a, b FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 a	b
 1	2
 12	15
@@ -1509,13 +1509,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT DISTINCT a FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15);
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT a FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15);
 EXPLAIN
 -> Filter: (((t.b = 2) or (t.b = 15)) and ((t.a = 1) or (t.a = 12)))  (rows=1)
     -> Covering index skip scan for deduplication on t using k1 over (a = 12) OR (a = 1)  (rows=1)
 
 FLUSH STATUS;
-SELECT DISTINCT a FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15);
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT a FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15);
 a
 1
 12
@@ -1531,14 +1531,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b < 4 OR b > 10) AND (c = 3 OR c = 40)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b < 4 OR b > 10) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.a = 1) or (t.a = 12)) and ((t.b < 4) or (t.b > 10)))  (rows=2.65)
     -> Covering index skip scan for grouping on t using k1 over (a = 12 AND NULL < b < 4) OR (a = 12 AND 10 < b) OR (2 more)  (rows=7)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b < 4 OR b > 10) AND (c = 3 OR c = 40)
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b < 4 OR b > 10) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 1	1	10	1
@@ -1558,14 +1558,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a > 9) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a > 9) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
 GROUP BY a;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)) and ((t.a = 1) or (t.a > 9)))  (rows=1.73)
     -> Covering index skip scan for grouping on t using k1 over (a < 9) OR (a = 1)  (rows=3)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a > 9) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a > 9) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
 GROUP BY a;
 a	MAX(d)	MIN(d)
 1	10	1
@@ -1584,14 +1584,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT COUNT(DISTINCT a, b) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ COUNT(DISTINCT a, b) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 EXPLAIN
 -> Aggregate: count(distinct t.a,t.b)  (rows=1)
     -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)) and ((t.a = 1) or (t.a = 12)))  (rows=1)
         -> Covering index skip scan for deduplication on t using k1 over (a = 12 AND b = 2) OR (a = 12 AND b = 15) OR (2 more)  (rows=1)
 
 FLUSH STATUS;
-SELECT COUNT(DISTINCT a, b) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+SELECT /*+ GROUP_BY_LIS(t) */ COUNT(DISTINCT a, b) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 COUNT(DISTINCT a, b)
 3
 
@@ -1606,14 +1606,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT SUM(DISTINCT a), AVG(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ SUM(DISTINCT a), AVG(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 EXPLAIN
 -> Aggregate: sum(distinct t.a), avg(distinct t.a)  (rows=1)
     -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)))  (rows=51)
         -> Covering index skip scan for deduplication on t using k1  (rows=51)
 
 FLUSH STATUS;
-SELECT SUM(DISTINCT a), AVG(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+SELECT /*+ GROUP_BY_LIS(t) */ SUM(DISTINCT a), AVG(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 SUM(DISTINCT a)	AVG(DISTINCT a)
 78	6.5000
 
@@ -1628,14 +1628,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT SUM(DISTINCT a), AVG(DISTINCT a), COUNT(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ SUM(DISTINCT a), AVG(DISTINCT a), COUNT(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 EXPLAIN
 -> Aggregate: sum(distinct t.a), avg(distinct t.a), count(distinct t.a)  (rows=1)
     -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)))  (rows=51)
         -> Covering index skip scan for deduplication on t using k1  (rows=51)
 
 FLUSH STATUS;
-SELECT SUM(DISTINCT a), AVG(DISTINCT a), COUNT(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+SELECT /*+ GROUP_BY_LIS(t) */ SUM(DISTINCT a), AVG(DISTINCT a), COUNT(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 SUM(DISTINCT a)	AVG(DISTINCT a)	COUNT(DISTINCT a)
 78	6.5000	12
 
@@ -1650,7 +1650,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE (a > 11) AND (b = 2 OR b = 15) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (a > 11) AND (b = 2 OR b = 15) AND
 (c = 3 OR c = 1 OR c = 2 OR c = 4)
 GROUP BY a;
 EXPLAIN
@@ -1659,7 +1659,7 @@ EXPLAIN
         -> Covering index range scan on t using k1 over (a < 11)  (rows=4)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE (a > 11) AND (b = 2 OR b = 15) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (a > 11) AND (b = 2 OR b = 15) AND
 (c = 3 OR c = 1 OR c = 2 OR c = 4)
 GROUP BY a;
 a	MAX(d)	MIN(d)
@@ -1676,13 +1676,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2) GROUP BY a, b;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2) GROUP BY a, b;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.d > 7) or (t.d = 2)))  (rows=56)
     -> Covering index skip scan for grouping on t using k1 over (d = 2) OR (7 < d)  (rows=113)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2) GROUP BY a, b;
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2) GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 1	1	10	2
 1	2	10	2
@@ -1748,14 +1748,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2 OR d IS NULL)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2 OR d IS NULL)
 GROUP BY a, b;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.d > 7) or (t.d = 2) or (t.d is null)))  (rows=56)
     -> Covering index skip scan for grouping on t using k1 over (d = NULL) OR (d = 2) OR (7 < d)  (rows=113)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2 OR d IS NULL)
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2 OR d IS NULL)
 GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 1	1	10	2
@@ -1823,7 +1823,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND
 (d  < -24 OR d = 3 OR d IS NULL)
 GROUP BY a, b;
 EXPLAIN
@@ -1831,7 +1831,7 @@ EXPLAIN
     -> Covering index skip scan for grouping on t using k1 over (NULL <= d < -24) OR (d = 3)  (rows=57)
 
 FLUSH STATUS;
-SELECT a, b, MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND
 (d  < -24 OR d = 3 OR d IS NULL)
 GROUP BY a, b;
 a	b	MIN(d)
@@ -1873,14 +1873,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND (d  <  1 OR d = 9)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND (d  <  1 OR d = 9)
 GROUP BY a, b;
 EXPLAIN
 -> Filter: ((t.a > 5) and ((t.c = 3) or (t.c = 40)) and ((t.d < 1) or (t.d = 9)))  (rows=24.3)
     -> Covering index skip scan for grouping on t using k1 over (NULL < d < 1) OR (d = 9)  (rows=57)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND (d  <  1 OR d = 9)
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND (d  <  1 OR d = 9)
 GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 10	1	9	9
@@ -1923,7 +1923,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d  =  1 OR d = 9 OR d IS NULL)
 GROUP BY a, b;
 EXPLAIN
@@ -1931,7 +1931,7 @@ EXPLAIN
     -> Covering index skip scan for grouping on t using k1 over (d = NULL) OR (d = 1) OR (d = 9)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d  =  1 OR d = 9 OR d IS NULL)
 GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
@@ -1953,7 +1953,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d  =  0 OR d = 9 OR d IS NULL)
 GROUP BY a, b;
 EXPLAIN
@@ -1961,7 +1961,7 @@ EXPLAIN
     -> Covering index skip scan for grouping on t using k1 over (d = NULL) OR (d = 0) OR (d = 9)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d  =  0 OR d = 9 OR d IS NULL)
 GROUP BY a, b;
 a	b	MIN(d)	MAX(d)
@@ -1983,7 +1983,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d  > 0 AND d < 2 OR d > 3 AND d < 5 OR d IS NULL)
 GROUP BY a, b;
 EXPLAIN
@@ -1991,7 +1991,7 @@ EXPLAIN
     -> Covering index skip scan for grouping on t using k1 over (d = NULL) OR (0 < d < 2) OR (3 < d < 5)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d  > 0 AND d < 2 OR d > 3 AND d < 5 OR d IS NULL)
 GROUP BY a, b;
 a	b	MIN(d)	MAX(d)
@@ -2013,7 +2013,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d < 2 OR d > 5 OR d IS NULL)
 GROUP BY a, b;
 EXPLAIN
@@ -2021,7 +2021,7 @@ EXPLAIN
     -> Covering index skip scan for grouping on t using k1 over (NULL <= d < 2) OR (5 < d)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, b, MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d < 2 OR d > 5 OR d IS NULL)
 GROUP BY a, b;
 a	b	MIN(d)
@@ -2047,7 +2047,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b , max(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b , max(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
 (d is NULL or d = -10 or d = -23)
 GROUP BY a, b;
 EXPLAIN
@@ -2055,7 +2055,7 @@ EXPLAIN
     -> Covering index skip scan for grouping on t using k1 over (d = NULL) OR (d = -23) OR (d = -10)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, b , max(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, b , max(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
 (d is NULL or d = -10 or d = -23)
 GROUP BY a, b;
 a	b	max(d)
@@ -2073,7 +2073,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b , min(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b , min(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
 (d is NULL or d = -10 or d = -23)
 GROUP BY a, b;
 EXPLAIN
@@ -2081,7 +2081,7 @@ EXPLAIN
     -> Covering index skip scan for grouping on t using k1 over (d = NULL) OR (d = -23) OR (d = -10)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, b , min(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, b , min(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
 (d is NULL or d = -10 or d = -23)
 GROUP BY a, b;
 a	b	min(d)
@@ -2099,13 +2099,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MIN(b), MAX(b) FROM t  WHERE a > 9 GROUP BY a;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MIN(b), MAX(b) FROM t  WHERE a > 9 GROUP BY a;
 EXPLAIN
 -> Filter: (t.a > 9)  (rows=1)
     -> Covering index skip scan for grouping on t using k1 over (a < 9)  (rows=1)
 
 FLUSH STATUS;
-SELECT a, MIN(b), MAX(b) FROM t  WHERE a > 9 GROUP BY a;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MIN(b), MAX(b) FROM t  WHERE a > 9 GROUP BY a;
 a	MIN(b)	MAX(b)
 10	1	5
 11	2	15
@@ -2127,13 +2127,13 @@ ALTER TABLE t ADD KEY k1(a, b DESC, c, d DESC);
 ANALYZE TABLE t;
 Table	Op	Msg_type	Msg_text
 test.t	analyze	status	OK
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15) or (t.b = 3)))  (rows=12)
     -> Covering index skip scan for grouping on t using k1  (rows=77)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
 a	MAX(d)	MIN(d)
 1	10	1
 10	10	1
@@ -2159,13 +2159,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)))  (rows=12)
     -> Covering index skip scan for grouping on t using k1  (rows=51)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
 a	MAX(d)	MIN(d)
 1	10	1
 10	10	1
@@ -2191,13 +2191,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c IS NULL) GROUP BY a;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c IS NULL) GROUP BY a;
 EXPLAIN
 -> Filter: (((t.b = 2) or (t.b = 15)) and ((t.c = 3) or (t.c is null)))  (rows=12)
     -> Covering index skip scan for grouping on t using k1  (rows=51)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c IS NULL) GROUP BY a;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c IS NULL) GROUP BY a;
 a	MAX(d)	MIN(d)
 1	10	1
 10	10	1
@@ -2223,13 +2223,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b is null) or (t.b = 15)))  (rows=12)
     -> Covering index skip scan for grouping on t using k1  (rows=51)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
 a	MAX(d)	MIN(d)
 11	30	30
 12	-15	-20
@@ -2245,13 +2245,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 2) AND (c = 3 OR c = 40) GROUP BY a;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 2) AND (c = 3 OR c = 40) GROUP BY a;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b is null) or (t.b = 2)))  (rows=12)
     -> Covering index skip scan for grouping on t using k1  (rows=51)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 2) AND (c = 3 OR c = 40) GROUP BY a;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 2) AND (c = 3 OR c = 40) GROUP BY a;
 a	MAX(d)	MIN(d)
 1	10	1
 10	10	1
@@ -2277,13 +2277,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15) or (t.b = 3)))  (rows=12)
     -> Covering index skip scan for deduplication on t using k1  (rows=77)
 
 FLUSH STATUS;
-SELECT a FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
+SELECT /*+ GROUP_BY_LIS(t) */ a FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
 a
 1
 10
@@ -2309,13 +2309,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a, b;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a, b;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)))  (rows=56)
     -> Covering index skip scan for grouping on t using k1  (rows=113)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a, b;
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 1	2	10	1
 10	2	10	1
@@ -2342,14 +2342,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15) or (t.b = 3)))  (rows=56)
     -> Covering index skip scan for grouping on t using k1  (rows=113)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40)
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 1	2	10	1
@@ -2388,13 +2388,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT DISTINCT a FROM t  WHERE a = 1 AND (b = 2 OR b = 15);
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT a FROM t  WHERE a = 1 AND (b = 2 OR b = 15);
 EXPLAIN
 -> Filter: ((t.a = 1) and ((t.b = 2) or (t.b = 15)))  (rows=1)
     -> Covering index skip scan for deduplication on t using k1 over (a = 1)  (rows=1)
 
 FLUSH STATUS;
-SELECT DISTINCT a FROM t  WHERE a = 1 AND (b = 2 OR b = 15);
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT a FROM t  WHERE a = 1 AND (b = 2 OR b = 15);
 a
 1
 
@@ -2409,14 +2409,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND (c = 3 OR c = 40) AND (d = 1 OR d = 9)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND (c = 3 OR c = 40) AND (d = 1 OR d = 9)
 GROUP BY a, b;
 EXPLAIN
 -> Filter: ((t.a = 1) and ((t.d = 1) or (t.d = 9)) and ((t.c = 3) or (t.c = 40)))  (rows=0.182)
     -> Covering index skip scan for grouping on t using k1 over (d = 1) OR (d = 9)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND (c = 3 OR c = 40) AND (d = 1 OR d = 9)
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND (c = 3 OR c = 40) AND (d = 1 OR d = 9)
 GROUP BY a, b;
 a	MAX(d)	MIN(d)
 1	9	1
@@ -2436,14 +2436,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)) and ((t.a = 1) or (t.a = 12)))  (rows=1)
     -> Covering index skip scan for grouping on t using k1 over (a = 1 AND b = 15) OR (a = 1 AND b = 2) OR (2 more)  (rows=1)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 1	2	10	1
@@ -2461,14 +2461,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a < 2 OR a > 11) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a < 2 OR a > 11) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)) and ((t.a < 2) or (t.a > 11)))  (rows=1.32)
     -> Covering index skip scan for grouping on t using k1 over (NULL < a < 2) OR (11 < a)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a < 2 OR a > 11) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a < 2 OR a > 11) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 1	2	10	1
@@ -2486,13 +2486,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT DISTINCT a, b FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT a, b FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)) and ((t.a = 1) or (t.a = 12)))  (rows=1)
     -> Covering index skip scan for deduplication on t using k1 over (a = 1 AND b = 15) OR (a = 1 AND b = 2) OR (2 more)  (rows=1)
 
 FLUSH STATUS;
-SELECT DISTINCT a, b FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT a, b FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 a	b
 1	2
 12	15
@@ -2509,13 +2509,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT DISTINCT a FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15);
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT a FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15);
 EXPLAIN
 -> Filter: (((t.b = 2) or (t.b = 15)) and ((t.a = 1) or (t.a = 12)))  (rows=1)
     -> Covering index skip scan for deduplication on t using k1 over (a = 1) OR (a = 12)  (rows=1)
 
 FLUSH STATUS;
-SELECT DISTINCT a FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15);
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT a FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15);
 a
 1
 12
@@ -2531,14 +2531,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b < 4 OR b > 10) AND (c = 3 OR c = 40)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b < 4 OR b > 10) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.a = 1) or (t.a = 12)) and ((t.b < 4) or (t.b > 10)))  (rows=2.65)
     -> Covering index skip scan for grouping on t using k1 over (a = 1 AND b < 10) OR (a = 1 AND 4 < b < NULL) OR (2 more)  (rows=7)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b < 4 OR b > 10) AND (c = 3 OR c = 40)
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b < 4 OR b > 10) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 1	1	10	1
@@ -2558,14 +2558,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a > 9) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a > 9) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
 GROUP BY a;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)) and ((t.a = 1) or (t.a > 9)))  (rows=1.73)
     -> Covering index skip scan for grouping on t using k1 over (a = 1) OR (9 < a)  (rows=3)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a > 9) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a > 9) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
 GROUP BY a;
 a	MAX(d)	MIN(d)
 1	10	1
@@ -2584,14 +2584,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT COUNT(DISTINCT a, b) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ COUNT(DISTINCT a, b) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 EXPLAIN
 -> Aggregate: count(distinct t.a,t.b)  (rows=1)
     -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)) and ((t.a = 1) or (t.a = 12)))  (rows=1)
         -> Covering index skip scan for deduplication on t using k1 over (a = 1 AND b = 15) OR (a = 1 AND b = 2) OR (2 more)  (rows=1)
 
 FLUSH STATUS;
-SELECT COUNT(DISTINCT a, b) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+SELECT /*+ GROUP_BY_LIS(t) */ COUNT(DISTINCT a, b) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 COUNT(DISTINCT a, b)
 3
 
@@ -2606,14 +2606,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT SUM(DISTINCT a), AVG(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ SUM(DISTINCT a), AVG(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 EXPLAIN
 -> Aggregate: sum(distinct t.a), avg(distinct t.a)  (rows=1)
     -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)))  (rows=51)
         -> Covering index skip scan for deduplication on t using k1  (rows=51)
 
 FLUSH STATUS;
-SELECT SUM(DISTINCT a), AVG(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+SELECT /*+ GROUP_BY_LIS(t) */ SUM(DISTINCT a), AVG(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 SUM(DISTINCT a)	AVG(DISTINCT a)
 78	6.5000
 
@@ -2628,14 +2628,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT SUM(DISTINCT a), AVG(DISTINCT a), COUNT(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ SUM(DISTINCT a), AVG(DISTINCT a), COUNT(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 EXPLAIN
 -> Aggregate: sum(distinct t.a), avg(distinct t.a), count(distinct t.a)  (rows=1)
     -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)))  (rows=51)
         -> Covering index skip scan for deduplication on t using k1  (rows=51)
 
 FLUSH STATUS;
-SELECT SUM(DISTINCT a), AVG(DISTINCT a), COUNT(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+SELECT /*+ GROUP_BY_LIS(t) */ SUM(DISTINCT a), AVG(DISTINCT a), COUNT(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 SUM(DISTINCT a)	AVG(DISTINCT a)	COUNT(DISTINCT a)
 78	6.5000	12
 
@@ -2650,7 +2650,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE (a > 11) AND (b = 2 OR b = 15) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (a > 11) AND (b = 2 OR b = 15) AND
 (c = 3 OR c = 1 OR c = 2 OR c = 4)
 GROUP BY a;
 EXPLAIN
@@ -2659,7 +2659,7 @@ EXPLAIN
         -> Covering index range scan on t using k1 over (11 < a)  (rows=4)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE (a > 11) AND (b = 2 OR b = 15) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (a > 11) AND (b = 2 OR b = 15) AND
 (c = 3 OR c = 1 OR c = 2 OR c = 4)
 GROUP BY a;
 a	MAX(d)	MIN(d)
@@ -2676,13 +2676,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2) GROUP BY a, b;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2) GROUP BY a, b;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.d > 7) or (t.d = 2)))  (rows=56)
     -> Covering index skip scan for grouping on t using k1 over (d = 2) OR (7 < d)  (rows=113)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2) GROUP BY a, b;
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2) GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 1	1	10	2
 1	2	10	2
@@ -2748,14 +2748,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2 OR d IS NULL)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2 OR d IS NULL)
 GROUP BY a, b;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.d > 7) or (t.d = 2) or (t.d is null)))  (rows=56)
     -> Covering index skip scan for grouping on t using k1 over (d = NULL) OR (d = 2) OR (7 < d)  (rows=113)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2 OR d IS NULL)
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2 OR d IS NULL)
 GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 1	1	10	2
@@ -2823,7 +2823,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND
 (d  < -24 OR d = 3 OR d IS NULL)
 GROUP BY a, b;
 EXPLAIN
@@ -2831,7 +2831,7 @@ EXPLAIN
     -> Covering index skip scan for grouping on t using k1 over (NULL <= d < -24) OR (d = 3)  (rows=57)
 
 FLUSH STATUS;
-SELECT a, b, MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND
 (d  < -24 OR d = 3 OR d IS NULL)
 GROUP BY a, b;
 a	b	MIN(d)
@@ -2873,14 +2873,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND (d  <  1 OR d = 9)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND (d  <  1 OR d = 9)
 GROUP BY a, b;
 EXPLAIN
 -> Filter: ((t.a > 5) and ((t.c = 3) or (t.c = 40)) and ((t.d < 1) or (t.d = 9)))  (rows=24.3)
     -> Covering index skip scan for grouping on t using k1 over (NULL < d < 1) OR (d = 9)  (rows=57)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND (d  <  1 OR d = 9)
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND (d  <  1 OR d = 9)
 GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 10	1	9	9
@@ -2923,7 +2923,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d  =  1 OR d = 9 OR d IS NULL)
 GROUP BY a, b;
 EXPLAIN
@@ -2931,7 +2931,7 @@ EXPLAIN
     -> Covering index skip scan for grouping on t using k1 over (d = NULL) OR (d = 1) OR (d = 9)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d  =  1 OR d = 9 OR d IS NULL)
 GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
@@ -2953,7 +2953,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d  =  0 OR d = 9 OR d IS NULL)
 GROUP BY a, b;
 EXPLAIN
@@ -2961,7 +2961,7 @@ EXPLAIN
     -> Covering index skip scan for grouping on t using k1 over (d = NULL) OR (d = 0) OR (d = 9)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d  =  0 OR d = 9 OR d IS NULL)
 GROUP BY a, b;
 a	b	MIN(d)	MAX(d)
@@ -2983,7 +2983,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d  > 0 AND d < 2 OR d > 3 AND d < 5 OR d IS NULL)
 GROUP BY a, b;
 EXPLAIN
@@ -2991,7 +2991,7 @@ EXPLAIN
     -> Covering index skip scan for grouping on t using k1 over (d = NULL) OR (0 < d < 2) OR (3 < d < 5)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d  > 0 AND d < 2 OR d > 3 AND d < 5 OR d IS NULL)
 GROUP BY a, b;
 a	b	MIN(d)	MAX(d)
@@ -3013,7 +3013,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d < 2 OR d > 5 OR d IS NULL)
 GROUP BY a, b;
 EXPLAIN
@@ -3021,7 +3021,7 @@ EXPLAIN
     -> Covering index skip scan for grouping on t using k1 over (NULL <= d < 2) OR (5 < d)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, b, MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d < 2 OR d > 5 OR d IS NULL)
 GROUP BY a, b;
 a	b	MIN(d)
@@ -3047,7 +3047,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b , max(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b , max(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
 (d is NULL or d = -10 or d = -23)
 GROUP BY a, b;
 EXPLAIN
@@ -3055,7 +3055,7 @@ EXPLAIN
     -> Covering index skip scan for grouping on t using k1 over (d = NULL) OR (d = -23) OR (d = -10)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, b , max(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, b , max(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
 (d is NULL or d = -10 or d = -23)
 GROUP BY a, b;
 a	b	max(d)
@@ -3073,7 +3073,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b , min(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b , min(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
 (d is NULL or d = -10 or d = -23)
 GROUP BY a, b;
 EXPLAIN
@@ -3081,7 +3081,7 @@ EXPLAIN
     -> Covering index skip scan for grouping on t using k1 over (d = NULL) OR (d = -23) OR (d = -10)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, b , min(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, b , min(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
 (d is NULL or d = -10 or d = -23)
 GROUP BY a, b;
 a	b	min(d)
@@ -3099,13 +3099,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MIN(b), MAX(b) FROM t  WHERE a > 9 GROUP BY a;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MIN(b), MAX(b) FROM t  WHERE a > 9 GROUP BY a;
 EXPLAIN
 -> Filter: (t.a > 9)  (rows=1)
     -> Covering index skip scan for grouping on t using k1 over (9 < a)  (rows=1)
 
 FLUSH STATUS;
-SELECT a, MIN(b), MAX(b) FROM t  WHERE a > 9 GROUP BY a;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MIN(b), MAX(b) FROM t  WHERE a > 9 GROUP BY a;
 a	MIN(b)	MAX(b)
 10	1	5
 11	2	15
@@ -3127,13 +3127,13 @@ CREATE TABLE t (a INT, b INT, c INT, d INT, KEY k1(a, b, c, d)) ENGINE=myisam;
 ANALYZE TABLE t;
 Table	Op	Msg_type	Msg_text
 test.t	analyze	status	OK
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15) or (t.b = 3)))  (rows=12)
     -> Covering index skip scan for grouping on t using k1  (rows=77)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
 a	MAX(d)	MIN(d)
 1	10	1
 10	10	1
@@ -3159,13 +3159,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)))  (rows=12)
     -> Covering index skip scan for grouping on t using k1  (rows=51)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
 a	MAX(d)	MIN(d)
 1	10	1
 10	10	1
@@ -3191,13 +3191,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c IS NULL) GROUP BY a;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c IS NULL) GROUP BY a;
 EXPLAIN
 -> Filter: (((t.b = 2) or (t.b = 15)) and ((t.c = 3) or (t.c is null)))  (rows=12)
     -> Covering index skip scan for grouping on t using k1  (rows=51)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c IS NULL) GROUP BY a;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c IS NULL) GROUP BY a;
 a	MAX(d)	MIN(d)
 1	10	1
 10	10	1
@@ -3223,13 +3223,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b is null) or (t.b = 15)))  (rows=12)
     -> Covering index skip scan for grouping on t using k1  (rows=51)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 15) AND (c = 3 OR c = 40) GROUP BY a;
 a	MAX(d)	MIN(d)
 11	30	30
 12	-15	-20
@@ -3245,13 +3245,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 2) AND (c = 3 OR c = 40) GROUP BY a;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 2) AND (c = 3 OR c = 40) GROUP BY a;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b is null) or (t.b = 2)))  (rows=12)
     -> Covering index skip scan for grouping on t using k1  (rows=51)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 2) AND (c = 3 OR c = 40) GROUP BY a;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (b IS NULL OR b = 2) AND (c = 3 OR c = 40) GROUP BY a;
 a	MAX(d)	MIN(d)
 1	10	1
 10	10	1
@@ -3277,13 +3277,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15) or (t.b = 3)))  (rows=12)
     -> Covering index skip scan for deduplication on t using k1  (rows=77)
 
 FLUSH STATUS;
-SELECT a FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
+SELECT /*+ GROUP_BY_LIS(t) */ a FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY a;
 a
 1
 10
@@ -3309,13 +3309,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a, b;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a, b;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)))  (rows=55.7)
     -> Covering index skip scan for grouping on t using k1  (rows=111)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a, b;
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40) GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 1	2	10	1
 10	2	10	1
@@ -3342,14 +3342,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15) or (t.b = 3)))  (rows=55.7)
     -> Covering index skip scan for grouping on t using k1  (rows=111)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40)
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 1	2	10	1
@@ -3388,13 +3388,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT DISTINCT a FROM t  WHERE a = 1 AND (b = 2 OR b = 15);
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT a FROM t  WHERE a = 1 AND (b = 2 OR b = 15);
 EXPLAIN
 -> Filter: ((t.a = 1) and ((t.b = 2) or (t.b = 15)))  (rows=1)
     -> Covering index skip scan for deduplication on t using k1 over (a = 1)  (rows=1)
 
 FLUSH STATUS;
-SELECT DISTINCT a FROM t  WHERE a = 1 AND (b = 2 OR b = 15);
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT a FROM t  WHERE a = 1 AND (b = 2 OR b = 15);
 a
 1
 
@@ -3409,14 +3409,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND (c = 3 OR c = 40) AND (d = 1 OR d = 9)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND (c = 3 OR c = 40) AND (d = 1 OR d = 9)
 GROUP BY a, b;
 EXPLAIN
 -> Filter: ((t.a = 1) and ((t.d = 1) or (t.d = 9)) and ((t.c = 3) or (t.c = 40)))  (rows=0.185)
     -> Covering index skip scan for grouping on t using k1 over (d = 1) OR (d = 9)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND (c = 3 OR c = 40) AND (d = 1 OR d = 9)
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND (c = 3 OR c = 40) AND (d = 1 OR d = 9)
 GROUP BY a, b;
 a	MAX(d)	MIN(d)
 1	9	1
@@ -3436,14 +3436,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)) and ((t.a = 1) or (t.a = 12)))  (rows=1)
     -> Covering index skip scan for grouping on t using k1 over (a = 1 AND b = 2) OR (a = 1 AND b = 15) OR (2 more)  (rows=1)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 1	2	10	1
@@ -3461,14 +3461,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a < 2 OR a > 11) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a < 2 OR a > 11) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)) and ((t.a < 2) or (t.a > 11)))  (rows=1.37)
     -> Covering index skip scan for grouping on t using k1 over (NULL < a < 2) OR (11 < a)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a < 2 OR a > 11) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a < 2 OR a > 11) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 1	2	10	1
@@ -3486,13 +3486,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT DISTINCT a, b FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT a, b FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)) and ((t.a = 1) or (t.a = 12)))  (rows=1)
     -> Covering index skip scan for deduplication on t using k1 over (a = 1 AND b = 2) OR (a = 1 AND b = 15) OR (2 more)  (rows=1)
 
 FLUSH STATUS;
-SELECT DISTINCT a, b FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT a, b FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 a	b
 1	2
 12	15
@@ -3509,13 +3509,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT DISTINCT a FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15);
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT a FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15);
 EXPLAIN
 -> Filter: (((t.b = 2) or (t.b = 15)) and ((t.a = 1) or (t.a = 12)))  (rows=1)
     -> Covering index skip scan for deduplication on t using k1 over (a = 1) OR (a = 12)  (rows=1)
 
 FLUSH STATUS;
-SELECT DISTINCT a FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15);
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT a FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15);
 a
 1
 12
@@ -3531,14 +3531,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b < 4 OR b > 10) AND (c = 3 OR c = 40)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b < 4 OR b > 10) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.a = 1) or (t.a = 12)) and ((t.b < 4) or (t.b > 10)))  (rows=2.65)
     -> Covering index skip scan for grouping on t using k1 over (a = 1 AND NULL < b < 4) OR (a = 1 AND 10 < b) OR (2 more)  (rows=7)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b < 4 OR b > 10) AND (c = 3 OR c = 40)
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a = 12) AND (b < 4 OR b > 10) AND (c = 3 OR c = 40)
 GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 1	1	10	1
@@ -3558,14 +3558,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a > 9) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a > 9) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
 GROUP BY a;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)) and ((t.a = 1) or (t.a > 9)))  (rows=2.65)
     -> Covering index skip scan for grouping on t using k1 over (a = 1) OR (9 < a)  (rows=7)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a > 9) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (a = 1 OR a > 9) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40)
 GROUP BY a;
 a	MAX(d)	MIN(d)
 1	10	1
@@ -3584,14 +3584,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT COUNT(DISTINCT a, b) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ COUNT(DISTINCT a, b) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 EXPLAIN
 -> Aggregate: count(distinct t.a,t.b)  (rows=1)
     -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)) and ((t.a = 1) or (t.a = 12)))  (rows=1)
         -> Covering index skip scan for deduplication on t using k1 over (a = 1 AND b = 2) OR (a = 1 AND b = 15) OR (2 more)  (rows=1)
 
 FLUSH STATUS;
-SELECT COUNT(DISTINCT a, b) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+SELECT /*+ GROUP_BY_LIS(t) */ COUNT(DISTINCT a, b) FROM t  WHERE (a = 1 OR a = 12) AND (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 COUNT(DISTINCT a, b)
 3
 
@@ -3606,14 +3606,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT SUM(DISTINCT a), AVG(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ SUM(DISTINCT a), AVG(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 EXPLAIN
 -> Aggregate: sum(distinct t.a), avg(distinct t.a)  (rows=1)
     -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)))  (rows=51)
         -> Covering index skip scan for deduplication on t using k1  (rows=51)
 
 FLUSH STATUS;
-SELECT SUM(DISTINCT a), AVG(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+SELECT /*+ GROUP_BY_LIS(t) */ SUM(DISTINCT a), AVG(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 SUM(DISTINCT a)	AVG(DISTINCT a)
 78	6.5000
 
@@ -3628,14 +3628,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT SUM(DISTINCT a), AVG(DISTINCT a), COUNT(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ SUM(DISTINCT a), AVG(DISTINCT a), COUNT(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 EXPLAIN
 -> Aggregate: sum(distinct t.a), avg(distinct t.a), count(distinct t.a)  (rows=1)
     -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15)))  (rows=51)
         -> Covering index skip scan for deduplication on t using k1  (rows=51)
 
 FLUSH STATUS;
-SELECT SUM(DISTINCT a), AVG(DISTINCT a), COUNT(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
+SELECT /*+ GROUP_BY_LIS(t) */ SUM(DISTINCT a), AVG(DISTINCT a), COUNT(DISTINCT a) FROM t  WHERE (b = 2 OR b = 15) AND (c = 3 OR c = 40);
 SUM(DISTINCT a)	AVG(DISTINCT a)	COUNT(DISTINCT a)
 78	6.5000	12
 
@@ -3650,7 +3650,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t  WHERE (a > 11) AND (b = 2 OR b = 15) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (a > 11) AND (b = 2 OR b = 15) AND
 (c = 3 OR c = 1 OR c = 2 OR c = 4)
 GROUP BY a;
 EXPLAIN
@@ -3659,7 +3659,7 @@ EXPLAIN
         -> Covering index range scan on t using k1 over (11 < a)  (rows=13)
 
 FLUSH STATUS;
-SELECT a, MAX(d), MIN(d) FROM t  WHERE (a > 11) AND (b = 2 OR b = 15) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE (a > 11) AND (b = 2 OR b = 15) AND
 (c = 3 OR c = 1 OR c = 2 OR c = 4)
 GROUP BY a;
 a	MAX(d)	MIN(d)
@@ -3676,13 +3676,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2) GROUP BY a, b;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2) GROUP BY a, b;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.d > 7) or (t.d = 2)))  (rows=55.7)
     -> Covering index skip scan for grouping on t using k1 over (d = 2) OR (7 < d)  (rows=111)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2) GROUP BY a, b;
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2) GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 1	1	10	2
 1	2	10	2
@@ -3748,14 +3748,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2 OR d IS NULL)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2 OR d IS NULL)
 GROUP BY a, b;
 EXPLAIN
 -> Filter: (((t.c = 3) or (t.c = 40)) and ((t.d > 7) or (t.d = 2) or (t.d is null)))  (rows=55.7)
     -> Covering index skip scan for grouping on t using k1 over (d = NULL) OR (d = 2) OR (7 < d)  (rows=111)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2 OR d IS NULL)
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (c = 3 OR c = 40) AND (d  > 7 OR d =2 OR d IS NULL)
 GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 1	1	10	2
@@ -3823,7 +3823,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND
 (d  < -24 OR d = 3 OR d IS NULL)
 GROUP BY a, b;
 EXPLAIN
@@ -3831,7 +3831,7 @@ EXPLAIN
     -> Covering index skip scan for grouping on t using k1 over (NULL <= d < -24) OR (d = 3)  (rows=55)
 
 FLUSH STATUS;
-SELECT a, b, MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND
 (d  < -24 OR d = 3 OR d IS NULL)
 GROUP BY a, b;
 a	b	MIN(d)
@@ -3873,14 +3873,14 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND (d  <  1 OR d = 9)
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND (d  <  1 OR d = 9)
 GROUP BY a, b;
 EXPLAIN
 -> Filter: ((t.a > 5) and ((t.c = 3) or (t.c = 40)) and ((t.d < 1) or (t.d = 9)))  (rows=24.8)
     -> Covering index skip scan for grouping on t using k1 over (NULL < d < 1) OR (d = 9)  (rows=55)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND (d  <  1 OR d = 9)
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a > 5) AND (c = 3 OR c = 40) AND (d  <  1 OR d = 9)
 GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
 10	1	9	9
@@ -3923,7 +3923,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d  =  1 OR d = 9 OR d IS NULL)
 GROUP BY a, b;
 EXPLAIN
@@ -3931,7 +3931,7 @@ EXPLAIN
     -> Covering index skip scan for grouping on t using k1 over (d = NULL) OR (d = 1) OR (d = 9)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, b, MAX(d), MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MAX(d), MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d  =  1 OR d = 9 OR d IS NULL)
 GROUP BY a, b;
 a	b	MAX(d)	MIN(d)
@@ -3953,7 +3953,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d  =  0 OR d = 9 OR d IS NULL)
 GROUP BY a, b;
 EXPLAIN
@@ -3961,7 +3961,7 @@ EXPLAIN
     -> Covering index skip scan for grouping on t using k1 over (d = NULL) OR (d = 0) OR (d = 9)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d  =  0 OR d = 9 OR d IS NULL)
 GROUP BY a, b;
 a	b	MIN(d)	MAX(d)
@@ -3983,7 +3983,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d  > 0 AND d < 2 OR d > 3 AND d < 5 OR d IS NULL)
 GROUP BY a, b;
 EXPLAIN
@@ -3991,7 +3991,7 @@ EXPLAIN
     -> Covering index skip scan for grouping on t using k1 over (d = NULL) OR (0 < d < 2) OR (3 < d < 5)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d), MAX(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d  > 0 AND d < 2 OR d > 3 AND d < 5 OR d IS NULL)
 GROUP BY a, b;
 a	b	MIN(d)	MAX(d)
@@ -4013,7 +4013,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b, MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d < 2 OR d > 5 OR d IS NULL)
 GROUP BY a, b;
 EXPLAIN
@@ -4021,7 +4021,7 @@ EXPLAIN
     -> Covering index skip scan for grouping on t using k1 over (NULL <= d < 2) OR (5 < d)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, b, MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, b, MIN(d) FROM t  WHERE (a > 9) AND (c = 3 OR c = 40) AND
 (d < 2 OR d > 5 OR d IS NULL)
 GROUP BY a, b;
 a	b	MIN(d)
@@ -4047,7 +4047,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b , max(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b , max(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
 (d is NULL or d = -10 or d = -23)
 GROUP BY a, b;
 EXPLAIN
@@ -4055,7 +4055,7 @@ EXPLAIN
     -> Covering index skip scan for grouping on t using k1 over (d = NULL) OR (d = -23) OR (d = -10)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, b , max(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, b , max(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
 (d is NULL or d = -10 or d = -23)
 GROUP BY a, b;
 a	b	max(d)
@@ -4073,7 +4073,7 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, b , min(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, b , min(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
 (d is NULL or d = -10 or d = -23)
 GROUP BY a, b;
 EXPLAIN
@@ -4081,7 +4081,7 @@ EXPLAIN
     -> Covering index skip scan for grouping on t using k1 over (d = NULL) OR (d = -23) OR (d = -10)  (rows=11)
 
 FLUSH STATUS;
-SELECT a, b , min(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
+SELECT /*+ GROUP_BY_LIS(t) */ a, b , min(d) FROM t  WHERE (a >= 10) AND (c = 3 or c=40) AND
 (d is NULL or d = -10 or d = -23)
 GROUP BY a, b;
 a	b	min(d)
@@ -4099,13 +4099,13 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
-EXPLAIN FORMAT=TREE SELECT a, MIN(b), MAX(b) FROM t  WHERE a > 9 GROUP BY a;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MIN(b), MAX(b) FROM t  WHERE a > 9 GROUP BY a;
 EXPLAIN
 -> Filter: (t.a > 9)  (rows=1)
     -> Covering index skip scan for grouping on t using k1 over (9 < a)  (rows=1)
 
 FLUSH STATUS;
-SELECT a, MIN(b), MAX(b) FROM t  WHERE a > 9 GROUP BY a;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MIN(b), MAX(b) FROM t  WHERE a > 9 GROUP BY a;
 a	MIN(b)	MAX(b)
 10	1	5
 11	2	15

@@ -91,7 +91,7 @@ Mem_root_array<AccessPath *> get_all_group_skip_scans(
 AccessPath *get_best_group_skip_scan(THD *thd, RANGE_OPT_PARAM *param,
                                      SEL_TREE *tree, enum_order order_direction,
                                      bool skip_records_in_range,
-                                     double cost_est);
+                                     double cost_est, bool force_group_by);
 
 void trace_basic_info_group_index_skip_scan(THD *thd, const AccessPath *path,
                                             const RANGE_OPT_PARAM *,

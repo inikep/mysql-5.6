@@ -152,7 +152,7 @@ GroupIndexSkipScanInfo *select_best_group_skip_scan(
 AccessPath *make_group_skip_scan_path(
     THD *thd, RANGE_OPT_PARAM *param, SEL_TREE *tree,
     GroupIndexSkipScanInfo *group_skip_scan_info, double cost_est,
-    bool have_min, bool have_max);
+    bool have_min, bool have_max, bool force_group_by);
 
 /**
   Test if this access method is applicable to a GROUP query with MIN/MAX
@@ -300,7 +300,7 @@ AccessPath *make_group_skip_scan_path(
 AccessPath *get_best_group_skip_scan(THD *thd, RANGE_OPT_PARAM *param,
                                      SEL_TREE *tree, enum_order order_direction,
                                      bool skip_records_in_range,
-                                     double cost_est) {
+                                     double cost_est, bool force_group_by) {
   bool have_min = false; /* true if there is a MIN function. */
   bool have_max = false; /* true if there is a MAX function. */
 
@@ -316,8 +316,9 @@ AccessPath *get_best_group_skip_scan(THD *thd, RANGE_OPT_PARAM *param,
   GroupIndexSkipScanInfo *best_group_skip_scan =
       select_best_group_skip_scan(&possible_group_skip_scans);
   // build access path for best group skip scan
-  AccessPath *group_skip_scan_path = make_group_skip_scan_path(
-      thd, param, tree, best_group_skip_scan, cost_est, have_min, have_max);
+  AccessPath *group_skip_scan_path =
+      make_group_skip_scan_path(thd, param, tree, best_group_skip_scan,
+                                cost_est, have_min, have_max, force_group_by);
   return group_skip_scan_path;
 }
 
@@ -523,6 +524,12 @@ void collect_group_skip_scans(
     /* Check (B1) - if current index is covering. */
     if (!table->covering_keys.is_set(cur_index)) {
       cause = "not_covering";
+      goto next_index;
+    }
+
+    if (!compound_hint_key_enabled(param->table, cur_index,
+                                   GROUP_BY_LIS_HINT_ENUM)) {
+      cause = "group_by_lis_hint";
       goto next_index;
     }
 
@@ -924,9 +931,12 @@ Mem_root_array<AccessPath *> get_all_group_skip_scans(
   for (GroupIndexSkipScanInfo *gskip_scan : possible_group_skip_scans) {
     rows = max<double>(rows, gskip_scan->records);
   }
+  bool force_group_by = hint_table_state(thd, param->table->pos_in_table_list,
+                                         GROUP_BY_LIS_HINT_ENUM, 0);
   for (GroupIndexSkipScanInfo *gskip_scan : possible_group_skip_scans) {
-    AccessPath *cur_path = make_group_skip_scan_path(
-        thd, param, tree, gskip_scan, cost_est, have_min, have_max);
+    AccessPath *cur_path =
+        make_group_skip_scan_path(thd, param, tree, gskip_scan, cost_est,
+                                  have_min, have_max, force_group_by);
     if (cur_path != nullptr) {
       // Adjust num_output_rows for hypergraph to match aggregate path rowcounts
       cur_path->set_num_output_rows(rows > 1 ? rows - 1 : rows);
@@ -951,7 +961,7 @@ Mem_root_array<AccessPath *> get_all_group_skip_scans(
 AccessPath *make_group_skip_scan_path(
     THD *thd, RANGE_OPT_PARAM *param, SEL_TREE *tree,
     GroupIndexSkipScanInfo *group_skip_scan_info, double cost_est,
-    bool have_min, bool have_max) {
+    bool have_min, bool have_max, bool force_group_by) {
   if (group_skip_scan_info == nullptr) return nullptr;
 
   Opt_trace_context *const trace = &thd->opt_trace;
@@ -1186,6 +1196,7 @@ AccessPath *make_group_skip_scan_path(
   path->group_index_skip_scan().num_used_key_parts =
       group_skip_scan_info->num_used_key_parts;
   path->group_index_skip_scan().param = group_skip_scan_param;
+  path->group_index_skip_scan().forced_by_hint = force_group_by;
 
   trace_group_skip.end();
 
