@@ -76,10 +76,6 @@ class THD;
   @note User-level locks no longer use THD_WAIT_USER_LOCK wait type.
   Since their implementation relies on metadata locks manager it uses
   THD_WAIT_META_DATA_LOCK instead.
-
-  @note THD_WAIT_ADMIT is a fake wait type communicating that query has been
-  parsed and is ready for execution. The query attributes and sql command
-  are available at this point.
 */
 
 enum THD_wait_type : int {
@@ -97,9 +93,32 @@ enum THD_wait_type : int {
   THD_WAIT_TRX_DELAY = 11,
   THD_WAIT_FOR_HLC = 12,
   THD_WAIT_NET_IO = 13,
+
+  /**
+    Pseudo-wait type communicating that a thread has done a lot of work and
+    should consider yielding the CPU, if an underlying scheduler supports it.
+
+    Called for long running operations like joins or table scans.
+  */
   THD_WAIT_YIELD = 14,
+
+  /**
+    Pseudo-wait type communicating that query has been parsed and is requesting
+    admission. The query attributes and sql command are available at this point.
+
+    Plugins may use this to determine whether the query is allowed to run,
+    rejected entirely or should have its execution delayed.
+
+    It is invoked on each query in a multi query batch.
+  */
   THD_WAIT_ADMIT = 15,
-  THD_WAIT_LAST = 16
+
+  /**
+    Called just before a transaction is being committed. The commit may block
+    due to factors such as disk IO and quorum acknowledgements for replication.
+  */
+  THD_WAIT_COMMIT = 16,
+  THD_WAIT_LAST = 17
 };
 
 inline const char *THD_wait_type_str(THD_wait_type twt) {
@@ -147,10 +166,13 @@ inline const char *THD_wait_type_str(THD_wait_type twt) {
       return "Waiting for NET IO";
 
     case THD_WAIT_YIELD:
-      return "Waiting for YIELD";
+      return "Waiting for YIELD event";
 
     case THD_WAIT_ADMIT:
-      return "Waiting for WAIT ADMIT";
+      return "Waiting for ADMIT event";
+
+    case THD_WAIT_COMMIT:
+      return "Waiting for COMMIT event";
 
     case THD_WAIT_LAST:
       return "<Unused LAST marker value>";

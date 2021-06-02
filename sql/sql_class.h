@@ -5248,13 +5248,16 @@ class THD : public MDL_context_owner,
   st_ac_node_ptr ac_node;
   enum enum_admission_control_request_mode readmission_mode = AC_REQUEST_NONE;
 
+  /* Level of nested thd_wait_begin/thd_wait_end calls. */
+  int readmission_nest_level = 0;
+
   ulonglong last_yield_counter = 0;
   ulonglong yield_counter = 0;
   ulonglong readmission_count = 0;
   std::function<bool()> yield_cond;
 
   /**
-    Default yield condition.
+    Default yield predicate that always returns true.
   */
   static bool always_yield();
 
@@ -5281,6 +5284,14 @@ class THD : public MDL_context_owner,
     @return 0 if the query is admitted, 1 otherwise
    */
   int admit_query();
+
+  /**
+    Check if wait type should release AC slot.
+
+    @return true if should release, false otherwise.
+  */
+  bool should_exit_ac(int wait_type,
+                      enum_admission_control_request_mode &new_mode);
 
  private:
   /**
@@ -5421,6 +5432,17 @@ class THD : public MDL_context_owner,
   /// Flag indicating whether this session incremented the number of sessions
   /// with GTID_NEXT set to AUTOMATIC:tag
   bool has_incremented_gtid_automatic_count;
+};
+
+/**
+  Mark a scope as thd_wait_begin/thd_wait_end.
+*/
+class Thd_wait_scope {
+  THD *m_thd;
+
+ public:
+  Thd_wait_scope(THD *thd, int wait_type);
+  ~Thd_wait_scope();
 };
 
 /**
