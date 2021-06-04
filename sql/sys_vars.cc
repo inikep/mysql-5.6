@@ -3493,6 +3493,12 @@ static Sys_var_bool Sys_optimizer_full_scan(
     HINT_UPDATEABLE SESSION_VAR(optimizer_full_scan), CMD_LINE(OPT_ARG),
     DEFAULT(true));
 
+static Sys_var_double Sys_optimizer_group_by_cost_adjust(
+    "optimizer_group_by_cost_adjust",
+    "Adjust cost of loose index scan group-by plan by this factor.",
+    SESSION_VAR(optimizer_group_by_cost_adjust), CMD_LINE(OPT_ARG),
+    VALID_RANGE(0, DBL_MAX), DEFAULT(1));
+
 /// @todo change to enum
 static Sys_var_ulong Sys_optimizer_prune_level(
     "optimizer_prune_level",
@@ -3663,6 +3669,7 @@ static const char *optimizer_switch_names[] = {
     "hypergraph_optimizer",  // Deliberately not documented below.
     "derived_condition_pushdown",
     "hash_set_operations",
+    "group_by_limit",
     "default",
     NullS};
 static Sys_var_flagset Sys_optimizer_switch(
@@ -3676,8 +3683,8 @@ static Sys_var_flagset Sys_optimizer_switch(
     " block_nested_loop, batched_key_access, use_index_extensions,"
     " condition_fanout_filter, derived_merge, hash_join,"
     " subquery_to_derived, prefer_ordering_index,"
-    " derived_condition_pushdown, hash_set_operations} and val is one of "
-    "{on, off, default}",
+    " derived_condition_pushdown, hash_set_operations, group_by_limit} and val "
+    "is one of {on, off, default}",
     HINT_UPDATEABLE SESSION_VAR(optimizer_switch), CMD_LINE(REQUIRED_ARG),
     optimizer_switch_names, DEFAULT(OPTIMIZER_SWITCH_DEFAULT), NO_MUTEX_GUARD,
     NOT_IN_BINLOG, ON_CHECK(check_optimizer_switch), ON_UPDATE(nullptr));
