@@ -2773,7 +2773,9 @@ bool THD::should_exit_ac(int wait_type,
       new_mode = AC_REQUEST_NONE;
       return admission_control_wait_events & ADMISSION_CONTROL_THD_WAIT_COMMIT;
     case THD_WAIT_ADMIT:
-      // If filter is enabled, and command is filtered, then release AC.
+      // If filter is enabled, and command is filtered, then release AC and do
+      // not readmit.
+      new_mode = AC_REQUEST_NONE;
       return admission_control_multiquery_filter &&
              filter_command(lex->sql_command);
     default:
