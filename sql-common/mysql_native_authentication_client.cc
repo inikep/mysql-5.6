@@ -351,34 +351,30 @@ static net_async_status native_password_auth_client_nonblocking(
 
   switch (static_cast<client_auth_native_password_plugin_status>(
       ctx->client_auth_plugin_state)) {
-    case client_auth_native_password_plugin_status::NATIVE_READING_PASSWORD:
-      if (((MCPVIO_EXT *)vio)->mysql_change_user) {
-        /* mysql_change_user_nonblocking not implemented yet. */
-        assert(false);
-      } else {
-        /* read the scramble */
-        const net_async_status status =
-            vio->read_packet_nonblocking(vio, &pkt, &io_result);
-        if (status == NET_ASYNC_NOT_READY) {
-          return NET_ASYNC_NOT_READY;
-        }
-
-        if (io_result < 0) {
-          *result = CR_ERROR;
-          return NET_ASYNC_COMPLETE;
-        }
-
-        if (io_result != SCRAMBLE_LENGTH + 1) {
-          *result = CR_SERVER_HANDSHAKE_ERR;
-          return NET_ASYNC_COMPLETE;
-        }
-
-        /* save it in MYSQL */
-        memcpy(mysql->scramble, pkt, SCRAMBLE_LENGTH);
-        mysql->scramble[SCRAMBLE_LENGTH] = 0;
+    case client_auth_native_password_plugin_status::NATIVE_READING_PASSWORD: {
+      /* read the scramble */
+      const net_async_status status =
+          vio->read_packet_nonblocking(vio, &pkt, &io_result);
+      if (status == NET_ASYNC_NOT_READY) {
+        return NET_ASYNC_NOT_READY;
       }
+
+      if (io_result < 0) {
+        *result = CR_ERROR;
+        return NET_ASYNC_COMPLETE;
+      }
+
+      if (io_result != SCRAMBLE_LENGTH + 1) {
+        *result = CR_SERVER_HANDSHAKE_ERR;
+        return NET_ASYNC_COMPLETE;
+      }
+
+      /* save it in MYSQL */
+      memcpy(mysql->scramble, pkt, SCRAMBLE_LENGTH);
+      mysql->scramble[SCRAMBLE_LENGTH] = 0;
       ctx->client_auth_plugin_state = (int)
           client_auth_native_password_plugin_status::NATIVE_WRITING_RESPONSE;
+    }
 
       [[fallthrough]];
 
