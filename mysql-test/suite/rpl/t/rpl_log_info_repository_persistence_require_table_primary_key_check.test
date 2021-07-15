@@ -68,7 +68,6 @@
 --source include/not_group_replication_plugin.inc
 # This test is unrelated to log format
 --source include/have_binlog_format_row.inc
---source include/not_mts_replica_parallel_workers.inc
 --source include/master-slave.inc
 
 --echo
@@ -76,6 +75,7 @@
 --echo #    Create a test auxiliary include file to avoid step repetition.
 
 --source include/rpl_connection_slave.inc
+--source include/not_mts_replica_parallel_workers.inc
 
 # The privilege checks user is only used as a grep starting point.
 # Determine the hostname of the privilege checks user of the replication channel.

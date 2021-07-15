@@ -52,9 +52,11 @@
 # This test case is binary log format agnostic
 --source include/have_binlog_format_mixed.inc
 # This test cannot run with MTS
---source include/not_mts_replica_parallel_workers.inc
 --let $rpl_skip_start_slave= 1
 --source include/master-slave.inc
+
+--source include/rpl_connection_slave.inc
+--source include/not_mts_replica_parallel_workers.inc
 
 --echo
 --echo ############################################################

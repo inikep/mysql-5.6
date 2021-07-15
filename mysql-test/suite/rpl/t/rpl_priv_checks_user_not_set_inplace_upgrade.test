@@ -41,6 +41,9 @@
 --source include/not_have_privilege_checks_user.inc
 --source include/master-slave.inc
 
+--source include/rpl_connection_slave.inc
+--source include/not_mts_replica_parallel_workers.inc
+
 # 1) Create a table and insert a record on the master.
 --source include/rpl_connection_master.inc
 CREATE TABLE t (c INT);
