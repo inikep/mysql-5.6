@@ -512,7 +512,7 @@ bool find_skip_scans(
       quick_prefix_records = check_quick_select(
           thd, param, cur_param_idx, true, cur_index_range_tree, false,
           order_direction, skip_records_in_range, &mrr_flags, &mrr_bufsize,
-          &dummy_cost, &is_ror_scan, &is_imerge_scan);
+          &dummy_cost, &is_ror_scan, &is_imerge_scan, nullptr);
     }
     cost_skip_scan(table, cur_index, cur_used_key_parts - 1,
                    quick_prefix_records, &cur_read_cost, &cur_records,
