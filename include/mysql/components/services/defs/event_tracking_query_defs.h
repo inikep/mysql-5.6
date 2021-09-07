@@ -38,10 +38,13 @@
 #define EVENT_TRACKING_QUERY_STATUS_END (1 << 2)
 /** Nested query status end event. */
 #define EVENT_TRACKING_QUERY_NESTED_STATUS_END (1 << 3)
+#define EVENT_TRACKING_QUERY_STMT_PREPARED (1 << 4)
 
 #define EVENT_TRACKING_QUERY_ALL                                   \
   EVENT_TRACKING_QUERY_START | EVENT_TRACKING_QUERY_NESTED_START | \
-      EVENT_TRACKING_QUERY_STATUS_END | EVENT_TRACKING_QUERY_NESTED_STATUS_END
+      EVENT_TRACKING_QUERY_STATUS_END |                            \
+      EVENT_TRACKING_QUERY_NESTED_STATUS_END |                     \
+      EVENT_TRACKING_QUERY_STMT_PREPARED
 
 /**
   @typedef mysql_event_tracking_query_subclass_t

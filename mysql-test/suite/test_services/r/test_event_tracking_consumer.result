@@ -73,6 +73,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	2
+test_event_tracking_consumer.counter_query	1
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -89,6 +90,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT * FROM event_tracking_db.event_tracking_table)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -100,6 +102,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: INSERT INTO event_tracking_db.event_tracking_table VALUES (4))
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -111,6 +114,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: UPDATE event_tracking_db.event_tracking_table SET c1 = 5 WHERE c1 = 4)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -122,6 +126,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: DELETE FROM event_tracking_db.event_tracking_table WHERE c1 = 5)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -144,6 +149,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
+test_event_tracking_consumer.counter_query	10
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -158,6 +164,8 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: CALL event_tracking_db.event_tracking_procedure())
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT 1)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Should show following counters:
@@ -168,6 +176,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	6
+test_event_tracking_consumer.counter_query	4
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -182,6 +191,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT @@global.default_password_lifetime)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -203,6 +213,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	10
+test_event_tracking_consumer.counter_query	4
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -269,6 +280,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
+test_event_tracking_consumer.counter_query	6
 # ---------------------------------------------------------------------
 # ---------------------------------------------------------------------
 # Tests for PARSE events
@@ -295,6 +307,7 @@ display_session_data()
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_PARSE_PREPARSE(Query: SELECT * FROM event_tracking_db.event_tracking_table)
 --EVENT_TRACKING_PARSE_POSTPARSE
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT * FROM event_tracking_db.event_tracking_table)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -308,6 +321,7 @@ display_session_data()
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_PARSE_PREPARSE(Query: INSERT INTO event_tracking_db.event_tracking_table VALUES (4))
 --EVENT_TRACKING_PARSE_POSTPARSE
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: INSERT INTO event_tracking_db.event_tracking_table VALUES (4))
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -321,6 +335,7 @@ display_session_data()
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_PARSE_PREPARSE(Query: UPDATE event_tracking_db.event_tracking_table SET c1 = 5 WHERE c1 = 4)
 --EVENT_TRACKING_PARSE_POSTPARSE
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: UPDATE event_tracking_db.event_tracking_table SET c1 = 5 WHERE c1 = 4)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -334,6 +349,7 @@ display_session_data()
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_PARSE_PREPARSE(Query: DELETE FROM event_tracking_db.event_tracking_table WHERE c1 = 5)
 --EVENT_TRACKING_PARSE_POSTPARSE
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: DELETE FROM event_tracking_db.event_tracking_table WHERE c1 = 5)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -359,6 +375,7 @@ VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
 test_event_tracking_consumer.counter_parse	22
+test_event_tracking_consumer.counter_query	10
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -375,6 +392,8 @@ display_session_data()
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_PARSE_PREPARSE(Query: CALL event_tracking_db.event_tracking_procedure())
 --EVENT_TRACKING_PARSE_POSTPARSE
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: CALL event_tracking_db.event_tracking_procedure())
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT 1)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Should show following counters:
@@ -386,6 +405,7 @@ VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	6
 test_event_tracking_consumer.counter_parse	6
+test_event_tracking_consumer.counter_query	4
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -402,6 +422,7 @@ display_session_data()
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_PARSE_PREPARSE(Query: SELECT @@global.default_password_lifetime)
 --EVENT_TRACKING_PARSE_POSTPARSE
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT @@global.default_password_lifetime)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -426,6 +447,7 @@ VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	10
 test_event_tracking_consumer.counter_parse	10
+test_event_tracking_consumer.counter_query	4
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -503,6 +525,7 @@ VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
 test_event_tracking_consumer.counter_parse	22
+test_event_tracking_consumer.counter_query	6
 # ---------------------------------------------------------------------
 # Enable EVENT_TRACKING_PARSE_PREPARSE
 SELECT configure_event_tracking_filter("event_tracking_parse", 2);
@@ -525,6 +548,7 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_PARSE_PREPARSE(Query: SELECT * FROM event_tracking_db.event_tracking_table)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT * FROM event_tracking_db.event_tracking_table)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -537,6 +561,7 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_PARSE_PREPARSE(Query: INSERT INTO event_tracking_db.event_tracking_table VALUES (4))
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: INSERT INTO event_tracking_db.event_tracking_table VALUES (4))
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -549,6 +574,7 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_PARSE_PREPARSE(Query: UPDATE event_tracking_db.event_tracking_table SET c1 = 5 WHERE c1 = 4)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: UPDATE event_tracking_db.event_tracking_table SET c1 = 5 WHERE c1 = 4)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -561,6 +587,7 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_PARSE_PREPARSE(Query: DELETE FROM event_tracking_db.event_tracking_table WHERE c1 = 5)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: DELETE FROM event_tracking_db.event_tracking_table WHERE c1 = 5)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -585,6 +612,7 @@ VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
 test_event_tracking_consumer.counter_parse	11
+test_event_tracking_consumer.counter_query	10
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -600,6 +628,8 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_PARSE_PREPARSE(Query: CALL event_tracking_db.event_tracking_procedure())
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: CALL event_tracking_db.event_tracking_procedure())
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT 1)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Should show following counters:
@@ -611,6 +641,7 @@ VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	6
 test_event_tracking_consumer.counter_parse	3
+test_event_tracking_consumer.counter_query	4
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -626,6 +657,7 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_PARSE_PREPARSE(Query: SELECT @@global.default_password_lifetime)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT @@global.default_password_lifetime)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -649,6 +681,7 @@ VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	10
 test_event_tracking_consumer.counter_parse	5
+test_event_tracking_consumer.counter_query	4
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -721,6 +754,7 @@ VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
 test_event_tracking_consumer.counter_parse	11
+test_event_tracking_consumer.counter_query	6
 # ---------------------------------------------------------------------
 # Enable EVENT_TRACKING_PARSE_POSTPARSE
 SELECT configure_event_tracking_filter("event_tracking_parse", 1);
@@ -743,6 +777,7 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_PARSE_POSTPARSE
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT * FROM event_tracking_db.event_tracking_table)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -755,6 +790,7 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_PARSE_POSTPARSE
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: INSERT INTO event_tracking_db.event_tracking_table VALUES (4))
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -767,6 +803,7 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_PARSE_POSTPARSE
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: UPDATE event_tracking_db.event_tracking_table SET c1 = 5 WHERE c1 = 4)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -779,6 +816,7 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_PARSE_POSTPARSE
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: DELETE FROM event_tracking_db.event_tracking_table WHERE c1 = 5)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -803,6 +841,7 @@ VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
 test_event_tracking_consumer.counter_parse	11
+test_event_tracking_consumer.counter_query	10
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -818,6 +857,8 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_PARSE_POSTPARSE
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: CALL event_tracking_db.event_tracking_procedure())
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT 1)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Should show following counters:
@@ -829,6 +870,7 @@ VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	6
 test_event_tracking_consumer.counter_parse	3
+test_event_tracking_consumer.counter_query	4
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -844,6 +886,7 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_PARSE_POSTPARSE
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT @@global.default_password_lifetime)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -867,6 +910,7 @@ VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	10
 test_event_tracking_consumer.counter_parse	5
+test_event_tracking_consumer.counter_query	4
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -939,6 +983,7 @@ VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
 test_event_tracking_consumer.counter_parse	11
+test_event_tracking_consumer.counter_query	6
 SELECT configure_event_tracking_filter("event_tracking_parse", @event_tracking_parse_all);
 configure_event_tracking_filter("event_tracking_parse", @event_tracking_parse_all)
 1
@@ -964,7 +1009,8 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
---EVENT_TRACKING_GLOBAL_VARIABLE_GET
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT @@global.default_password_lifetime)
+EVENT_TRACKING_GLOBAL_VARIABLE_GET
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -988,6 +1034,7 @@ VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	10
 test_event_tracking_consumer.counter_global_variable	2
+test_event_tracking_consumer.counter_query	4
 # ---------------------------------------------------------------------
 # Enable EVENT_TRACKING_GLOBAL_VARIABLE_GET
 SELECT configure_event_tracking_filter("event_tracking_global_variable", 2);
@@ -1007,7 +1054,8 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
---EVENT_TRACKING_GLOBAL_VARIABLE_GET
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT @@global.default_password_lifetime)
+EVENT_TRACKING_GLOBAL_VARIABLE_GET
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -1030,6 +1078,7 @@ VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	10
 test_event_tracking_consumer.counter_global_variable	1
+test_event_tracking_consumer.counter_query	4
 # ---------------------------------------------------------------------
 # Enable EVENT_TRACKING_GLOBAL_VARIABLE_SET
 SELECT configure_event_tracking_filter("event_tracking_global_variable", 1);
@@ -1049,6 +1098,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT @@global.default_password_lifetime)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -1072,6 +1122,7 @@ VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	10
 test_event_tracking_consumer.counter_global_variable	1
+test_event_tracking_consumer.counter_query	4
 SELECT configure_event_tracking_filter("event_tracking_global_variable", @event_tracking_global_variable_all);
 configure_event_tracking_filter("event_tracking_global_variable", @event_tracking_global_variable_all)
 1
@@ -1097,7 +1148,9 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
---EVENT_TRACKING_STORED_PROGRAM_EXECUTE
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: CALL event_tracking_db.event_tracking_procedure())
+EVENT_TRACKING_STORED_PROGRAM_EXECUTE
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT 1)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Should show following counters:
@@ -1108,6 +1161,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	6
+test_event_tracking_consumer.counter_query	4
 test_event_tracking_consumer.counter_stored_program	1
 SELECT configure_event_tracking_filter("event_tracking_stored_program", @event_tracking_stored_program_all);
 configure_event_tracking_filter("event_tracking_stored_program", @event_tracking_stored_program_all)
@@ -1137,7 +1191,8 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_QUERY_START(Query: SELECT * FROM event_tracking_db.event_tracking_table)
---EVENT_TRACKING_QUERY_STATUS_END(Query: SELECT * FROM event_tracking_db.event_tracking_table)
+--EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT * FROM event_tracking_db.event_tracking_table)
+EVENT_TRACKING_QUERY_STATUS_END(Query: SELECT * FROM event_tracking_db.event_tracking_table)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -1150,7 +1205,8 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_QUERY_START(Query: INSERT INTO event_tracking_db.event_tracking_table VALUES (4))
---EVENT_TRACKING_QUERY_STATUS_END(Query: INSERT INTO event_tracking_db.event_tracking_table VALUES (4))
+--EVENT_TRACKING_QUERY_STMT_PREPARED(Query: INSERT INTO event_tracking_db.event_tracking_table VALUES (4))
+EVENT_TRACKING_QUERY_STATUS_END(Query: INSERT INTO event_tracking_db.event_tracking_table VALUES (4))
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -1163,7 +1219,8 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_QUERY_START(Query: UPDATE event_tracking_db.event_tracking_table SET c1 = 5 WHERE c1 = 4)
---EVENT_TRACKING_QUERY_STATUS_END(Query: UPDATE event_tracking_db.event_tracking_table SET c1 = 5 WHERE c1 = 4)
+--EVENT_TRACKING_QUERY_STMT_PREPARED(Query: UPDATE event_tracking_db.event_tracking_table SET c1 = 5 WHERE c1 = 4)
+EVENT_TRACKING_QUERY_STATUS_END(Query: UPDATE event_tracking_db.event_tracking_table SET c1 = 5 WHERE c1 = 4)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -1176,7 +1233,8 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_QUERY_START(Query: DELETE FROM event_tracking_db.event_tracking_table WHERE c1 = 5)
---EVENT_TRACKING_QUERY_STATUS_END(Query: DELETE FROM event_tracking_db.event_tracking_table WHERE c1 = 5)
+--EVENT_TRACKING_QUERY_STMT_PREPARED(Query: DELETE FROM event_tracking_db.event_tracking_table WHERE c1 = 5)
+EVENT_TRACKING_QUERY_STATUS_END(Query: DELETE FROM event_tracking_db.event_tracking_table WHERE c1 = 5)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -1201,7 +1259,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
-test_event_tracking_consumer.counter_query	22
+test_event_tracking_consumer.counter_query	32
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -1217,9 +1275,11 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_QUERY_START(Query: CALL event_tracking_db.event_tracking_procedure())
-----EVENT_TRACKING_QUERY_NESTED_START(Query: SELECT 1)
-----EVENT_TRACKING_QUERY_NESTED_STATUS_END(Query: SELECT 1)
---EVENT_TRACKING_QUERY_STATUS_END(Query: CALL event_tracking_db.event_tracking_procedure())
+--EVENT_TRACKING_QUERY_STMT_PREPARED(Query: CALL event_tracking_db.event_tracking_procedure())
+--EVENT_TRACKING_QUERY_NESTED_START(Query: SELECT 1)
+--EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT 1)
+EVENT_TRACKING_QUERY_NESTED_STATUS_END(Query: SELECT 1)
+EVENT_TRACKING_QUERY_STATUS_END(Query: CALL event_tracking_db.event_tracking_procedure())
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Should show following counters:
@@ -1230,7 +1290,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	6
-test_event_tracking_consumer.counter_query	8
+test_event_tracking_consumer.counter_query	12
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -1246,7 +1306,8 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_QUERY_START(Query: SELECT @@global.default_password_lifetime)
---EVENT_TRACKING_QUERY_STATUS_END(Query: SELECT @@global.default_password_lifetime)
+--EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT @@global.default_password_lifetime)
+EVENT_TRACKING_QUERY_STATUS_END(Query: SELECT @@global.default_password_lifetime)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -1270,7 +1331,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	10
-test_event_tracking_consumer.counter_query	10
+test_event_tracking_consumer.counter_query	14
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -1347,7 +1408,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
-test_event_tracking_consumer.counter_query	22
+test_event_tracking_consumer.counter_query	28
 # ---------------------------------------------------------------------
 # Enable EVENT_TRACKING_QUERY_START events
 SELECT configure_event_tracking_filter("event_tracking_query", 14);
@@ -1370,7 +1431,8 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_QUERY_START(Query: SELECT * FROM event_tracking_db.event_tracking_table)
---EVENT_TRACKING_COMMAND_END(Command: Query)
+--EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT * FROM event_tracking_db.event_tracking_table)
+EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
 INSERT INTO event_tracking_db.event_tracking_table VALUES (4);
@@ -1382,7 +1444,8 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_QUERY_START(Query: INSERT INTO event_tracking_db.event_tracking_table VALUES (4))
---EVENT_TRACKING_COMMAND_END(Command: Query)
+--EVENT_TRACKING_QUERY_STMT_PREPARED(Query: INSERT INTO event_tracking_db.event_tracking_table VALUES (4))
+EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
 UPDATE event_tracking_db.event_tracking_table SET c1 = 5 WHERE c1 = 4;
@@ -1394,7 +1457,8 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_QUERY_START(Query: UPDATE event_tracking_db.event_tracking_table SET c1 = 5 WHERE c1 = 4)
---EVENT_TRACKING_COMMAND_END(Command: Query)
+--EVENT_TRACKING_QUERY_STMT_PREPARED(Query: UPDATE event_tracking_db.event_tracking_table SET c1 = 5 WHERE c1 = 4)
+EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
 DELETE FROM event_tracking_db.event_tracking_table WHERE c1 = 5;
@@ -1406,7 +1470,8 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_QUERY_START(Query: DELETE FROM event_tracking_db.event_tracking_table WHERE c1 = 5)
---EVENT_TRACKING_COMMAND_END(Command: Query)
+--EVENT_TRACKING_QUERY_STMT_PREPARED(Query: DELETE FROM event_tracking_db.event_tracking_table WHERE c1 = 5)
+EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
 SELECT * FROM event_tracking_db.non_existing_table;
@@ -1429,7 +1494,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
-test_event_tracking_consumer.counter_query	11
+test_event_tracking_consumer.counter_query	21
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -1445,7 +1510,9 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_QUERY_START(Query: CALL event_tracking_db.event_tracking_procedure())
---EVENT_TRACKING_COMMAND_END(Command: Query)
+--EVENT_TRACKING_QUERY_STMT_PREPARED(Query: CALL event_tracking_db.event_tracking_procedure())
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT 1)
+EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Should show following counters:
 # test_event_tracking_consumer.counter_command
@@ -1455,7 +1522,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	6
-test_event_tracking_consumer.counter_query	3
+test_event_tracking_consumer.counter_query	7
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -1471,7 +1538,8 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_QUERY_START(Query: SELECT @@global.default_password_lifetime)
---EVENT_TRACKING_COMMAND_END(Command: Query)
+--EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT @@global.default_password_lifetime)
+EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
 SET GLOBAL default_password_lifetime=100;
@@ -1493,7 +1561,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	10
-test_event_tracking_consumer.counter_query	5
+test_event_tracking_consumer.counter_query	9
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -1565,7 +1633,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
-test_event_tracking_consumer.counter_query	11
+test_event_tracking_consumer.counter_query	17
 # ---------------------------------------------------------------------
 # Enable EVENT_TRACKING_QUERY_NESTED_START events
 SELECT configure_event_tracking_filter("event_tracking_query", 13);
@@ -1587,6 +1655,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT * FROM event_tracking_db.event_tracking_table)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -1598,6 +1667,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: INSERT INTO event_tracking_db.event_tracking_table VALUES (4))
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -1609,6 +1679,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: UPDATE event_tracking_db.event_tracking_table SET c1 = 5 WHERE c1 = 4)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -1620,6 +1691,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: DELETE FROM event_tracking_db.event_tracking_table WHERE c1 = 5)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -1642,6 +1714,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
+test_event_tracking_consumer.counter_query	10
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -1656,8 +1729,10 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
---EVENT_TRACKING_QUERY_NESTED_START(Query: SELECT 1)
---EVENT_TRACKING_COMMAND_END(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: CALL event_tracking_db.event_tracking_procedure())
+EVENT_TRACKING_QUERY_NESTED_START(Query: SELECT 1)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT 1)
+EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Should show following counters:
 # test_event_tracking_consumer.counter_command
@@ -1667,7 +1742,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	6
-test_event_tracking_consumer.counter_query	1
+test_event_tracking_consumer.counter_query	5
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -1682,6 +1757,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT @@global.default_password_lifetime)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -1703,6 +1779,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	10
+test_event_tracking_consumer.counter_query	4
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -1769,6 +1846,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
+test_event_tracking_consumer.counter_query	6
 # ---------------------------------------------------------------------
 # Enable EVENT_TRACKING_QUERY_END events
 SELECT configure_event_tracking_filter("event_tracking_query", 11);
@@ -1790,6 +1868,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT * FROM event_tracking_db.event_tracking_table)
 EVENT_TRACKING_QUERY_STATUS_END(Query: SELECT * FROM event_tracking_db.event_tracking_table)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
@@ -1802,6 +1881,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: INSERT INTO event_tracking_db.event_tracking_table VALUES (4))
 EVENT_TRACKING_QUERY_STATUS_END(Query: INSERT INTO event_tracking_db.event_tracking_table VALUES (4))
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
@@ -1814,6 +1894,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: UPDATE event_tracking_db.event_tracking_table SET c1 = 5 WHERE c1 = 4)
 EVENT_TRACKING_QUERY_STATUS_END(Query: UPDATE event_tracking_db.event_tracking_table SET c1 = 5 WHERE c1 = 4)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
@@ -1826,6 +1907,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: DELETE FROM event_tracking_db.event_tracking_table WHERE c1 = 5)
 EVENT_TRACKING_QUERY_STATUS_END(Query: DELETE FROM event_tracking_db.event_tracking_table WHERE c1 = 5)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
@@ -1850,7 +1932,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
-test_event_tracking_consumer.counter_query	11
+test_event_tracking_consumer.counter_query	21
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -1865,6 +1947,8 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: CALL event_tracking_db.event_tracking_procedure())
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT 1)
 EVENT_TRACKING_QUERY_STATUS_END(Query: CALL event_tracking_db.event_tracking_procedure())
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
@@ -1876,7 +1960,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	6
-test_event_tracking_consumer.counter_query	3
+test_event_tracking_consumer.counter_query	7
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -1891,6 +1975,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT @@global.default_password_lifetime)
 EVENT_TRACKING_QUERY_STATUS_END(Query: SELECT @@global.default_password_lifetime)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
@@ -1914,7 +1999,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	10
-test_event_tracking_consumer.counter_query	5
+test_event_tracking_consumer.counter_query	9
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -1986,7 +2071,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
-test_event_tracking_consumer.counter_query	11
+test_event_tracking_consumer.counter_query	17
 # ---------------------------------------------------------------------
 # Enable EVENT_TRACKING_QUERY_NESTED_END events
 SELECT configure_event_tracking_filter("event_tracking_query", 7);
@@ -2008,6 +2093,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT * FROM event_tracking_db.event_tracking_table)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -2019,6 +2105,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: INSERT INTO event_tracking_db.event_tracking_table VALUES (4))
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -2030,6 +2117,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: UPDATE event_tracking_db.event_tracking_table SET c1 = 5 WHERE c1 = 4)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -2041,6 +2129,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: DELETE FROM event_tracking_db.event_tracking_table WHERE c1 = 5)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -2063,6 +2152,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
+test_event_tracking_consumer.counter_query	10
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -2077,6 +2167,8 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: CALL event_tracking_db.event_tracking_procedure())
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT 1)
 EVENT_TRACKING_QUERY_NESTED_STATUS_END(Query: SELECT 1)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
@@ -2088,7 +2180,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	6
-test_event_tracking_consumer.counter_query	1
+test_event_tracking_consumer.counter_query	5
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -2103,6 +2195,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT @@global.default_password_lifetime)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -2124,6 +2217,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	10
+test_event_tracking_consumer.counter_query	4
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -2190,6 +2284,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
+test_event_tracking_consumer.counter_query	6
 SELECT configure_event_tracking_filter("event_tracking_query", @event_tracking_query_all);
 configure_event_tracking_filter("event_tracking_query", @event_tracking_query_all)
 1
@@ -2218,8 +2313,9 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_GENERAL_LOG
---EVENT_TRACKING_GENERAL_RESULT
---EVENT_TRACKING_GENERAL_STATUS
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT * FROM event_tracking_db.event_tracking_table)
+EVENT_TRACKING_GENERAL_RESULT
+EVENT_TRACKING_GENERAL_STATUS
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -2232,8 +2328,9 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_GENERAL_LOG
---EVENT_TRACKING_GENERAL_RESULT
---EVENT_TRACKING_GENERAL_STATUS
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: INSERT INTO event_tracking_db.event_tracking_table VALUES (4))
+EVENT_TRACKING_GENERAL_RESULT
+EVENT_TRACKING_GENERAL_STATUS
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -2246,8 +2343,9 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_GENERAL_LOG
---EVENT_TRACKING_GENERAL_RESULT
---EVENT_TRACKING_GENERAL_STATUS
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: UPDATE event_tracking_db.event_tracking_table SET c1 = 5 WHERE c1 = 4)
+EVENT_TRACKING_GENERAL_RESULT
+EVENT_TRACKING_GENERAL_STATUS
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -2260,8 +2358,9 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_GENERAL_LOG
---EVENT_TRACKING_GENERAL_RESULT
---EVENT_TRACKING_GENERAL_STATUS
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: DELETE FROM event_tracking_db.event_tracking_table WHERE c1 = 5)
+EVENT_TRACKING_GENERAL_RESULT
+EVENT_TRACKING_GENERAL_STATUS
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -2289,6 +2388,7 @@ VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
 test_event_tracking_consumer.counter_general	33
 test_event_tracking_consumer.counter_general_information	33
+test_event_tracking_consumer.counter_query	10
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -2304,8 +2404,10 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_GENERAL_LOG
---EVENT_TRACKING_GENERAL_RESULT
---EVENT_TRACKING_GENERAL_STATUS
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: CALL event_tracking_db.event_tracking_procedure())
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT 1)
+EVENT_TRACKING_GENERAL_RESULT
+EVENT_TRACKING_GENERAL_STATUS
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Should show following counters:
@@ -2318,6 +2420,7 @@ VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	6
 test_event_tracking_consumer.counter_general	9
 test_event_tracking_consumer.counter_general_information	9
+test_event_tracking_consumer.counter_query	4
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -2333,8 +2436,9 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_GENERAL_LOG
---EVENT_TRACKING_GENERAL_RESULT
---EVENT_TRACKING_GENERAL_STATUS
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT @@global.default_password_lifetime)
+EVENT_TRACKING_GENERAL_RESULT
+EVENT_TRACKING_GENERAL_STATUS
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -2361,6 +2465,7 @@ VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	10
 test_event_tracking_consumer.counter_general	15
 test_event_tracking_consumer.counter_general_information	15
+test_event_tracking_consumer.counter_query	4
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -2444,6 +2549,7 @@ VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
 test_event_tracking_consumer.counter_general	33
 test_event_tracking_consumer.counter_general_information	33
+test_event_tracking_consumer.counter_query	6
 # ---------------------------------------------------------------------
 # Enable EVENT_TRACKING_GENERAL_LOG event
 SELECT configure_event_tracking_filter("event_tracking_general", 14);
@@ -2466,6 +2572,7 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_GENERAL_LOG
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT * FROM event_tracking_db.event_tracking_table)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -2478,6 +2585,7 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_GENERAL_LOG
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: INSERT INTO event_tracking_db.event_tracking_table VALUES (4))
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -2490,6 +2598,7 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_GENERAL_LOG
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: UPDATE event_tracking_db.event_tracking_table SET c1 = 5 WHERE c1 = 4)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -2502,6 +2611,7 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_GENERAL_LOG
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: DELETE FROM event_tracking_db.event_tracking_table WHERE c1 = 5)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -2527,6 +2637,7 @@ VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
 test_event_tracking_consumer.counter_general	11
 test_event_tracking_consumer.counter_general_information	11
+test_event_tracking_consumer.counter_query	10
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -2542,6 +2653,8 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_GENERAL_LOG
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: CALL event_tracking_db.event_tracking_procedure())
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT 1)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Should show following counters:
@@ -2554,6 +2667,7 @@ VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	6
 test_event_tracking_consumer.counter_general	3
 test_event_tracking_consumer.counter_general_information	3
+test_event_tracking_consumer.counter_query	4
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -2569,6 +2683,7 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_GENERAL_LOG
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT @@global.default_password_lifetime)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -2593,6 +2708,7 @@ VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	10
 test_event_tracking_consumer.counter_general	5
 test_event_tracking_consumer.counter_general_information	5
+test_event_tracking_consumer.counter_query	4
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -2666,6 +2782,7 @@ VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
 test_event_tracking_consumer.counter_general	11
 test_event_tracking_consumer.counter_general_information	11
+test_event_tracking_consumer.counter_query	6
 # ---------------------------------------------------------------------
 # Enable EVENT_TRACKING_GENERAL_ERROR event
 SELECT configure_event_tracking_filter("event_tracking_general", 13);
@@ -2687,6 +2804,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT * FROM event_tracking_db.event_tracking_table)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -2698,6 +2816,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: INSERT INTO event_tracking_db.event_tracking_table VALUES (4))
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -2709,6 +2828,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: UPDATE event_tracking_db.event_tracking_table SET c1 = 5 WHERE c1 = 4)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -2720,6 +2840,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: DELETE FROM event_tracking_db.event_tracking_table WHERE c1 = 5)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -2745,6 +2866,7 @@ VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
 test_event_tracking_consumer.counter_general	1
 test_event_tracking_consumer.counter_general_information	1
+test_event_tracking_consumer.counter_query	10
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -2759,6 +2881,8 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: CALL event_tracking_db.event_tracking_procedure())
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT 1)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Should show following counters:
@@ -2769,6 +2893,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	6
+test_event_tracking_consumer.counter_query	4
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -2783,6 +2908,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT @@global.default_password_lifetime)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -2804,6 +2930,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	10
+test_event_tracking_consumer.counter_query	4
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -2870,6 +2997,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
+test_event_tracking_consumer.counter_query	6
 # ---------------------------------------------------------------------
 # Enable EVENT_TRACKING_GENERAL_RESULT event
 SELECT configure_event_tracking_filter("event_tracking_general", 11);
@@ -2891,7 +3019,8 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
---EVENT_TRACKING_GENERAL_RESULT
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT * FROM event_tracking_db.event_tracking_table)
+EVENT_TRACKING_GENERAL_RESULT
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -2903,7 +3032,8 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
---EVENT_TRACKING_GENERAL_RESULT
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: INSERT INTO event_tracking_db.event_tracking_table VALUES (4))
+EVENT_TRACKING_GENERAL_RESULT
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -2915,7 +3045,8 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
---EVENT_TRACKING_GENERAL_RESULT
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: UPDATE event_tracking_db.event_tracking_table SET c1 = 5 WHERE c1 = 4)
+EVENT_TRACKING_GENERAL_RESULT
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -2927,7 +3058,8 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
---EVENT_TRACKING_GENERAL_RESULT
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: DELETE FROM event_tracking_db.event_tracking_table WHERE c1 = 5)
+EVENT_TRACKING_GENERAL_RESULT
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -2952,6 +3084,7 @@ VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
 test_event_tracking_consumer.counter_general	10
 test_event_tracking_consumer.counter_general_information	10
+test_event_tracking_consumer.counter_query	10
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -2966,7 +3099,9 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
---EVENT_TRACKING_GENERAL_RESULT
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: CALL event_tracking_db.event_tracking_procedure())
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT 1)
+EVENT_TRACKING_GENERAL_RESULT
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Should show following counters:
@@ -2979,6 +3114,7 @@ VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	6
 test_event_tracking_consumer.counter_general	3
 test_event_tracking_consumer.counter_general_information	3
+test_event_tracking_consumer.counter_query	4
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -2993,7 +3129,8 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
---EVENT_TRACKING_GENERAL_RESULT
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT @@global.default_password_lifetime)
+EVENT_TRACKING_GENERAL_RESULT
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -3018,6 +3155,7 @@ VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	10
 test_event_tracking_consumer.counter_general	5
 test_event_tracking_consumer.counter_general_information	5
+test_event_tracking_consumer.counter_query	4
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -3091,6 +3229,7 @@ VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
 test_event_tracking_consumer.counter_general	11
 test_event_tracking_consumer.counter_general_information	11
+test_event_tracking_consumer.counter_query	6
 # ---------------------------------------------------------------------
 # Enable EVENT_TRACKING_GENERAL_STATUS event
 SELECT configure_event_tracking_filter("event_tracking_general", 7);
@@ -3112,7 +3251,8 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
---EVENT_TRACKING_GENERAL_STATUS
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT * FROM event_tracking_db.event_tracking_table)
+EVENT_TRACKING_GENERAL_STATUS
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -3124,7 +3264,8 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
---EVENT_TRACKING_GENERAL_STATUS
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: INSERT INTO event_tracking_db.event_tracking_table VALUES (4))
+EVENT_TRACKING_GENERAL_STATUS
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -3136,7 +3277,8 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
---EVENT_TRACKING_GENERAL_STATUS
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: UPDATE event_tracking_db.event_tracking_table SET c1 = 5 WHERE c1 = 4)
+EVENT_TRACKING_GENERAL_STATUS
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -3148,7 +3290,8 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
---EVENT_TRACKING_GENERAL_STATUS
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: DELETE FROM event_tracking_db.event_tracking_table WHERE c1 = 5)
+EVENT_TRACKING_GENERAL_STATUS
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -3174,6 +3317,7 @@ VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
 test_event_tracking_consumer.counter_general	11
 test_event_tracking_consumer.counter_general_information	11
+test_event_tracking_consumer.counter_query	10
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -3188,7 +3332,9 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
---EVENT_TRACKING_GENERAL_STATUS
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: CALL event_tracking_db.event_tracking_procedure())
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT 1)
+EVENT_TRACKING_GENERAL_STATUS
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Should show following counters:
@@ -3201,6 +3347,7 @@ VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	6
 test_event_tracking_consumer.counter_general	3
 test_event_tracking_consumer.counter_general_information	3
+test_event_tracking_consumer.counter_query	4
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -3215,7 +3362,8 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
---EVENT_TRACKING_GENERAL_STATUS
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT @@global.default_password_lifetime)
+EVENT_TRACKING_GENERAL_STATUS
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -3240,6 +3388,7 @@ VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	10
 test_event_tracking_consumer.counter_general	5
 test_event_tracking_consumer.counter_general_information	5
+test_event_tracking_consumer.counter_query	4
 SELECT reset_event_tracking_counter("all");
 reset_event_tracking_counter("all")
 1
@@ -3313,6 +3462,7 @@ VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
 test_event_tracking_consumer.counter_general	11
 test_event_tracking_consumer.counter_general_information	11
+test_event_tracking_consumer.counter_query	6
 SELECT configure_event_tracking_filter("event_tracking_general", @event_tracking_general_all);
 configure_event_tracking_filter("event_tracking_general", @event_tracking_general_all)
 1
@@ -3341,6 +3491,7 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_TABLE_ACCESS_READ
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT * FROM event_tracking_db.event_tracking_table)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -3353,6 +3504,7 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_TABLE_ACCESS_INSERT
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: INSERT INTO event_tracking_db.event_tracking_table VALUES (4))
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -3365,6 +3517,7 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_TABLE_ACCESS_UPDATE
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: UPDATE event_tracking_db.event_tracking_table SET c1 = 5 WHERE c1 = 4)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -3377,6 +3530,7 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_TABLE_ACCESS_DELETE
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: DELETE FROM event_tracking_db.event_tracking_table WHERE c1 = 5)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -3399,6 +3553,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
+test_event_tracking_consumer.counter_query	10
 test_event_tracking_consumer.counter_table_access	4
 # ---------------------------------------------------------------------
 # Enable EVENT_TRACKING_TABLE_ACCESS_READ events
@@ -3422,6 +3577,7 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_TABLE_ACCESS_READ
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT * FROM event_tracking_db.event_tracking_table)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -3433,6 +3589,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: INSERT INTO event_tracking_db.event_tracking_table VALUES (4))
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -3444,6 +3601,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: UPDATE event_tracking_db.event_tracking_table SET c1 = 5 WHERE c1 = 4)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -3455,6 +3613,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: DELETE FROM event_tracking_db.event_tracking_table WHERE c1 = 5)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -3477,6 +3636,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
+test_event_tracking_consumer.counter_query	10
 test_event_tracking_consumer.counter_table_access	1
 # ---------------------------------------------------------------------
 # Enable EVENT_TRACKING_TABLE_ACCESS_INSERT events
@@ -3499,6 +3659,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT * FROM event_tracking_db.event_tracking_table)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -3511,6 +3672,7 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_TABLE_ACCESS_INSERT
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: INSERT INTO event_tracking_db.event_tracking_table VALUES (4))
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -3522,6 +3684,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: UPDATE event_tracking_db.event_tracking_table SET c1 = 5 WHERE c1 = 4)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -3533,6 +3696,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: DELETE FROM event_tracking_db.event_tracking_table WHERE c1 = 5)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -3555,6 +3719,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
+test_event_tracking_consumer.counter_query	10
 test_event_tracking_consumer.counter_table_access	1
 # ---------------------------------------------------------------------
 # Enable EVENT_TRACKING_TABLE_ACCESS_UPDATE events
@@ -3577,6 +3742,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT * FROM event_tracking_db.event_tracking_table)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -3588,6 +3754,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: INSERT INTO event_tracking_db.event_tracking_table VALUES (4))
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -3600,6 +3767,7 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_TABLE_ACCESS_UPDATE
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: UPDATE event_tracking_db.event_tracking_table SET c1 = 5 WHERE c1 = 4)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -3611,6 +3779,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: DELETE FROM event_tracking_db.event_tracking_table WHERE c1 = 5)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -3633,6 +3802,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
+test_event_tracking_consumer.counter_query	10
 test_event_tracking_consumer.counter_table_access	1
 # ---------------------------------------------------------------------
 # Enable EVENT_TRACKING_TABLE_ACCESS_DELETE events
@@ -3655,6 +3825,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT * FROM event_tracking_db.event_tracking_table)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -3666,6 +3837,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: INSERT INTO event_tracking_db.event_tracking_table VALUES (4))
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -3677,6 +3849,7 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: UPDATE event_tracking_db.event_tracking_table SET c1 = 5 WHERE c1 = 4)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -3689,6 +3862,7 @@ display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
 --EVENT_TRACKING_TABLE_ACCESS_DELETE
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: DELETE FROM event_tracking_db.event_tracking_table WHERE c1 = 5)
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Execute query to populate event tracker
@@ -3711,6 +3885,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
+test_event_tracking_consumer.counter_query	10
 test_event_tracking_consumer.counter_table_access	1
 SELECT configure_event_tracking_filter("event_tracking_table_access", @event_tracking_table_access_all);
 configure_event_tracking_filter("event_tracking_table_access", @event_tracking_table_access_all)
@@ -3795,6 +3970,7 @@ VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_authentication	4
 test_event_tracking_consumer.counter_authentication_information	4
 test_event_tracking_consumer.counter_command	22
+test_event_tracking_consumer.counter_query	6
 # ---------------------------------------------------------------------
 # Enable EVENT_TRACKING_AUTHENTICATION_FLUSH events
 SELECT configure_event_tracking_filter("event_tracking_authentication", 30);
@@ -3869,6 +4045,7 @@ VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_authentication	1
 test_event_tracking_consumer.counter_authentication_information	1
 test_event_tracking_consumer.counter_command	22
+test_event_tracking_consumer.counter_query	6
 # ---------------------------------------------------------------------
 # Enable EVENT_TRACKING_AUTHENTICATION_AUTHID_CREATE events - currently none
 SELECT configure_event_tracking_filter("event_tracking_authentication", 29);
@@ -3940,6 +4117,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	22
+test_event_tracking_consumer.counter_query	6
 # ---------------------------------------------------------------------
 # Enable EVENT_TRACKING_AUTHENTICATION_CREDENTIAL_CHANGE events
 SELECT configure_event_tracking_filter("event_tracking_authentication", 27);
@@ -4014,6 +4192,7 @@ VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_authentication	1
 test_event_tracking_consumer.counter_authentication_information	1
 test_event_tracking_consumer.counter_command	22
+test_event_tracking_consumer.counter_query	6
 # ---------------------------------------------------------------------
 # Enable EVENT_TRACKING_AUTHENTICATION_AUTHID_RENAME events
 SELECT configure_event_tracking_filter("event_tracking_authentication", 23);
@@ -4088,6 +4267,7 @@ VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_authentication	1
 test_event_tracking_consumer.counter_authentication_information	1
 test_event_tracking_consumer.counter_command	22
+test_event_tracking_consumer.counter_query	6
 # ---------------------------------------------------------------------
 # Enable EVENT_TRACKING_AUTHENTICATION_AUTHID_DROP events
 SELECT configure_event_tracking_filter("event_tracking_authentication", 15);
@@ -4162,6 +4342,7 @@ VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_authentication	1
 test_event_tracking_consumer.counter_authentication_information	1
 test_event_tracking_consumer.counter_command	22
+test_event_tracking_consumer.counter_query	6
 SELECT configure_event_tracking_filter("event_tracking_authentication", @event_tracking_authentication_all);
 configure_event_tracking_filter("event_tracking_authentication", @event_tracking_authentication_all)
 1
@@ -4194,6 +4375,7 @@ VARIABLE_VALUE > 0;
 VARIABLE_NAME
 test_event_tracking_consumer.counter_command
 test_event_tracking_consumer.counter_connection
+test_event_tracking_consumer.counter_query
 # ---------------------------------------------------------------------
 # Enable EVENT_TRACKING_CONNECTION_CONNECT events
 SELECT configure_event_tracking_filter("event_tracking_connection", 14);
@@ -4220,6 +4402,7 @@ VARIABLE_VALUE > 0;
 VARIABLE_NAME
 test_event_tracking_consumer.counter_command
 test_event_tracking_consumer.counter_connection
+test_event_tracking_consumer.counter_query
 # ---------------------------------------------------------------------
 # Enable EVENT_TRACKING_CONNECTION_DISCONNECT events
 SELECT configure_event_tracking_filter("event_tracking_connection", 13);
@@ -4246,6 +4429,7 @@ VARIABLE_VALUE > 0;
 VARIABLE_NAME
 test_event_tracking_consumer.counter_command
 test_event_tracking_consumer.counter_connection
+test_event_tracking_consumer.counter_query
 # ---------------------------------------------------------------------
 # Enable EVENT_TRACKING_CONNECTION_CHANGE_USER events
 SELECT configure_event_tracking_filter("event_tracking_connection", 11);
@@ -4272,6 +4456,7 @@ VARIABLE_VALUE > 0;
 VARIABLE_NAME
 test_event_tracking_consumer.counter_command
 test_event_tracking_consumer.counter_connection
+test_event_tracking_consumer.counter_query
 # ---------------------------------------------------------------------
 # Enable EVENT_TRACKING_CONNECTION_PRE_AUTHENTICATE events
 SELECT configure_event_tracking_filter("event_tracking_connection", 7);
@@ -4298,6 +4483,7 @@ VARIABLE_VALUE > 0;
 VARIABLE_NAME
 test_event_tracking_consumer.counter_command
 test_event_tracking_consumer.counter_connection
+test_event_tracking_consumer.counter_query
 SELECT configure_event_tracking_filter("event_tracking_connection", @event_tracking_connection_all);
 configure_event_tracking_filter("event_tracking_connection", @event_tracking_connection_all)
 1
@@ -4332,7 +4518,12 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
---EVENT_TRACKING_MESSAGE_USER
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT audit_api_message_emit_udf('component_text', 'producer_text',
+'message_text',
+'key1', 'value1',
+'key2', 123,
+'key3', NULL))
+EVENT_TRACKING_MESSAGE_USER
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Should show following counters:
@@ -4344,6 +4535,7 @@ VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	8
 test_event_tracking_consumer.counter_message	1
+test_event_tracking_consumer.counter_query	3
 # Uninstall audit api message emit component
 UNINSTALL COMPONENT "file://component_audit_api_message_emit";
 # ---------------------------------------------------------------------
@@ -4374,6 +4566,11 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT audit_api_message_emit_udf('component_text', 'producer_text',
+'message_text',
+'key1', 'value1',
+'key2', 123,
+'key3', NULL))
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Should show following counters:
@@ -4384,6 +4581,7 @@ WHERE VARIABLE_NAME like 'test_event_tracking_consumer%' AND
 VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	8
+test_event_tracking_consumer.counter_query	3
 # Uninstall audit api message emit component
 UNINSTALL COMPONENT "file://component_audit_api_message_emit";
 # ---------------------------------------------------------------------
@@ -4414,7 +4612,12 @@ SELECT display_session_data();
 display_session_data()
 ===============================================
 EVENT_TRACKING_COMMAND_START(Command: Query)
---EVENT_TRACKING_MESSAGE_USER
+EVENT_TRACKING_QUERY_STMT_PREPARED(Query: SELECT audit_api_message_emit_udf('component_text', 'producer_text',
+'message_text',
+'key1', 'value1',
+'key2', 123,
+'key3', NULL))
+EVENT_TRACKING_MESSAGE_USER
 EVENT_TRACKING_COMMAND_END(Command: Query)
 ===============================================
 # Should show following counters:
@@ -4426,6 +4629,7 @@ VARIABLE_VALUE > 0;
 VARIABLE_NAME	VARIABLE_VALUE
 test_event_tracking_consumer.counter_command	8
 test_event_tracking_consumer.counter_message	1
+test_event_tracking_consumer.counter_query	3
 # Uninstall audit api message emit component
 UNINSTALL COMPONENT "file://component_audit_api_message_emit";
 SELECT configure_event_tracking_filter("event_tracking_message", @event_tracking_message_all);

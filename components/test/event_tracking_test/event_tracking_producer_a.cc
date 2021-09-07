@@ -219,6 +219,11 @@ bool Event_producer::generate_events() {
       if (generate_event(query_service, &query_data,
                          EVENT_NAME(EVENT_TRACKING_QUERY_STATUS_END)))
         return true;
+
+      query_data.event_subclass = EVENT_TRACKING_QUERY_STMT_PREPARED;
+      if (generate_event(query_service, &query_data,
+                         EVENT_NAME(EVENT_TRACKING_QUERY_STMT_PREPARED)))
+        return true;
     }
   }
 

@@ -1308,6 +1308,9 @@ DEFINE_BOOL_METHOD(Event_query_bridge_implementation::notify,
       case EVENT_TRACKING_QUERY_NESTED_STATUS_END:
         plugin_data.event_subclass = MYSQL_AUDIT_QUERY_NESTED_STATUS_END;
         break;
+      case EVENT_TRACKING_QUERY_STMT_PREPARED:
+        plugin_data.event_subclass = MYSQL_AUDIT_QUERY_STMT_PREPARED;
+        break;
       default:
         assert(false);
         break;

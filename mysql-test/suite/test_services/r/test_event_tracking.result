@@ -83,6 +83,11 @@ Component: event_tracking_consumer_a. Event : EVENT_TRACKING_QUERY_STATUS_END. D
 Component: event_tracking_producer_a. Event: EVENT_TRACKING_QUERY_STATUS_END. Consumer returned: Success.
 -------------------------------------------------------------
 -------------------------------------------------------------
+Component: event_tracking_producer_a. Event : EVENT_TRACKING_QUERY_STMT_PREPARED.
+Component: event_tracking_consumer_a. Event : EVENT_TRACKING_QUERY_STMT_PREPARED. Data : [ SQL Command: SQLCOM_SELECT, Query: SELECT * FROM demodb.demo_table; ].
+Component: event_tracking_producer_a. Event: EVENT_TRACKING_QUERY_STMT_PREPARED. Consumer returned: Success.
+-------------------------------------------------------------
+-------------------------------------------------------------
 Component: event_tracking_producer_a. Event : EVENT_TRACKING_TABLE_ACCESS_DELETE.
 Component: event_tracking_consumer_a. Event : EVENT_TRACKING_TABLE_ACCESS_DELETE. Data : [ Schema: demodb, Table: demo_table ].
 Component: event_tracking_producer_a. Event: EVENT_TRACKING_TABLE_ACCESS_DELETE. Consumer returned: Success.

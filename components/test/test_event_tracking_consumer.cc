@@ -1292,6 +1292,12 @@ bool Event_tracking_query_implementation::callback(
       indent = -1;
       break;
     }
+    case EVENT_TRACKING_QUERY_STMT_PREPARED: {
+      event_name.assign(EVENT_NAME(EVENT_TRACKING_QUERY_STMT_PREPARED));
+      add_query_details();
+      indent = -1;
+      break;
+    }
     default:
       return true;
   };

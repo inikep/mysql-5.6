@@ -355,6 +355,10 @@ bool Event_tracking_query_implementation::callback(
       event_name.assign(EVENT_NAME(EVENT_TRACKING_QUERY_NESTED_STATUS_END));
       break;
     }
+    case EVENT_TRACKING_QUERY_STMT_PREPARED: {
+      event_name.assign(EVENT_NAME(EVENT_TRACKING_QUERY_STMT_PREPARED));
+      break;
+    }
     default:
       return true;
   };
