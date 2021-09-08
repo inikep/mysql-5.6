@@ -8,19 +8,21 @@ select "Con2";
 Con2
 Con2
 SET DEBUG_SYNC='now SIGNAL continue';
-SELECT schema_name, digest, digest_text, count_star
-FROM performance_schema.events_statements_summary_by_digest USE INDEX()
-where schema_name = 'test';
+SELECT schema_name, a.digest, b.digest_text, count_star
+FROM performance_schema.events_statements_summary_by_digest as a USE INDEX(),
+performance_schema.sql_text as b USE INDEX()
+where a.digest = b.digest and schema_name = 'test';
 schema_name	digest	digest_text	count_star
 test	4984952f36b85954d237b3f04a711cc1	USE `test`	2
 test	53772710ae47d32c4a0e9075b33bd94d	SET `DEBUG_SYNC` = ?	3
 test	a532c6f3e890282b7eee77f35ee85ae9	SELECT ?	1
 test	e6628a0d51a41865a2ac8de78a8be09d	TRUNCATE TABLE `performance_schema` . `events_statements_summary_by_digest`	1
-SELECT schema_name, digest, digest_text, count_star
-FROM performance_schema.events_statements_summary_by_digest
-WHERE schema_name = 'test';
+SELECT schema_name, a.digest, b.digest_text, count_star
+FROM performance_schema.events_statements_summary_by_digest as a,
+performance_schema.sql_text as b
+where a.digest = b.digest and schema_name = 'test';
 schema_name	digest	digest_text	count_star
-test	14761ddf05179334c39e7781a0403595	SELECT SCHEMA_NAME , `digest` , `digest_text` , `count_star` FROM `performance_schema` . `events_statements_summary_by_digest` USE INDEX ( ) WHERE SCHEMA_NAME = ?	1
+test	10044ffb0d2dd102381bf4557f431a9f	SELECT SCHEMA_NAME , `a` . `digest` , `b` . `digest_text` , `count_star` FROM `performance_schema` . `events_statements_summary_by_digest` AS `a` USE INDEX ( ) , `performance_schema` . `sql_text` AS `b` USE INDEX ( ) WHERE `a` . `digest` = `b` . `digest` AND SCHEMA_NAME = ?	1
 test	4984952f36b85954d237b3f04a711cc1	USE `test`	2
 test	53772710ae47d32c4a0e9075b33bd94d	SET `DEBUG_SYNC` = ?	3
 test	a532c6f3e890282b7eee77f35ee85ae9	SELECT ?	1
