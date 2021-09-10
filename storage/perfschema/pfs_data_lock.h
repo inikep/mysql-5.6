@@ -35,6 +35,7 @@
 #include "my_compiler.h"
 #include "my_inttypes.h"
 #include "storage/perfschema/pfs_builtin_memory.h"
+#include "storage/perfschema/pfs_engine_table.h"
 #include "storage/perfschema/pfs_std_allocator.h"
 #include "storage/perfschema/table_helper.h"
 

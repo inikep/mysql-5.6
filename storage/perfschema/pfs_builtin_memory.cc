@@ -129,6 +129,8 @@ PFS_builtin_memory_class builtin_memory_client_attrs;
 
 PFS_builtin_memory_class builtin_memory_sql_text;
 
+PFS_builtin_memory_class builtin_memory_id_name_map;
+
 PFS_builtin_memory_class builtin_memory_scalable_buffer;
 
 PFS_builtin_memory_class builtin_memory_data_container;
@@ -412,7 +414,10 @@ init_all_builtin_memory_class()
 
   init_builtin_memory_class(&builtin_memory_sql_text,
                             TABLE_DOC("sql_text"));
-
+                   
+  init_builtin_memory_class(&builtin_memory_id_name_map,
+                            TABLE_DOC("id_name_map"));
+                
   init_builtin_memory_class(&builtin_memory_scalable_buffer,
                             GEN_DOC("scalable_buffer", "scalable buffers"));
 
@@ -517,6 +522,8 @@ static PFS_builtin_memory_class* all_builtin_memory[] = {
   &builtin_memory_client_attrs,
 
   &builtin_memory_sql_text,
+
+  &builtin_memory_id_name_map,
 
   &builtin_memory_scalable_buffer,
 
