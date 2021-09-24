@@ -221,6 +221,7 @@ struct st_mysql_options_extention {
   server_cert_validator_ptr server_cert_validator;
   const void *server_cert_validator_context;
 #endif
+  unsigned int tos;
 };
 
 #define MYSQL_OPTIONS_EXTENSION_PTR(H, what) \
