@@ -3002,7 +3002,7 @@ static void clean_up(bool print_message) {
   }
 
   free_global_write_statistics();
-  free_global_sql_findings();
+  free_global_sql_findings(false);
   free_global_active_sql();
 
   free_max_user_conn();
@@ -7240,6 +7240,8 @@ static int init_server_components() {
       }
     }
   }
+
+  init_sql_info();
 
   /* call ha_init_key_cache() on all key caches to init them */
   process_key_caches(&ha_init_key_cache);
