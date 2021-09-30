@@ -9,6 +9,9 @@ The following options may be given as the first argument:
 --login-path=# Read this path from the login file.
 --no-login-paths Don't read login paths from the login path file.
 
+ --abort-on-raft-purge-error 
+ Any error in raft plugin to purge files will abort the
+ server
  --activate-all-roles-on-login 
  Automatically set all granted roles as active after the
  user has authenticated successfully.
@@ -2725,6 +2728,7 @@ The following options may be given as the first argument:
  library is selected.
 
 Variables (--variable-name=value)
+abort-on-raft-purge-error FALSE
 activate-all-roles-on-login FALSE
 admin-address (No default value)
 admin-port 33062
