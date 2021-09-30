@@ -1421,7 +1421,7 @@ void kill_all_dump_threads() {
   @retval false success
   @retval true error
 */
-bool reset_binary_logs_and_gtids(THD *thd, bool unlock_global_read_lock) {
+bool reset_binary_logs_and_gtids(THD *thd, bool unlock_global_read_lock, bool force) {
   bool ret = false;
 
   /*
@@ -1434,6 +1434,26 @@ bool reset_binary_logs_and_gtids(THD *thd, bool unlock_global_read_lock) {
     'gtid_executed' table.
   */
   thd->set_skip_readonly_check();
+
+  /*
+    No RESET MASTER commands are allowed while Raft replication is running
+  */
+  if (enable_raft_plugin) {
+    if (!force && !override_enable_raft_check) {
+      // NO_LINT_DEBUG
+      sql_print_information(
+          "Did not allow reset_master as enable_raft_plugin is ON");
+      my_error(ER_CANT_RESET_SOURCE, MYF(0),
+               "reset master not allowed when enable_raft_plugin is ON");
+      ret = true;
+      goto end;
+    } else {
+      // NO_LINT_DEBUG
+      sql_print_information(
+          "Allow reset_master in enable_raft_plugin mode as force "
+          "or override_enable_raft_check is set");
+    }
+  }
 
   /*
     No RESET BINARY LOGS AND GTIDS commands are allowed while Group Replication
