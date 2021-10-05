@@ -68,14 +68,11 @@ set optimizer_switch='index_merge';
 --error ER_WRONG_VALUE_FOR_VAR
 set optimizer_switch='on';
 
---error ER_WRONG_VALUE_FOR_VAR
 set optimizer_switch='index_merge=on,index_merge=off';
 
---error ER_WRONG_VALUE_FOR_VAR
 set optimizer_switch='index_merge_union=on,index_merge_union=default';
 
 set optimizer_switch=@default_optimizer_switch;
---error ER_WRONG_VALUE_FOR_VAR
 set optimizer_switch='index_merge=on,index_merge=off';
 
 set optimizer_switch=@default_optimizer_switch;
