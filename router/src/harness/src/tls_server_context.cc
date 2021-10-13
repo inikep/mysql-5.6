@@ -47,7 +47,8 @@
 #endif
 
 // type == decltype(BN_num_bits())
-#if OPENSSL_VERSION_NUMBER >= ROUTER_OPENSSL_VERSION(1, 0, 2)
+#if OPENSSL_VERSION_NUMBER >= ROUTER_OPENSSL_VERSION(1, 0, 2) && \
+    (!defined(OPENSSL_IS_BORINGSSL) || BORINGSSL_API_VERSION >= 11)
 constexpr int kMinRsaKeySize{2048};
 #endif
 constexpr int kMinDhKeySize{1024};
@@ -90,7 +91,8 @@ stdx::expected<void, std::error_code> TlsServerContext::load_key_and_cert(
       return stdx::make_unexpected(make_tls_error());
     }
   }
-#if OPENSSL_VERSION_NUMBER >= ROUTER_OPENSSL_VERSION(1, 0, 2)
+#if OPENSSL_VERSION_NUMBER >= ROUTER_OPENSSL_VERSION(1, 0, 2) && \
+    (!defined(OPENSSL_IS_BORINGSSL) || BORINGSSL_API_VERSION >= 11)
   // openssl 1.0.1 has no SSL_CTX_get0_certificate() and doesn't allow
   // to access ctx->cert->key->x509 as cert_st is opaque to us.
 
