@@ -1065,16 +1065,16 @@ do
   then
     log_notice "Throttling restart after 10 restarts: Sleep 30 mins"
     sleep 1800
-    if [ $? == 137 ];
+    if [ $? = 137 ];
     then
       log_notice "Sleep was likely interrupted from outside. Will exit loop"
       break
     fi
   else
-    sleep_time=$((2**${cur_retry_times}))
+    sleep_time=$((1<<${cur_retry_times}))
     log_notice "Throttling restart after $cur_retry_times restarts: Sleep $sleep_time seconds"
     sleep $sleep_time
-    if [ $? == 137 ];
+    if [ $? = 137 ];
     then
       log_notice "Sleep was likely interrupted from outside. Will exit loop"
       break
