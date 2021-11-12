@@ -1767,6 +1767,16 @@ int Relay_log_info::rli_init_info(bool skip_received_gtid_set_recovery) {
     mysql_mutex_lock(log_lock);
 
     if (enable_raft_plugin) {
+      // Print the initialized gtid set for debugging
+      char *gtid_set_relay_log = nullptr;
+      gtid_set->to_string(&gtid_set_relay_log, /*need_lock=*/true);
+
+      // NO_LINT_DEBUG
+      sql_print_information(
+          "rli_init_info: GTID set in relay log: %s",
+          gtid_set_relay_log ? gtid_set_relay_log : "Could not initialize");
+      my_free(gtid_set_relay_log);
+
       if (relay_log.open_existing_binlog(opt_bin_logname, max_binlog_size)) {
         // NO_LINT_DEBUG
         sql_print_error(
@@ -1926,19 +1936,35 @@ err:
   return error;
 }
 
+int Relay_log_info::add_logged_gtid(const std::string &logged_gtid) {
+  Gtid gtid;
+  get_tsid_lock()->wrlock();
+  auto status = gtid.parse(gtid_set->get_tsid_map(), logged_gtid.c_str());
+  if (status != mysql::utils::Return_status::ok) {
+    get_tsid_lock()->unlock();
+    return 1;
+  }
+
+  gtid_set->ensure_sidno(gtid.sidno);
+  gtid_set->_add_gtid(gtid.sidno, gtid.gno);
+  get_tsid_lock()->unlock();
+
+  return 0;
+}
+
 int Relay_log_info::remove_logged_gtids(
     const std::vector<std::string> &trimmed_gtids) {
   DBUG_TRACE;
-  global_tsid_lock->assert_some_lock();
-
   if (trimmed_gtids.empty()) RETURN_OK;
 
   Gtid gtid;
+  get_tsid_lock()->wrlock();
   for (const auto &trimmed_gtid : trimmed_gtids) {
-    if (gtid.parse(global_tsid_map, trimmed_gtid.c_str()) !=
-        mysql::utils::Return_status::ok) {
+    auto status = gtid.parse(gtid_set->get_tsid_map(), trimmed_gtid.c_str());
+    if (status != mysql::utils::Return_status::ok) {
       // NO_LINT_DEBUG
       sql_print_error("Failed to parse gtid %s", trimmed_gtid.c_str());
+      get_tsid_lock()->unlock();
       RETURN_REPORTED_ERROR;
     }
 
@@ -1951,6 +1977,17 @@ int Relay_log_info::remove_logged_gtids(
     }
   }
 
+  // Print the initialized gtid set for debugging
+  char *gtid_set_relay_log = nullptr;
+  gtid_set->to_string(&gtid_set_relay_log, /*need_lock=*/false);
+
+  // NO_LINT_DEBUG
+  sql_print_information(
+      "remove_logged_gtids: GTID set in relay log: %s",
+      gtid_set_relay_log ? gtid_set_relay_log : "Could not initialize");
+  my_free(gtid_set_relay_log);
+
+  get_tsid_lock()->unlock();
   RETURN_OK;
 }
 
