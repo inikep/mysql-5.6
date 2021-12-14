@@ -3247,10 +3247,8 @@ void Log_event::check_and_set_idempotent_recovery(Relay_log_info *rli,
   DBUG_EXECUTE_IF("dbg_enable_idempotent_recovery", {
     Gtid current_gtid;
     current_gtid.clear();
-    rli->recovery_tsid_lock.rdlock();
     assert(current_gtid.parse(&rli->recovery_tsid_map, gtid) ==
            mysql::utils::Return_status::ok);
-    rli->recovery_tsid_lock.unlock();
     rli->recovery_max_engine_gtid = current_gtid;
   });
 
@@ -3259,10 +3257,8 @@ void Log_event::check_and_set_idempotent_recovery(Relay_log_info *rli,
       !rli->recovery_max_engine_gtid.is_empty()) {
     Gtid current_gtid;
     current_gtid.clear();
-    rli->recovery_tsid_lock.rdlock();
     auto status [[maybe_unused]] =
         current_gtid.parse(&rli->recovery_tsid_map, gtid);
-    rli->recovery_tsid_lock.unlock();
 
     if (current_gtid.sidno == rli->recovery_max_engine_gtid.sidno &&
         current_gtid.gno <= rli->recovery_max_engine_gtid.gno) {

@@ -356,6 +356,8 @@ Slave_worker *Rpl_info_factory::create_worker(uint rli_option, uint worker_id,
     return nullptr;
   }
 
+  worker->populate_recovery_binlog_max_gtid();
+
   if (init_repository(worker_table_data, rli_option, &handler)) {
     msg = "Failed to initialize the worker metadata repository";
     is_error = true;

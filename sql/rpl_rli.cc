@@ -134,8 +134,7 @@ Relay_log_info::Relay_log_info(bool is_slave_recovery,
       replicate_same_server_id(::replicate_same_server_id),
       relay_log(&sync_relaylog_period, true),
       is_relay_log_recovery(is_slave_recovery),
-      recovery_tsid_lock(),
-      recovery_tsid_map(&recovery_tsid_lock),
+      recovery_tsid_map(nullptr),
       save_temporary_tables(nullptr),
       mi(nullptr),
       error_on_rli_init_info(false),
@@ -3550,10 +3549,8 @@ void Relay_log_info::populate_recovery_binlog_max_gtid() {
   const std::string &max_binlog_gtid =
       mysql_bin_log.get_recovery_binlog_max_gtid();
   if (!max_binlog_gtid.empty()) {
-    recovery_tsid_lock.rdlock();
     auto status [[maybe_unused]] = recovery_max_engine_gtid.parse(
         &recovery_tsid_map, max_binlog_gtid.c_str());
-    recovery_tsid_lock.unlock();
   }
 }
 
