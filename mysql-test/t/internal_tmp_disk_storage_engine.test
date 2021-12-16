@@ -2,6 +2,7 @@
 # Skipping the test when log-bin is enabled due to Bug#22472365
 --source include/not_log_bin.inc
 --source include/not_hypergraph.inc
+--source include/have_innodb_intrinsic_table.inc
 --source include/elide_costs.inc
 
 --echo #
