@@ -319,6 +319,7 @@ our @DEFAULT_SUITES = qw(
   rpl_mts
   rpl_recovery
   stress
+  test_service_privacy
   thread_pool
 
   rocksdb
