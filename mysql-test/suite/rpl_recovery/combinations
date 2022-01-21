@@ -1,0 +1,15 @@
+[row]
+binlog-format=row
+
+[row-idempotent-recovery]
+binlog-format=row
+slave-use-idempotent-for-recovery=yes
+skip_flush_master_info=ON
+skip_flush_relay_worker_info=ON
+
+
+[stmt]
+binlog-format=statement
+
+[mix]
+binlog-format=mixed
