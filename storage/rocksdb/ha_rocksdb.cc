@@ -2953,7 +2953,8 @@ class Rdb_transaction {
       return true;
     } else {
       my_core::thd_binlog_pos(m_thd, &m_mysql_log_file_name,
-                              &m_mysql_log_offset, &m_mysql_gtid);
+                              &m_mysql_log_offset, &m_mysql_gtid,
+                              &m_mysql_max_gtid);
       binlog_manager.update(m_mysql_log_file_name, m_mysql_log_offset,
                             m_mysql_max_gtid, get_write_batch());
       return commit_no_binlog();
@@ -4544,9 +4545,9 @@ static void rocksdb_recover_binlog_pos(
   Reading last committed binary log info from RocksDB system row.
   The info is needed for crash safe slave/master to work.
 */
-static int rocksdb_recover(handlerton *const hton MY_ATTRIBUTE((__unused__)),
+static int rocksdb_recover(handlerton *const hton [[maybe_unused]],
                            XA_recover_txn *const xid_list, uint len,
-                           MEM_ROOT *mem_root MY_ATTRIBUTE((__unused__))) {
+                           MEM_ROOT *mem_root [[maybe_unused]]) {
   if (len == 0 || xid_list == nullptr) {
     return HA_EXIT_SUCCESS;
   }

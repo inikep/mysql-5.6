@@ -1553,6 +1553,13 @@ to 0, even if it was initially set to nonzero at the command line
 or configuration file. */
 static void innobase_commit_concurrency_init_default();
 
+/** This function is used to recover binlog positions and Gtid.
+ */
+static void innobase_recover_binlog_pos(
+    handlerton *hton,      /*!< in: InnoDB handlerton */
+    Gtid *binlog_max_gtid, /*!< in/out: Max valid binlog gtid*/
+    char *binlog_file,     /*!< in/out: Last valid binlog file */
+    my_off_t *binlog_pos); /*!< in/out: Last valid binlog pos */
 /** This function is used to prepare an X/Open XA distributed transaction.
  @return 0 or error number */
 static int innobase_xa_prepare(handlerton *hton, /*!< in: InnoDB handlerton */
@@ -5207,6 +5214,7 @@ static int innodb_init(void *p) {
   innobase_hton->commit = innobase_commit;
   innobase_hton->rollback = innobase_rollback;
   innobase_hton->prepare = innobase_xa_prepare;
+  innobase_hton->recover_binlog_pos = innobase_recover_binlog_pos;
   innobase_hton->recover = innobase_xa_recover;
   innobase_hton->recover_prepared_in_tc = innobase_xa_recover_prepared_in_tc;
   innobase_hton->commit_by_xid = innobase_commit_by_xid;
@@ -5918,7 +5926,8 @@ static int innobase_commit(handlerton *hton, /*!< in: InnoDB handlerton */
       be a NULL pointer. */
       ulonglong pos;
 
-      thd_binlog_pos(thd, &trx->mysql_log_file_name, &pos, &trx->mysql_gtid);
+      thd_binlog_pos(thd, &trx->mysql_log_file_name, &pos, &trx->mysql_gtid,
+                     &trx->mysql_max_gtid);
 
       trx->mysql_log_offset = static_cast<uint64_t>(pos);
 
@@ -20116,6 +20125,29 @@ static int innobase_xa_prepare(handlerton *hton, /*!< in: InnoDB handlerton */
   }
 
   return (0);
+}
+
+/** This function is used to recover binlog positions and Gtid.
+ */
+static void innobase_recover_binlog_pos(
+    handlerton *hton,      /*!< in: InnoDB handlerton */
+    Gtid *binlog_max_gtid, /*!< in/out: Max valid binlog gtid*/
+    char *binlog_file,     /*!< in/out: Last valid binlog file */
+    my_off_t *binlog_pos)  /*!< in/out: Last valid binlog pos */
+{
+  assert(hton == innodb_hton_ptr);
+
+  if (binlog_max_gtid != nullptr) {
+    global_sid_lock->rdlock();
+    binlog_max_gtid->parse(global_sid_map, trx_sys_mysql_bin_log_max_gtid);
+    global_sid_lock->unlock();
+  }
+
+  if (binlog_file != nullptr && binlog_pos != nullptr) {
+    uint64_t offset = 0;
+    trx_sys_read_binlog_position(binlog_file, offset);
+    *binlog_pos = offset;
+  }
 }
 
 /** This function is used to recover X/Open XA distributed transactions.
