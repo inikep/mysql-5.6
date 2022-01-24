@@ -193,7 +193,7 @@ bool reset_seconds_behind_master = true;
 
 const char *relay_log_index = nullptr;
 const char *relay_log_basename = nullptr;
-
+std::weak_ptr<Rpl_applier_reader> global_applier_reader;
 /*
   MTS load-ballancing parameter.
   Max length of one MTS Worker queue. The value also determines the size
@@ -515,7 +515,10 @@ static bool configured_as_slave() {
 int init_slave() {
   DBUG_TRACE;
   int error = 0;
-  int thread_mask = SLAVE_SQL | SLAVE_IO;
+  int thread_mask = SLAVE_SQL;
+
+  // No IO thread in raft mode
+  if (!enable_raft_plugin) thread_mask |= SLAVE_IO;
 
 #ifdef HAVE_PSI_INTERFACE
   init_slave_psi_keys();
@@ -592,7 +595,7 @@ int init_slave() {
 
   if (is_slave && mysql_bin_log.engine_binlog_pos != ULLONG_MAX &&
       mysql_bin_log.engine_binlog_file[0] &&
-      global_gtid_mode.get() != Gtid_mode::OFF) {
+      global_gtid_mode.get() != Gtid_mode::OFF && !enable_raft_plugin) {
     /*
       With less durable settins (sync_binlog !=1 and
       innodb_flush_log_at_trx_commit !=1), a slave with GTIDs/MTS
@@ -609,6 +612,10 @@ int init_slave() {
       which are logged inside innodb trx log. When gtid_executed is set
       to an old value which is consistent with innodb, slave doesn't
       miss any transactions.
+
+     This entire block is skipped in raft mode since the executed gtid set is
+     calculated correctly based on engine position and filename during
+     transaction log (binlog or apply-log) recovery and gtid initialization
     */
     mysql_mutex_t *log_lock = mysql_bin_log.get_log_lock();
     mysql_mutex_lock(log_lock);
@@ -1433,7 +1440,7 @@ static Master_info *raft_get_default_mi();
  * to binlog name
  */
 int rli_relay_log_raft_reset(
-    std::pair<std::string, unsigned long long> raft_log_applied_upto_pos) {
+    std::pair<std::string, uint64_t> raft_log_applied_upto_pos, THD *thd) {
   DBUG_ENTER("rli_relay_log_raft_reset");
   Master_info *mi = nullptr;
   Relay_log_info *rli = nullptr;
@@ -1542,6 +1549,12 @@ int rli_relay_log_raft_reset(
   mi->rli->set_event_relay_log_pos(rli->get_group_relay_log_pos());
   mi->rli->set_event_relay_log_name(rli->get_group_relay_log_name());
 
+  // Register log to raft
+  // Previous mi->rli->relay_log.close(LOG_CLOSE_INDEX) will also close
+  // binlog and its IO_CACHE.
+  mi->rli->relay_log.register_log_entities(thd, /*context=*/0,
+                                           /*need_lock=*/false,
+                                           /*is_relay_log=*/true);
   mi->rli->relay_log.unlock_index();
   mysql_mutex_unlock(mi->rli->relay_log.get_log_lock());
 
@@ -1673,6 +1686,13 @@ int raft_reset_slave(THD *) {
   mysql_mutex_lock(&mi->rli->data_lock);
   mi->rli->inited = false;
   mi->flush_info(true);
+  /**
+    Clear the retrieved gtid set for this channel.
+  */
+  mi->rli->get_sid_lock()->wrlock();
+  (const_cast<Gtid_set *>(mi->rli->get_gtid_set()))->clear_set_and_sid_map();
+  mi->rli->get_sid_lock()->unlock();
+
   mysql_mutex_unlock(&mi->rli->data_lock);
   mysql_mutex_unlock(&mi->data_lock);
 
@@ -1698,6 +1718,7 @@ int raft_change_master(
           sizeof(mi->host) - 1);
   mi->port = master_instance.second;
   mi->set_auto_position(true);
+  mi->init_master_log_pos();
   mi->inited = true;
   mi->flush_info(true);
   mysql_mutex_unlock(&mi->data_lock);
@@ -7407,7 +7428,8 @@ extern "C" void *handle_slave_sql(void *arg) {
   bool mts_inited = false;
   Global_THD_manager *thd_manager = Global_THD_manager::get_instance();
   Commit_order_manager *commit_order_mngr = nullptr;
-  Rpl_applier_reader applier_reader(rli);
+  auto applier_reader = std::make_shared<Rpl_applier_reader>(rli);
+  global_applier_reader = applier_reader;
   Relay_log_info::enum_priv_checks_status priv_check_status =
       Relay_log_info::enum_priv_checks_status::SUCCESS;
 
@@ -7616,7 +7638,7 @@ extern "C" void *handle_slave_sql(void *arg) {
     rli->trans_retries = 0;  // start from "no error"
     DBUG_PRINT("info", ("rli->trans_retries: %lu", rli->trans_retries));
 
-    if (applier_reader.open(&errmsg)) {
+    if (applier_reader->open(&errmsg)) {
       rli->report(ERROR_LEVEL, ER_SLAVE_FATAL_ERROR, "%s", errmsg);
       goto err;
     }
@@ -7720,7 +7742,7 @@ extern "C" void *handle_slave_sql(void *arg) {
 
       // read next event
       mysql_mutex_lock(&rli->data_lock);
-      ev = applier_reader.read_next_event();
+      ev = applier_reader->read_next_event();
       mysql_mutex_unlock(&rli->data_lock);
 
       // set additional context as needed by the scheduler before execution
@@ -7730,7 +7752,7 @@ extern "C" void *handle_slave_sql(void *arg) {
         rli->current_mts_submode->set_multi_threaded_applier_context(*rli, *ev);
 
       // try to execute the event
-      switch (exec_relay_log_event(thd, rli, &applier_reader, ev)) {
+      switch (exec_relay_log_event(thd, rli, applier_reader.get(), ev)) {
         case SLAVE_APPLY_EVENT_AND_UPDATE_POS_OK:
           /** success, we read the next event. */
           /** fall through */
@@ -7811,7 +7833,7 @@ extern "C" void *handle_slave_sql(void *arg) {
     mysql_mutex_lock(&rli->run_lock);
     /* We need data_lock, at least to wake up any waiting master_pos_wait() */
     mysql_mutex_lock(&rli->data_lock);
-    applier_reader.close();
+    applier_reader->close();
     DBUG_ASSERT(rli->slave_running == 1);  // tracking buffer overrun
     /* When master_pos_wait() wakes up it will check this and terminate */
     rli->slave_running = 0;
@@ -10616,6 +10638,16 @@ int change_master(THD *thd, Master_info *mi, LEX_MASTER_INFO *lex_mi,
   my_off_t saved_log_pos = 0;
 
   DBUG_TRACE;
+
+  if (enable_raft_plugin && !override_enable_raft_check) {
+    // NO_LINT_DEBUG
+    sql_print_information(
+        "Did not allow change_master as enable_raft_plugin is ON");
+    my_error(ER_RAFT_OPERATION_INCOMPATIBLE, MYF(0),
+             "change master not allowed when enable_raft_plugin is ON");
+    return 1;
+  }
+
   log_slave_command(thd);
 
   /*
