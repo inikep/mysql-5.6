@@ -504,6 +504,12 @@ class MYSQL_BIN_LOG : public TC_LOG {
                             char *buff);
   bool is_open() { return atomic_log_state != LOG_CLOSED; }
 
+  // Set to true if 'open' binlog was found during the trx log recovery
+  bool open_binlog_found = false;
+
+  // The starting position of the first gtid event in the trx log file
+  my_off_t first_gtid_start_pos = 0;
+
   /* True if this binlog is an apply-log (in raft mode apply logs are the binlog
    * used as trx log on follower instances)
    *
@@ -661,13 +667,14 @@ class MYSQL_BIN_LOG : public TC_LOG {
     relaylog.
     @param is_server_starting True if the server is starting.
     @param max_prev_hlc max hlc in all previous binlogs (out param)
+    @param startup True if the server is starting up.
     @return false on success, true on error.
   */
   bool init_gtid_sets(Gtid_set *gtid_set, Gtid_set *lost_groups,
                       bool verify_checksum, bool need_lock,
                       Transaction_boundary_parser *trx_parser,
                       Gtid_monitoring_info *partial_trx,
-                      uint64_t *max_prev_hlc = NULL);
+                      uint64_t *max_prev_hlc = NULL, bool startup = false);
 
   /**
    * This function is used by binlog_change_to_apply to update
@@ -1069,6 +1076,15 @@ class MYSQL_BIN_LOG : public TC_LOG {
   bool open_index_file(const char *index_file_name_arg, const char *log_name,
                        bool need_lock_index);
 
+  /*
+   * Opens the index file for the transaction log. If a binlog apply index file
+   * is found, then it opens the apply index file. Otherwise it opens the binlog
+   * index file
+   *
+   * @return 0 on success, 1 on error
+   */
+  int init_index_file();
+
   /**
     Use this to start writing a new log file
     @param raft_rotate_info - Used by raft to optionally control
@@ -1453,6 +1469,7 @@ int log_loaded_block(IO_CACHE *file);
 bool purge_master_logs(THD *thd, const char *to_log);
 bool purge_raft_logs(THD *thd, const char *to_log);
 bool purge_raft_logs_before_date(THD *thd, time_t purge_time);
+bool update_relay_log_cordinates(Relay_log_info *rli);
 bool show_raft_logs(THD *thd);
 bool purge_master_logs_before_date(THD *thd, time_t purge_time);
 bool show_binlog_events(THD *thd, MYSQL_BIN_LOG *binary_log);
@@ -1519,7 +1536,7 @@ int binlog_change_to_apply();
 
   @returns true if a problem occurs, false otherwise.
  */
-int binlog_change_to_binlog();
+int binlog_change_to_binlog(THD *thd);
 
 /**
   Turns a relative log binary log path into a full path, based on the
