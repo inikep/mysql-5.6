@@ -23,6 +23,7 @@
 #include "sql/rpl_handler.h"
 
 #include <string.h>
+#include <map>
 #include <memory>
 #include <new>
 #include <unordered_map>
@@ -70,6 +71,10 @@
 #include "sql_string.h"
 
 /** start of raft related extern funtion declarations  **/
+
+extern int raft_reset_slave(THD *thd);
+extern int raft_change_master(
+    THD *thd, const std::pair<const std::string, uint> &master_instance);
 extern int rotate_binlog_file(THD *thd);
 extern int raft_stop_sql_thread(THD *thd);
 extern int raft_stop_io_thread(THD *thd);
@@ -1256,8 +1261,7 @@ int Binlog_relay_IO_delegate::applier_log_event(THD *thd, int &out) {
 }
 
 int Raft_replication_delegate::before_flush(THD *thd, IO_CACHE *io_cache,
-                                            RaftReplicateMsgOpType op_type,
-                                            uchar *, uchar *) {
+                                            RaftReplicateMsgOpType op_type) {
   DBUG_ENTER("Raft_replication_delegate::before_flush");
   Raft_replication_param param;
 
@@ -1345,6 +1349,16 @@ int Raft_replication_delegate::purge_logs(THD *thd, uint64_t file_ext) {
   // Set the safe purge file that was sent back by the plugin
   thd->set_safe_purge_file(param.purge_file);
 
+  DBUG_RETURN(ret);
+}
+
+int Raft_replication_delegate::show_raft_status(
+    THD * /* thd */,
+    std::vector<std::pair<std::string, std::string>> *var_value_pairs) {
+  DBUG_ENTER("Raft_replication_delegate::show_raft_status");
+  Raft_replication_param param;
+  int ret = 0;
+  FOREACH_OBSERVER(ret, show_raft_status, (var_value_pairs));
   DBUG_RETURN(ret);
 }
 
@@ -1578,6 +1592,43 @@ static int handle_read_only(
   return error;
 }
 
+static int set_durability(
+    const std::map<std::string, unsigned int> &durability) {
+  // sync_binlog
+  const auto sync_binlog_it = durability.find("sync_binlog");
+  if (sync_binlog_it == durability.end()) {
+    return 1;
+  }
+  Item_uint sync_binlog_item(sync_binlog_it->second);
+  int sync_binlog_update =
+      update_sys_var(STRING_WITH_LEN("sync_binlog"), sync_binlog_item);
+  if (sync_binlog_update)  // failed
+    return sync_binlog_update;
+
+  // innodb_flush_log_at_trx_commit might not always update since innodb
+  // might not be enabled
+  const auto flush_log_it = durability.find("innodb_flush_log_at_trx_commit");
+  if (flush_log_it != durability.end()) {
+    Item_uint flush_log_item(flush_log_it->second);
+    int innodb_flush_log_at_trx_commit_update = update_sys_var(
+        STRING_WITH_LEN("innodb_flush_log_at_trx_commit"), flush_log_item);
+    if (innodb_flush_log_at_trx_commit_update)  // failed
+      return innodb_flush_log_at_trx_commit_update;
+  }
+
+  // innodb_doublewrite not always update since innodb might not be enabled
+  const auto doublewrite_it = durability.find("innodb_doublewrite");
+  if (doublewrite_it != durability.end()) {
+    Item_uint doublewrite_item(doublewrite_it->second);
+    int innodb_doublewrite_update =
+        update_sys_var(STRING_WITH_LEN("innodb_doublewrite"), doublewrite_item);
+    if (innodb_doublewrite_update)  // failed
+      return innodb_doublewrite_update;
+  }
+
+  return 0;
+}
+
 extern "C" void *process_raft_queue(void *) {
   THD *thd;
   bool thd_added = false;
@@ -1606,6 +1657,8 @@ extern "C" void *process_raft_queue(void *) {
     thd->get_stmt_da()->reset_diagnostics_area();
     RaftListenerQueue::QueueElement element = raft_listener_queue.get();
     RaftListenerCallbackResult result;
+    DBUG_PRINT("info",
+               ("process_raft_queue: %d\n", static_cast<int>(element.type)));
     switch (element.type) {
       case RaftListenerCallbackType::SET_READ_ONLY: {
         handle_read_only(element.arg.val_sys_var_uint);
@@ -1616,13 +1669,44 @@ extern "C" void *process_raft_queue(void *) {
         break;
       }
       case RaftListenerCallbackType::ROTATE_RELAYLOG: {
-        result.error = rotate_relay_log_for_raft(
-            element.arg.log_file_pos.first, element.arg.log_file_pos.second,
-            MYF(element.arg.val_uint));
+        RaftRotateInfo raft_rotate_info;
+        raft_rotate_info.new_log_ident = element.arg.log_file_pos.first;
+        raft_rotate_info.pos = element.arg.log_file_pos.second;
+        myf flags = MYF(element.arg.val_uint);
+        raft_rotate_info.noop = flags & RaftListenerQueue::RAFT_FLAGS_NOOP;
+        raft_rotate_info.post_append =
+            flags & RaftListenerQueue::RAFT_FLAGS_POSTAPPEND;
+        raft_rotate_info.rotate_opid = element.arg.val_opid;
+        result.error = rotate_relay_log_for_raft(&raft_rotate_info);
         break;
       }
       case RaftListenerCallbackType::RLI_RELAY_LOG_RESET: {
         result.error = rli_relay_log_raft_reset(element.arg.log_file_pos);
+        break;
+      }
+
+      case RaftListenerCallbackType::RESET_SLAVE: {
+        result.error = raft_reset_slave(current_thd);
+        // When resetting a slave we also want to clear the read-only message
+        // since we can't make assumptions on the master instance anymore
+        if (!result.error) {
+          Item_string item("", 0, current_thd->charset());
+          result.error = update_sys_var(
+              STRING_WITH_LEN("read_only_error_msg_extra"), item);
+        }
+        break;
+      }
+
+      case RaftListenerCallbackType::CHANGE_MASTER: {
+        result.error =
+            raft_change_master(current_thd, element.arg.master_instance);
+        if (!result.error && !element.arg.val_str.empty()) {
+          Item_string item(element.arg.val_str.c_str(),
+                           element.arg.val_str.length(),
+                           current_thd->charset());
+          result.error = update_sys_var(
+              STRING_WITH_LEN("read_only_error_msg_extra"), item);
+        }
         break;
       }
       case RaftListenerCallbackType::BINLOG_CHANGE_TO_APPLY: {
@@ -1645,6 +1729,20 @@ extern "C" void *process_raft_queue(void *) {
         result.error = raft_stop_io_thread(current_thd);
         break;
       }
+      case RaftListenerCallbackType::GET_EXECUTED_GTIDS: {
+        char *buffer;
+        global_sid_lock->wrlock();
+        gtid_state->get_executed_gtids()->to_string(&buffer);
+        global_sid_lock->unlock();
+        result.val_str = std::string(buffer);
+        result.error = 0;
+        my_free(buffer);
+        break;
+      }
+      case RaftListenerCallbackType::SET_BINLOG_DURABILITY: {
+        result.error = set_durability(element.arg.val_sys_var_uint);
+        break;
+      }
       case RaftListenerCallbackType::RAFT_LISTENER_THREADS_EXIT:
         exit = true;
         result.error = 0;
@@ -1663,6 +1761,8 @@ extern "C" void *process_raft_queue(void *) {
   if (thd_added) thd_manager->remove_thd(thd);
   delete thd;
   my_thread_end();
+  // NO_LINT_DEBUG
+  sql_print_information("Raft listener queue aborted");
   pthread_exit(0);
   return 0;
 }
@@ -1679,9 +1779,7 @@ int start_raft_listener_thread() {
   return 0;
 }
 
-RaftListenerQueue::~RaftListenerQueue() {
-  // TODO : Need to fix the destruction construct.
-}
+RaftListenerQueue::~RaftListenerQueue() { deinit(); }
 
 int RaftListenerQueue::add(QueueElement element) {
   std::unique_lock<std::mutex> lock(queue_mutex_);
@@ -1729,10 +1827,14 @@ void RaftListenerQueue::deinit() {
 
   // Queue an exit event in the queue. The listener thread will eventually pick
   // this up and exit
+
+  std::promise<RaftListenerCallbackResult> prms;
+  auto fut = prms.get_future();
   QueueElement element;
   element.type = RaftListenerCallbackType::RAFT_LISTENER_THREADS_EXIT;
+  element.result = &prms;
   add(element);
-
+  fut.get();
   inited_ = false;
   return;
 }

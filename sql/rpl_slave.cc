@@ -1440,7 +1440,7 @@ int rli_relay_log_raft_reset(
   int error = 0;
   std::string normalized_log_name;
 
-  // TODO: disable_raft_repointing for integrating with mtr
+  if (disable_raft_log_repointing) DBUG_RETURN(0);
 
   channel_map.rdlock();
 
@@ -1656,6 +1656,49 @@ end:
       mi->rli->mts_recovery_group_cnt)
     init_error = fill_mts_gaps_and_recover(mi);
   return init_error;
+}
+
+// TODO: currently we're only setting host port
+int raft_reset_slave(THD *) {
+  DBUG_ENTER("raft_reset_slave");
+  int error = 0;
+  channel_map.rdlock();
+  Master_info *mi = channel_map.get_default_channel_mi();
+
+  mysql_mutex_lock(&mi->data_lock);
+  strmake(mi->host, "\0", sizeof(mi->host) - 1);
+  mi->port = 0;
+  mi->inited = false;
+  mysql_mutex_lock(&mi->rli->data_lock);
+  mi->rli->inited = false;
+  mysql_mutex_unlock(&mi->rli->data_lock);
+  mysql_mutex_unlock(&mi->data_lock);
+
+  channel_map.unlock();
+  DBUG_RETURN(error);
+}
+
+// TODO: currently we're only setting host port
+int raft_change_master(
+    THD *, const std::pair<const std::string, uint> &master_instance) {
+  DBUG_ENTER("raft_change_master");
+  int error = 0;
+
+  channel_map.rdlock();
+  Master_info *mi = channel_map.get_default_channel_mi();
+
+  if (!mi) goto end;
+
+  mysql_mutex_lock(&mi->data_lock);
+  strmake(mi->host, const_cast<char *>(master_instance.first.c_str()),
+          sizeof(mi->host) - 1);
+  mi->port = master_instance.second;
+  mi->set_auto_position(true);
+  mi->inited = true;
+  mysql_mutex_unlock(&mi->data_lock);
+end:
+  channel_map.unlock();
+  DBUG_RETURN(error);
 }
 
 void end_info(Master_info *mi) {
@@ -2393,7 +2436,7 @@ bool start_slave_threads(bool need_lock_slave, bool wait_for_start,
     lock_cond_sql = &mi->rli->run_lock;
   }
 
-  if (thread_mask & SLAVE_IO)
+  if ((thread_mask & SLAVE_IO) && !enable_raft_plugin)
     is_error = start_slave_thread(key_thread_slave_io, handle_slave_io, lock_io,
                                   lock_cond_io, cond_io, &mi->slave_running,
                                   &mi->slave_run_id, mi);
@@ -5618,7 +5661,8 @@ extern "C" void *handle_slave_io(void *arg) {
   my_thread_init();
   {
     DBUG_TRACE;
-
+    // Raft don't use slave IO thread
+    DBUG_ASSERT(!enable_raft_plugin);
     DBUG_ASSERT(mi->inited);
     mysql = nullptr;
 
@@ -8947,7 +8991,8 @@ static int safe_reconnect(THD *thd, MYSQL *mysql, Master_info *mi,
 */
 
 int rotate_relay_log(Master_info *mi, bool log_master_fd, bool need_lock,
-                     bool need_log_space_lock, myf raft_flags) {
+                     bool need_log_space_lock,
+                     RaftRotateInfo *raft_rotate_info) {
   DBUG_TRACE;
 
   Relay_log_info *rli = mi->rli;
@@ -8972,9 +9017,9 @@ int rotate_relay_log(Master_info *mi, bool log_master_fd, bool need_lock,
   /* If the relay log is closed, new_file() will do nothing. */
   if (log_master_fd)
     error = rli->relay_log.new_file_without_locking(
-        mi->get_mi_description_event(), raft_flags);
+        mi->get_mi_description_event(), raft_rotate_info);
   else
-    error = rli->relay_log.new_file_without_locking(nullptr, raft_flags);
+    error = rli->relay_log.new_file_without_locking(nullptr, raft_rotate_info);
 
   if (error != 0) goto end;
 
@@ -8997,11 +9042,9 @@ end:
   return error;
 }
 
-int rotate_relay_log_for_raft(const std::string &new_log_ident, ulonglong pos,
-                              myf raft_flags) {
+int rotate_relay_log_for_raft(RaftRotateInfo *rotate_info) {
   DBUG_ENTER("rotate_relay_log_for_raft");
   int error = 0;
-  bool no_op = false;
   Master_info *mi = nullptr;
 
   channel_map.rdlock();
@@ -9019,22 +9062,21 @@ int rotate_relay_log_for_raft(const std::string &new_log_ident, ulonglong pos,
   // needed for file rotation
   mi->channel_wrlock();
 
-  no_op = raft_flags & RaftListenerQueue::RAFT_FLAGS_NOOP;
-
   /* in case of no_op we would be starting the file name from the master
      so new_log_ident and pos wont be used */
-  if (!no_op) {
+  if (!rotate_info->noop) {
     mysql_mutex_lock(&mi->data_lock);
-    memcpy(const_cast<char *>(mi->get_master_log_name()), new_log_ident.c_str(),
-           new_log_ident.length() + 1);
-    mi->set_master_log_pos(pos);
+    memcpy(const_cast<char *>(mi->get_master_log_name()),
+           rotate_info->new_log_ident.c_str(),
+           rotate_info->new_log_ident.length() + 1);
+    mi->set_master_log_pos(rotate_info->pos);
     mysql_mutex_unlock(&mi->data_lock);
   }
 
   error = rotate_relay_log(mi,
                            /*log_master_fd=*/true,
                            /*need_lock=*/true,
-                           /*need_log_space_lock=*/true, raft_flags);
+                           /*need_log_space_lock=*/true, rotate_info);
 
   mi->channel_unlock();
 
@@ -9616,7 +9658,7 @@ int stop_slave(THD *thd, Master_info *mi, bool net_report, bool for_one_channel,
                bool *push_temp_tables_warning) {
   DBUG_TRACE;
 
-  int slave_errno;
+  int slave_errno = 0;
   if (!thd) thd = current_thd;
 
   /*
@@ -9660,7 +9702,8 @@ int stop_slave(THD *thd, Master_info *mi, bool net_report, bool for_one_channel,
     slave_errno =
         terminate_slave_threads(mi, thread_mask, rpl_stop_slave_timeout,
                                 false /*need_lock_term=false*/);
-  } else {
+  } else if (!enable_raft_plugin) {
+    // raft plugin doesn't start IO thread
     // no error if both threads are already stopped, only a warning
     slave_errno = 0;
     push_warning_printf(
@@ -9817,6 +9860,15 @@ int reset_slave(THD *thd, Master_info *mi, bool reset_all) {
   int thread_mask = 0, error = 0;
   const char *errmsg = "Unknown error occurred while reseting slave";
   DBUG_TRACE;
+
+  if (enable_raft_plugin && !override_enable_raft_check) {
+    // NO_LINT_DEBUG
+    sql_print_information(
+        "Did not allow reset_slave as enable_raft_plugin is ON");
+    my_error(ER_RAFT_OPERATION_INCOMPATIBLE, MYF(0),
+             "reset slave not allowed when enable_raft_plugin is ON");
+    return 1;
+  }
 
   bool is_default_channel =
       strcmp(mi->get_channel(), channel_map.get_default_channel()) == 0;
