@@ -1042,6 +1042,7 @@ static PSI_mutex_key key_BINLOG_LOCK_sync;
 static PSI_mutex_key key_BINLOG_LOCK_sync_queue;
 static PSI_mutex_key key_BINLOG_LOCK_xids;
 static PSI_mutex_key key_BINLOG_LOCK_non_xid_trxs;
+static PSI_mutex_key key_BINLOG_LOCK_lost_gtids_for_tailing;
 static PSI_rwlock_key key_rwlock_global_sid_lock;
 PSI_rwlock_key key_rwlock_gtid_mode_lock;
 static PSI_rwlock_key key_rwlock_LOCK_system_variables_hash;
@@ -1185,10 +1186,13 @@ ulong opt_commit_consensus_error_action = 0;
 bool enable_raft_plugin = 0;
 bool disallow_raft = 1;  // raft is not allowed by default
 bool override_enable_raft_check = false;
+bool abort_on_raft_purge_error = false;
 ulonglong apply_log_retention_num = 0;
 ulonglong apply_log_retention_duration = 0;
 bool disable_raft_log_repointing = 0;
 ulong opt_raft_signal_async_dump_threads = 0;
+bool recover_raft_log = false;
+
 /* Apply log related variables for raft
    "_ptr" variables are system variables that should not be free by us */
 char *opt_apply_logname = nullptr, *opt_apply_logname_ptr = nullptr;
@@ -1819,6 +1823,10 @@ bool slave_preserve_commit_order_supplied = false;
 char *opt_general_logname, *opt_slow_logname, *opt_bin_logname;
 char *opt_gap_lock_logname;
 
+/* status variables for raft trx wait times */
+SHOW_VAR latency_histogram_raft_trx_wait[NUMBER_OF_HISTOGRAM_BINS + 1];
+ulonglong histogram_raft_trx_wait_values[NUMBER_OF_HISTOGRAM_BINS];
+
 /*
   True if expire_logs_days and binlog_expire_logs_seconds is set
   explictly.
@@ -2414,9 +2422,11 @@ class Call_close_conn : public Do_THD_Impl {
 static void close_connections(void) {
   DBUG_TRACE;
 
-  // NO_LINT_DEBUG
-  sql_print_information("Sending shutdown call to raft plugin");
-  RUN_HOOK(raft_replication, before_shutdown, (nullptr));
+  if (enable_raft_plugin) {
+    // NO_LINT_DEBUG
+    sql_print_information("Sending shutdown call to raft plugin");
+    RUN_HOOK_STRICT(raft_replication, before_shutdown, (nullptr));
+  }
 
   (void)RUN_HOOK(server_state, before_server_shutdown, (nullptr));
 
@@ -2715,6 +2725,8 @@ static void clean_up(bool print_message) {
   stop_handle_manager();
 
   memcached_shutdown();
+
+  free_latency_histogram_sysvars(latency_histogram_raft_trx_wait);
 
   /*
     make sure that handlers finish up
@@ -5163,8 +5175,8 @@ int init_common_variables() {
       key_BINLOG_LOCK_flush_queue, key_BINLOG_LOCK_log,
       key_BINLOG_LOCK_binlog_end_pos, key_BINLOG_LOCK_sync,
       key_BINLOG_LOCK_sync_queue, key_BINLOG_LOCK_xids,
-      key_BINLOG_LOCK_non_xid_trxs, key_BINLOG_COND_done,
-      key_BINLOG_update_cond, key_BINLOG_prep_xids_cond,
+      key_BINLOG_LOCK_non_xid_trxs, key_BINLOG_LOCK_lost_gtids_for_tailing,
+      key_BINLOG_COND_done, key_BINLOG_update_cond, key_BINLOG_prep_xids_cond,
       key_BINLOG_non_xid_trxs_cond, key_file_binlog, key_file_binlog_index,
       key_file_binlog_cache, key_file_binlog_index_cache);
 #endif
@@ -5176,7 +5188,6 @@ int init_common_variables() {
     inited before MY_INIT(). So we do it here.
   */
   mysql_bin_log.init_pthread_objects();
-
   /* TODO: remove this when my_time_t is 64 bit compatible */
   if (!is_time_t_valid_for_timestamp(server_start_time)) {
     LogErr(ERROR_LEVEL, ER_UNSUPPORTED_DATE);
@@ -7110,7 +7121,7 @@ static int init_server_components() {
     if (mysql_bin_log.init_gtid_sets(
             executed_gtids, NULL /* lost_gtid */, opt_master_verify_checksum,
             true /*true=need lock*/, NULL /*trx_parser*/, NULL /*partial_trx*/,
-            &prev_hlc))
+            &prev_hlc, /*startup=*/true))
       unireg_abort(1);
 
     /*
@@ -7242,7 +7253,7 @@ static int init_server_components() {
 
   udf_load_service.init();
 
-  mysql_bin_log.reset_semi_sync_last_acked();
+  dump_log.reset_semi_sync_last_acked();
 
   /* Initialize the optimizer cost module */
   init_optimizer_cost_module(true);
@@ -8008,7 +8019,8 @@ int mysqld_main(int argc, char **argv)
     if (mysql_bin_log.init_gtid_sets(
             &gtids_in_binlog, &purged_gtids_from_binlog,
             opt_master_verify_checksum, true /*true=need lock*/,
-            nullptr /*trx_parser*/, nullptr /*partial_trx*/, &prev_hlc))
+            nullptr /*trx_parser*/, nullptr /*partial_trx*/, &prev_hlc,
+            /*startup=*/true))
       unireg_abort(MYSQLD_ABORT_EXIT);
 
     // Update the instance's HLC clock to be greater than or equal to the HLC
@@ -9492,6 +9504,22 @@ static int show_jemalloc_tcache_bytes(THD *thd, SHOW_VAR *var, char *buff) {
 }
 #endif /* HAVE_JEMALLOC */
 
+static int show_latency_histogram_raft_trx_wait(THD * /*thd*/, SHOW_VAR *var,
+                                                char * /*buff*/) {
+  size_t i;
+  for (i = 0; i < NUMBER_OF_HISTOGRAM_BINS; ++i)
+    histogram_raft_trx_wait_values[i] =
+        latency_histogram_get_count(&histogram_raft_trx_wait, i);
+
+  prepare_latency_histogram_vars(&histogram_raft_trx_wait,
+                                 latency_histogram_raft_trx_wait,
+                                 histogram_raft_trx_wait_values);
+  var->type = SHOW_ARRAY;
+  var->value = (char *)&latency_histogram_raft_trx_wait;
+
+  return 0;
+}
+
 static int show_queries(THD *thd, SHOW_VAR *var, char *) {
   var->type = SHOW_LONGLONG;
   var->value = (char *)&thd->query_id;
@@ -10716,7 +10744,9 @@ SHOW_VAR status_vars[] = {
      SHOW_LONGLONG, SHOW_SCOPE_GLOBAL},
     {"Json_contains_legacy_count", (char *)&json_contains_legacy_count,
      SHOW_LONGLONG, SHOW_SCOPE_GLOBAL},
-
+    {"Rpl_raft_trx_wait_histogram",
+     (char *)&show_latency_histogram_raft_trx_wait, SHOW_FUNC,
+     SHOW_SCOPE_GLOBAL},
     {NullS, NullS, SHOW_LONG, SHOW_SCOPE_ALL}};
 
 void add_terminator(vector<my_option> *options) {
@@ -11657,8 +11687,11 @@ static int generate_apply_file_gvars() {
   }
 
   if (!opt_applylog_index_name_ptr && opt_apply_logname) {
-    opt_applylog_index_name = const_cast<char *>(rpl_make_log_name(
-        PSI_NOT_INSTRUMENTED, NULL, opt_apply_logname, ".index"));
+    // generate relate path for opt_applylog_index_name
+    char buff[FN_REFLEN];
+    fn_format(buff, opt_apply_logname, mysql_data_home, ".index",
+              MY_UNPACK_FILENAME | MY_REPLACE_EXT);
+    opt_applylog_index_name = my_strdup(PSI_NOT_INSTRUMENTED, buff, MYF(0));
   }
 
   DBUG_RETURN(0);
@@ -12489,6 +12522,7 @@ PSI_mutex_key key_RELAYLOG_LOCK_sync;
 PSI_mutex_key key_RELAYLOG_LOCK_sync_queue;
 PSI_mutex_key key_RELAYLOG_LOCK_xids;
 PSI_mutex_key key_RELAYLOG_LOCK_non_xid_trxs;
+PSI_mutex_key key_RELAYLOG_LOCK_lost_gtids_for_tailing;
 PSI_mutex_key key_gtid_ensure_index_mutex;
 PSI_mutex_key key_hlc_wait_mutex;
 PSI_mutex_key key_object_cache_mutex;  // TODO need to initialize
@@ -12523,6 +12557,8 @@ static PSI_mutex_info all_server_mutexes[]=
   { &key_BINLOG_LOCK_sync_queue, "MYSQL_BIN_LOG::LOCK_sync_queue", 0, 0, PSI_DOCUMENT_ME},
   { &key_BINLOG_LOCK_xids, "MYSQL_BIN_LOG::LOCK_xids", 0, 0, PSI_DOCUMENT_ME},
   { &key_BINLOG_LOCK_non_xid_trxs, "MYSQL_BIN_LOG::LOCK_non_xid_trxs", 0, 0, PSI_DOCUMENT_ME},
+  { &key_BINLOG_LOCK_lost_gtids_for_tailing,
+    "MYSQL_BIN_LOG::LOCK_lost_gtids_for_tailing", 0, 0, PSI_DOCUMENT_ME},
   { &key_RELAYLOG_LOCK_commit, "MYSQL_RELAY_LOG::LOCK_commit", 0, 0, PSI_DOCUMENT_ME},
   { &key_RELAYLOG_LOCK_commit_queue, "MYSQL_RELAY_LOG::LOCK_commit_queue", 0, 0, PSI_DOCUMENT_ME},
   { &key_RELAYLOG_LOCK_done, "MYSQL_RELAY_LOG::LOCK_done", 0, 0, PSI_DOCUMENT_ME},
@@ -12534,6 +12570,8 @@ static PSI_mutex_info all_server_mutexes[]=
   { &key_RELAYLOG_LOCK_sync_queue, "MYSQL_RELAY_LOG::LOCK_sync_queue", 0, 0, PSI_DOCUMENT_ME},
   { &key_RELAYLOG_LOCK_xids, "MYSQL_RELAY_LOG::LOCK_xids", 0, 0, PSI_DOCUMENT_ME},
   { &key_RELAYLOG_LOCK_non_xid_trxs, "MYSQL_RELAY_LOG::LOCK_xids", 0, 0, PSI_DOCUMENT_ME},
+  { &key_RELAYLOG_LOCK_lost_gtids_for_tailing,
+    "MYSQL_RELAY_LOG::LOCK_lost_gtids_for_tailing",0, 0, PSI_DOCUMENT_ME},
   { &key_hash_filo_lock, "hash_filo::lock", 0, 0, PSI_DOCUMENT_ME},
   { &Gtid_set::key_gtid_executed_free_intervals_mutex, "Gtid_set::gtid_executed::free_intervals_mutex", 0, 0, PSI_DOCUMENT_ME},
   { &key_LOCK_crypt, "LOCK_crypt", PSI_FLAG_SINGLETON, 0, PSI_DOCUMENT_ME},
@@ -12613,7 +12651,7 @@ static PSI_mutex_info all_server_mutexes[]=
   { &key_LOCK_rotate_binlog_master_key, "LOCK_rotate_binlog_master_key", PSI_FLAG_SINGLETON, 0, PSI_DOCUMENT_ME},
   { &key_monitor_info_run_lock, "Source_IO_monitor::run_lock", 0, 0, PSI_DOCUMENT_ME},
   { &key_LOCK_ac_node, "st_ac_node::lock", 0, 0, PSI_DOCUMENT_ME},
-  { &key_LOCK_ac_info, "Ac_info::lock", 0, 0, PSI_DOCUMENT_ME}
+  { &key_LOCK_ac_info, "Ac_info::lock", 0, 0, PSI_DOCUMENT_ME},
 };
 /* clang-format on */
 
