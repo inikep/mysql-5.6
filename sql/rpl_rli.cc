@@ -206,16 +206,17 @@ Relay_log_info::Relay_log_info(bool is_slave_recovery,
   DBUG_TRACE;
 
 #ifdef HAVE_PSI_INTERFACE
-  relay_log.set_psi_keys(key_RELAYLOG_LOCK_index, key_RELAYLOG_LOCK_commit,
-                         key_RELAYLOG_LOCK_commit_queue, key_RELAYLOG_LOCK_done,
-                         key_RELAYLOG_LOCK_flush_queue, key_RELAYLOG_LOCK_log,
-                         key_RELAYLOG_LOCK_log_end_pos, key_RELAYLOG_LOCK_sync,
-                         key_RELAYLOG_LOCK_sync_queue, key_RELAYLOG_LOCK_xids,
-                         key_RELAYLOG_LOCK_non_xid_trxs, key_RELAYLOG_COND_done,
-                         key_RELAYLOG_update_cond, key_RELAYLOG_prep_xids_cond,
-                         key_RELAYLOG_non_xid_trxs_cond, key_file_relaylog,
-                         key_file_relaylog_index, key_file_relaylog_cache,
-                         key_file_relaylog_index_cache);
+  relay_log.set_psi_keys(
+      key_RELAYLOG_LOCK_index, key_RELAYLOG_LOCK_commit,
+      key_RELAYLOG_LOCK_commit_queue, key_RELAYLOG_LOCK_done,
+      key_RELAYLOG_LOCK_flush_queue, key_RELAYLOG_LOCK_log,
+      key_RELAYLOG_LOCK_log_end_pos, key_RELAYLOG_LOCK_sync,
+      key_RELAYLOG_LOCK_sync_queue, key_RELAYLOG_LOCK_xids,
+      key_RELAYLOG_LOCK_non_xid_trxs, key_RELAYLOG_LOCK_lost_gtids_for_tailing,
+      key_RELAYLOG_COND_done, key_RELAYLOG_update_cond,
+      key_RELAYLOG_prep_xids_cond, key_RELAYLOG_non_xid_trxs_cond,
+      key_file_relaylog, key_file_relaylog_index, key_file_relaylog_cache,
+      key_file_relaylog_index_cache);
 #endif
 
   group_relay_log_name[0] = event_relay_log_name[0] = group_master_log_name[0] =
@@ -1554,7 +1555,12 @@ int Relay_log_info::rli_init_info(bool skip_received_gtid_set_recovery) {
     stopped when there were replication initialization errors, now it is
     not and so init_info() must be aware of previous failures.
   */
-  if (error_on_rli_init_info) goto err;
+  if (error_on_rli_init_info) {
+    // In raft  mode, these error codes are critical. Hence we should
+    //     not chew them.
+    if (enable_raft_plugin) error = 1;
+    goto err;
+  }
 
   if (inited) {
     return recovery_parallel_workers ? mts_recovery_groups(this) : 0;
@@ -1921,7 +1927,9 @@ int Relay_log_info::remove_logged_gtids(
       DBUG_PRINT("info",
                  ("Removing gtid(sidno:%d, gno:%lld) from rli logged gtids",
                   gtid.sidno, gtid.gno));
+      get_sid_lock()->wrlock();
       gtid_set->_remove_gtid(gtid);
+      get_sid_lock()->unlock();
     }
   }
 
