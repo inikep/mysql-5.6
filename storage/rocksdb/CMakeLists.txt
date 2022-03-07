@@ -89,8 +89,7 @@ message(STATUS "MyRocks compile definitions: ${COMPILE_DEFINITIONS}")
 
 # Suppress warnings for all compilers
 remove_compile_flags(-Wcast-qual -Wundef)
-ADD_CXX_COMPILE_FLAGS_TO_FILES(-Wno-unused-parameter FILES ../../rocksdb/file/random_access_file_reader.cc)
-append_cflags_if_supported(-Wno-unused-parameter)
+append_cflags_if_supported(-Wno-unused-parameter -Wno-invalid-offsetof)
 
 # Suppress warnings for all clang versions
 IF(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
