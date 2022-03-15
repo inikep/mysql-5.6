@@ -4494,6 +4494,8 @@ class handler {
     return is_record_buffer_wanted(max_rows);
   }
 
+  virtual bool init_with_fields() { return false; }
+
   int ha_open(TABLE *table, const char *name, int mode, int test_if_locked,
               const dd::Table *table_def);
   int ha_close(void);
@@ -4987,6 +4989,10 @@ class handler {
   */
 
   virtual bool is_ignorable_error(int error);
+  virtual bool continue_partition_copying_on_error(
+      int error MY_ATTRIBUTE((unused))) {
+    return false;
+  }
 
   /**
     @brief Determine whether an error is fatal or not.
@@ -5216,9 +5222,11 @@ class handler {
                                 enum ha_rkey_function find_flag);
   bool is_using_prohibited_gap_locks(TABLE *table, bool using_full_unique_key);
 
+ public:
   virtual int read_range_first(const key_range *start_key,
                                const key_range *end_key, bool eq_range,
                                bool sorted);
+
   virtual int read_range_next();
 
  public:
@@ -5345,7 +5353,7 @@ class handler {
   */
   int ha_extra(enum ha_extra_function operation);
 
- private:
+ public:
   /**
     Storage engine specific implementation of ha_extra()
 
