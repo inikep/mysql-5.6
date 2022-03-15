@@ -305,6 +305,11 @@ pk
 2
 DROP TABLE t12;
 #
+# MDEV-3964: Assertion `!pk_descr' fails in ha_rocksdb::open on adding partitions ...
+#
+create table t14 (pk int primary key) ENGINE=rocksdb CHARSET=latin1 partition by hash(pk) partitions 2;
+drop table t14;
+#
 # MDEV-3960: Server crashes on running DISCARD TABLESPACE on a RocksDB table
 #
 create table t9 (i int primary key) ENGINE=rocksdb CHARSET=latin1;
@@ -1202,7 +1207,7 @@ col1 int,
 key (key1)
 ) ENGINE=RocksDB CHARSET=latin1;
 Warnings:
-Warning	3778	'utf8_bin' is a collation of the deprecated character set UTF8MB3. Please consider using UTF8MB4 with an appropriate collation instead.
+Warning	3778	'utf8mb3_bin' is a collation of the deprecated character set UTF8MB3. Please consider using UTF8MB4 with an appropriate collation instead.
 insert into t3 values(1, 'one',11), (2,'two',22);
 explain 
 select key1 from t3 where key1='one';
@@ -1281,7 +1286,7 @@ DROP TABLE t1;
 CREATE TABLE t1 (pk INT PRIMARY KEY, c1 CHAR(1), c2 CHAR(1), KEY(c1)) ENGINE=RocksDB CHARSET utf8 COLLATE utf8_bin;
 Warnings:
 Warning	3719	'utf8' is currently an alias for the character set UTF8MB3, but will be an alias for UTF8MB4 in a future release. Please consider using UTF8MB4 in order to be unambiguous.
-Warning	3778	'utf8_bin' is a collation of the deprecated character set UTF8MB3. Please consider using UTF8MB4 with an appropriate collation instead.
+Warning	3778	'utf8mb3_bin' is a collation of the deprecated character set UTF8MB3. Please consider using UTF8MB4 with an appropriate collation instead.
 INSERT INTO t1 VALUES (1,'h','h');
 SELECT * FROM t1;
 pk	c1	c2
@@ -2634,6 +2639,26 @@ start transaction with consistent snapshot;
 SELECT * FROM t1;
 c1
 COMMIT;
+UNLOCK TABLES;
+DROP TABLE t1;
+#
+# Issue#213 Crash on LOCK TABLES + partitions
+#
+CREATE TABLE t1(a INT,b INT,KEY (b)) ENGINE=RocksDB CHARSET=latin1 PARTITION BY HASH(a) PARTITIONS 2;
+INSERT INTO t1(a)VALUES (20010101101010.999949);
+Warnings:
+Warning	1264	Out of range value for column 'a' at row 1
+lock tables t1 write,t1 as t0 write,t1 as t2 write;
+SELECT a FROM t1 ORDER BY a;
+a
+2147483647
+truncate t1;
+INSERT INTO t1 VALUES(X'042000200020',X'042000200020'),(X'200400200020',X'200400200020');
+Warnings:
+Warning	1264	Out of range value for column 'a' at row 1
+Warning	1264	Out of range value for column 'b' at row 1
+Warning	1264	Out of range value for column 'a' at row 2
+Warning	1264	Out of range value for column 'b' at row 2
 UNLOCK TABLES;
 DROP TABLE t1;
 #
