@@ -72,7 +72,7 @@ static std::string Some_Txt = Ghost2 + SEP + "Some.Txt";
 static std::string Dot_t_dot_t = ghost2 + SEP + "Some.t.t";
 static std::string Dot_t_sep_t = ghost2 + SEP + "Some.t" + SEP + "t";
 
-TEST(fil_path, get_existing_path) {
+TEST(fil_path, DISABLED_get_existing_path) {
   Fil_path current_dir(".");
   auto abs_current_dir_str = current_dir.abs_path();
   EXPECT_FALSE(current_dir.is_absolute_path());
@@ -141,7 +141,7 @@ void create_file(std::string path) {
   fclose(f);
 }
 
-TEST(fil_path, get_real_path) {
+TEST(fil_path, DISABLED_get_real_path) {
 #ifndef _WIN32
   std::string root{SEP};
   EXPECT_EQ(Fil_path::get_real_path(root), root);
