@@ -6462,7 +6462,7 @@ uchar *Field_string::pack(uchar *to, const uchar *from,
                           size_t max_length) const {
   uint length = my_charpos(field_charset, from, from + field_length,
                            field_length / field_charset->mbmaxlen);
-  const uint length_bytes = (field_length > 255) ? 2 : 1;
+  const uint length_bytes = get_length_bytes();
 
   /*
      TODO: change charset interface to add a new function that does
