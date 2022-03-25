@@ -378,7 +378,6 @@ The following options may be given as the first argument:
  Limit CREATE TABLE for the storage engines listed
  --disallow-raft     Temporary variable wich blocks turning on raft. Will be
  removed later once raft is ready for 8.0
- (Defaults to on; use --skip-disallow-raft to disable.)
  --disconnect-on-expired-password 
  Give clients that don't signal password expiration
  support execution time error(s) instead of connection
@@ -2082,6 +2081,8 @@ The following options may be given as the first argument:
  DBOptions::use_adaptive_mutex for RocksDB
  --rocksdb-use-clock-cache 
  Use ClockCache instead of default LRUCache for RocksDB
+ --rocksdb-use-default-sk-cf 
+ Use default_sk for secondary keys
  --rocksdb-use-direct-io-for-flush-and-compaction 
  DBOptions::use_direct_io_for_flush_and_compaction for
  RocksDB
@@ -2631,7 +2632,7 @@ delayed-insert-timeout 300
 delayed-queue-size 1000
 disable-raft-log-repointing FALSE
 disabled-storage-engines 
-disallow-raft TRUE
+disallow-raft FALSE
 disconnect-on-expired-password TRUE
 disconnect-slave-event-count 0
 div-precision-increment 4
@@ -3117,6 +3118,7 @@ rocksdb-unsafe-for-binlog FALSE
 rocksdb-update-cf-options (No default value)
 rocksdb-use-adaptive-mutex FALSE
 rocksdb-use-clock-cache FALSE
+rocksdb-use-default-sk-cf FALSE
 rocksdb-use-direct-io-for-flush-and-compaction FALSE
 rocksdb-use-direct-reads FALSE
 rocksdb-use-fsync FALSE
