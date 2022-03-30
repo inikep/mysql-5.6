@@ -18,11 +18,21 @@ jobs:
 
   strategy:
     matrix:
-      clang-13 ASan:
+      clang-14 Debug ASan:
         Compiler: clang
-        CompilerVer: 13
+        CompilerVer: 14
         BuildType: Debug
         SanitizerType: ASan
+
+      clang-14 Debug:
+        Compiler: clang
+        CompilerVer: 14
+        BuildType: Debug
+
+      clang-14 Release:
+        Compiler: clang
+        CompilerVer: 14
+        BuildType: RelWithDebInfo
 
       clang-13 Debug:
         Compiler: clang
