@@ -317,6 +317,7 @@ our @DEFAULT_SUITES = qw(
   rpl_mts
   rpl_recovery
   stress
+  thread_pool
 );
 
 our $DEFAULT_SUITES = join ',', @DEFAULT_SUITES;
