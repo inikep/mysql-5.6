@@ -5520,8 +5520,8 @@ static int do_show_replica_status(MYSQL *mysql_con) {
     const int n_source_host = 1;
     const int n_source_port = 3;
     const int n_source_log_file = 9;
-    const int n_source_log_pos = 21;
-    const int n_channel_name = 55;
+    const int n_source_log_pos = 21 + 1 /* Last_Symbolic_Errno */;
+    const int n_channel_name = 55 + 1 /* Last_Symbolic_Errno */;
     MYSQL_ROW row = mysql_fetch_row(replica);
     /* Since 5.7 is is possible that SSS returns multiple channels */
     while (row) {
