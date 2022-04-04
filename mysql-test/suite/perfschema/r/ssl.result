@@ -44,6 +44,7 @@ group by EVENT_NAME, PRINT_SOURCE, OBJECT_NAME, OPERATION, PRINT_NUMBER_OF_BYTES
 order by EVENT_NAME, PRINT_SOURCE, OBJECT_NAME, OPERATION, PRINT_NUMBER_OF_BYTES;
 EVENT_NAME	PRINT_SOURCE	OBJECT_NAME	OPERATION	PRINT_NUMBER_OF_BYTES
 idle	init_net_server_extension.cc:	NULL	idle	NULL
+wait/io/socket/sql/client_connection	sql_class.cc:	:0	opt	NULL
 wait/io/socket/sql/client_connection	viosocket.cc:	:0	opt	NULL
 wait/io/socket/sql/client_connection	viosocket.cc:	:0	recv	1
 wait/io/socket/sql/client_connection	viosocket.cc:	:0	select	NULL
@@ -67,6 +68,7 @@ EVENT_NAME	PRINT_SOURCE	OBJECT_NAME	OPERATION	PRINT_NUMBER_OF_BYTES
 idle	init_net_server_extension.cc:	NULL	idle	NULL
 wait/io/socket/sql/client_connection	open_ssl:	:0	recv	1
 wait/io/socket/sql/client_connection	open_ssl:	:0	send	1
+wait/io/socket/sql/client_connection	sql_class.cc:	:0	opt	NULL
 wait/io/socket/sql/client_connection	viosocket.cc:	:0	opt	NULL
 wait/io/socket/sql/client_connection	viosocket.cc:	:0	recv	1
 wait/io/socket/sql/client_connection	viosocket.cc:	:0	select	NULL
