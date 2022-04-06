@@ -239,7 +239,7 @@ ENDIF (WITH_CLIENT_PROTOCOL_TRACING)
 
 ADD_CONVENIENCE_LIBRARY(clientlib ${CLIENT_SOURCES}
   DEPENDENCIES GenError
-  LINK_LIBRARIES ext::zlib
+  LINK_LIBRARIES ext::zlib extra::rapidjson
   OpenSSL::SSL OpenSSL::Crypto
   )
 

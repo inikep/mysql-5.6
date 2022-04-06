@@ -262,7 +262,7 @@ ENDIF()
 MYSQL_ADD_EXECUTABLE(mysqlbinlog
   ${MYSQLBINLOG_SOURCES}
   DEPENDENCIES GenError
-  LINK_LIBRARIES ${MYSQLBINLOG_LIBRARIES}
+  LINK_LIBRARIES ${MYSQLBINLOG_LIBRARIES} extra::rapidjson
   )
 
 # __builtin_strncpy specified bound depends on the length of the source argument
