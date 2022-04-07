@@ -36,6 +36,7 @@
 #include "my_inttypes.h"
 #include "my_sys.h"  // IWYU pragma: keep
 #include "mysql/strings/m_ctype.h"
+#include "mysys/my_wsfile.h"
 #include "nulls.h"
 
 #ifdef _WIN32
@@ -74,8 +75,24 @@ int my_access(const char *path, int amode) {
   }
   return 0;
 }
+#else /* not defined(_WIN32) */
+/**
+  Check a file or path for accessability.
 
-#endif /* _WIN32 */
+  SYNOPSIS
+    my_access()
+    path 	Path to file
+    amode	Access method
+
+   RETURN VALUES
+   0    ok
+   -1   error
+*/
+int my_access(const char *path, int amode) {
+  if (amode & WS_ACCESS_MODE) return my_ws_access(path, amode);
+  return access(path, amode);
+}
+#endif
 
 /*
   List of file names that causes problem on windows
