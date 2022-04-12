@@ -115,8 +115,8 @@ class sql_protocol : public base_protocol {
  public:
   explicit sql_protocol(THD *thd, const mem_root_deque<Item *> &item_list)
       : m_thd(thd), m_protocol(thd->get_protocol()), m_item_list(item_list) {}
-  bool fill_buffer() const { return false; }
-  bool send_row() const {
+  bool fill_buffer() const override { return false; }
+  bool send_row() const override {
     m_protocol->start_row();
     // This works because we read everything into record and all the items
     // are pointing into the record[0]
@@ -126,7 +126,7 @@ class sql_protocol : public base_protocol {
     }
     return false;
   }
-  bool send_result_metadata() const {
+  bool send_result_metadata() const override {
     return m_thd->send_result_metadata(
         m_item_list, Protocol::SEND_NUM_ROWS | Protocol::SEND_EOF);
   }
@@ -147,7 +147,7 @@ class rpc_protocol : public base_protocol {
         m_rpc_buffer(_param->rpc_buffer),
         m_send_row_fn(_param->send_row),
         m_num_columns(_param->columns.size()) {}
-  bool fill_buffer() const {
+  bool fill_buffer() const override {
     int idx = 0;
     for (const auto field : *m_field_list) {
       auto rpcbuf = &m_columns->at(idx++);
@@ -214,11 +214,11 @@ class rpc_protocol : public base_protocol {
     }
     return false;
   }
-  bool send_row() const {
+  bool send_row() const override {
     m_send_row_fn(m_rpc_buffer, m_columns, m_num_columns);
     return false;
   }
-  bool send_result_metadata() const {
+  bool send_result_metadata() const override {
     // do nothing
     return false;
   }
@@ -296,7 +296,7 @@ class sql_cond : public base_cond {
   Item *cond_item;
   Item *val_item;
 
-  std::string dump() const {
+  std::string dump() const override {
     std::string str;
     str += "(";
     str += field->field_name;
@@ -336,24 +336,24 @@ class sql_cond : public base_cond {
     return str;
   }
 
-  nosql_cond_value get_value(String *str) const {
+  nosql_cond_value get_value(String *str) const override {
     return __get_value(str, val_item);
   }
 
-  nosql_cond_value get_value(String *str, uint idx) const {
+  nosql_cond_value get_value(String *str, uint idx) const override {
     assert(op_type == Item_func::IN_FUNC);
     auto in_func = static_cast<Item_func_in *>(cond_item);
     auto item = in_func->arguments()[idx + 1];
     return __get_value(str, item);
   }
 
-  int get_size() const {
+  int get_size() const override {
     if (op_type != Item_func::IN_FUNC) return 1;
     auto in_func = static_cast<Item_func_in *>(cond_item);
     return in_func->argument_count() - 1;  // idx starts from 1
   }
 
-  bool fix_fields(THD *thd) const {
+  bool fix_fields(THD *thd) const override {
     if (!cond_item->fixed) {
       if (cond_item->fix_fields(thd, const_cast<Item **>(&cond_item))) {
         return true;
@@ -361,7 +361,7 @@ class sql_cond : public base_cond {
     }
     return false;
   }
-  bool evaluate() const { return (cond_item->val_int() != 0); }
+  bool evaluate() const override { return (cond_item->val_int() != 0); }
 
  private:
   nosql_cond_value __get_value(String *str, Item *item) const {
@@ -405,9 +405,9 @@ class rpc_cond : public base_cond {
   uint cond_val_count;
   const myrocks_column_value *val;
 
-  std::string dump() const { return {}; }
+  std::string dump() const override { return {}; }
 
-  nosql_cond_value get_value(String *str, uint idx) const {
+  nosql_cond_value get_value(String *str, uint idx) const override {
     nosql_cond_value value;
 
     switch (cond_val[idx].type) {
@@ -432,10 +432,10 @@ class rpc_cond : public base_cond {
     return value;
   }
 
-  nosql_cond_value get_value(String *str) const { return get_value(str, 0); }
-  int get_size() const { return cond_val_count; }
-  bool fix_fields(THD *) const { return false; }
-  bool evaluate() const {
+  nosql_cond_value get_value(String *str) const override { return get_value(str, 0); }
+  int get_size() const override { return cond_val_count; }
+  bool fix_fields(THD *) const override { return false; }
+  bool evaluate() const override {
     if (op_type == Item_func::IN_FUNC) {
       bool found = false;
       for (uint i = 0; i < cond_val_count; ++i) {
@@ -616,7 +616,7 @@ class sql_select_parser : public base_select_parser {
     m_error_msg = "UNKNOWN";
   }
 
-  const std::vector<base_cond *> &get_cond_list() const {
+  const std::vector<base_cond *> &get_cond_list() const override {
     return m_cond_list_ptr;
   }
 
@@ -1030,7 +1030,7 @@ class rpc_select_parser : public base_select_parser {
     m_field_index.assign(m_table->s->fields, -1);
   }
 
-  const std::vector<base_cond *> &get_cond_list() const {
+  const std::vector<base_cond *> &get_cond_list() const override {
     return m_cond_list_ptr;
   }
 
