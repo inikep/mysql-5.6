@@ -7564,3 +7564,7 @@ static Sys_var_charptr Sys_debug_set_operations_secondary_overflow_at(
     CMD_LINE(REQUIRED_ARG), IN_FS_CHARSET, DEFAULT(""), NO_MUTEX_GUARD,
     NOT_IN_BINLOG, ON_CHECK(nullptr), ON_UPDATE(nullptr));
 #endif
+
+#ifndef NDEBUG
+Debug_shutdown_actions Debug_shutdown_actions::instance;
+#endif
