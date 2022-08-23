@@ -790,7 +790,7 @@ static bool rocksdb_enable_insert_with_update_caching = true;
 /* Use unsigned long long instead of uint64_t because of MySQL compatibility */
 static unsigned long long  // NOLINT(runtime/int)
     rocksdb_max_compaction_history = 0;
-static uint64_t rocksdb_select_bypass_policy =
+static ulong rocksdb_select_bypass_policy =
     select_bypass_policy_type::default_value;
 static bool rocksdb_select_bypass_fail_unsupported = true;
 static bool rocksdb_select_bypass_log_rejected = true;
