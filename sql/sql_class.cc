@@ -4980,6 +4980,8 @@ void THD::get_query_digest(String *digest_buffer, const char **str,
   }
 }
 
+#ifndef __APPLE__
+
 bool THD::set_dscp_on_socket() {
   int dscp_val = variables.dscp_on_socket;
 
@@ -5040,3 +5042,5 @@ bool THD::set_dscp_on_socket() {
 
   return true;
 }
+
+#endif  // ! __APPLE__
