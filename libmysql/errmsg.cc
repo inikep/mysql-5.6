@@ -250,6 +250,8 @@ const char *client_errors[] = {
     "Placeholder 2199",
     "Read timeout is reached",
     "Write timeout is reached",
+    "Placeholder 2022",
+    "Connection attempt throttled",
     ""};
 
 static const char *get_client_errmsg(int nr) {
