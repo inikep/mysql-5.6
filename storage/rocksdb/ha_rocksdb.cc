@@ -6725,6 +6725,7 @@ static int rocksdb_init_internal(void *const p) {
   rocksdb_hton->flush_logs = rocksdb_flush_wal;
   rocksdb_hton->handle_single_table_select = rocksdb_handle_single_table_select;
   rocksdb_hton->is_user_table_blocked = rocksdb_user_table_blocked;
+  rocksdb_hton->bypass_select_by_key = rocksdb_select_by_key;
 
   rocksdb_hton->flags = HTON_SUPPORTS_EXTENDED_KEYS | HTON_CAN_RECREATE;
 
