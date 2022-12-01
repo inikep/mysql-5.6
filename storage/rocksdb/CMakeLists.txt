@@ -66,21 +66,65 @@ ELSE()
   )
 ENDIF()
 
-include(compiler_features)
+IF (WITH_UBSAN)
+  ADD_DEFINITIONS(-DROCKSDB_UBSAN_RUN)
+ENDIF()
+IF (WITH_VALGRIND)
+  ADD_DEFINITIONS(-DROCKSDB_VALGRIND_RUN)
+ENDIF()
+IF (WITH_NUMA)
+  ADD_DEFINITIONS(-DNUMA)
+ENDIF()
 
-IF (HAVE_SSE42)
-  MESSAGE(STATUS "MyRocks: SSE42 support found")
-  add_compile_flags(${ROCKSDB_ROOT}/util/crc32c.cc COMPILE_FLAGS "-msse4.2") # use Fast_CRC32
-  IF (HAVE_PCLMUL)
-    add_compile_flags(${ROCKSDB_ROOT}/util/crc32c.cc COMPILE_FLAGS "-mpclmul") # use crc32c_3way instead of Fast_CRC32
+IF (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  ADD_DEFINITIONS(-DOS_LINUX)
+ELSEIF(CMAKE_SYSTEM_NAME MATCHES "Darwin")
+  ADD_DEFINITIONS(-DOS_MACOSX)
+ENDIF()
+
+IF (CMAKE_COMPILER_IS_GNUCXX)
+  ADD_COMPILE_OPTIONS(-fno-builtin-memcmp)
+ENDIF()
+
+
+INCLUDE(compiler_features)
+
+IF (CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
+  IF (NOT ROCKSDB_BUILD_ARCH)
+    IF (ROCKSDB_DISABLE_MARCH_NATIVE)
+      # Intel Westmere is oldest CPU that supports SSE 4.2 and PCLMUL instruction sets
+      # the compiled binary will also work on "core2" and "nehalem" because "sse4.2" and "pclmul" are checked on runtime
+      SET(ROCKSDB_BUILD_ARCH "westmere")
+    ELSE()
+      SET(ROCKSDB_BUILD_ARCH "native")
+    ENDIF()
+    MESSAGE(STATUS "MyRocks x86_64 build architecture: -march=${ROCKSDB_BUILD_ARCH}")
+  ELSE()
+    MESSAGE(STATUS "MyRocks x86_64 build architecture: -march=${ROCKSDB_BUILD_ARCH}. If the enforced processor architecture is newer than the processor architecture of this build machine, the created binary may crash if executed on this machine.")
   ENDIF()
-ELSE()
-  MESSAGE(WARNING "No SSE42 support found, building MyRocks but without SSE42/FastCRC32 support")
+
+  # CMAKE_CXX_FLAGS are used by CHECK_CXX_SOURCE_COMPILES called from ROCKSDB_SET_X86_DEFINTIONS()
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${ROCKSDB_BUILD_ARCH}")
+  ROCKSDB_SET_X86_DEFINTIONS()
+ELSE() # aarch64
+  IF (NOT ROCKSDB_BUILD_ARCH)
+    IF (ROCKSDB_DISABLE_MARCH_NATIVE)
+      # the compiled binary will also work on "armv8-a" because "+crc" and "+crypto" are checked on runtime
+      SET(ROCKSDB_BUILD_ARCH "armv8-a+crc+crypto")
+    ELSE()
+      SET(ROCKSDB_BUILD_ARCH "native")
+    ENDIF()
+    MESSAGE(STATUS "MyRocks arm64 build architecture: -march=${ROCKSDB_BUILD_ARCH}")
+  ELSE()
+    MESSAGE(STATUS "MyRocks arm64 build architecture: -march=${ROCKSDB_BUILD_ARCH}. If the enforced processor architecture is newer than the processor architecture of this build machine, the created binary may crash if executed on this machine.")
+  ENDIF()
+
+  # CMAKE_CXX_FLAGS are used by CHECK_CXX_SOURCE_COMPILES called from ROCKSDB_SET_ARM64_DEFINTIONS()
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${ROCKSDB_BUILD_ARCH}")
+  ROCKSDB_SET_ARM64_DEFINTIONS()
 ENDIF()
 
-IF (HAVE_AVX2 AND NOT ROCKSDB_DISABLE_AVX2)
-  add_compile_flags(${ROCKSDB_ROOT}/table/block_based/filter_policy.cc COMPILE_FLAGS "-mavx2")
-ENDIF()
+ROCKSDB_SET_DEFINTIONS()  # sets HAVE_URING, HAVE_MEMKIND, HAVE_ALIGNED_NEW
 
 IF (HAVE_URING AND ROCKSDB_USE_IO_URING)
   SET(rocksdb_static_libs ${rocksdb_static_libs} ${URING_LIBRARY})
@@ -91,25 +135,12 @@ IF (HAVE_MEMKIND AND NOT ROCKSDB_DISABLE_MEMKIND)
 ENDIF()
 
 IF (HAVE_ALIGNED_NEW AND NOT ROCKSDB_DISABLE_ALIGNED_NEW)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -faligned-new")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -faligned-new")
 ENDIF()
 
-IF (CMAKE_COMPILER_IS_GNUCXX)
-  add_compile_options(-fno-builtin-memcmp)
-ENDIF()
-
-IF (CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64" AND NOT ROCKSDB_DISABLE_MARCH_NATIVE)
-  add_compile_options(-march=native)
-ENDIF()
-
-IF(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  add_definitions(-DOS_LINUX)
-ENDIF()
-
-ROCKSDB_SET_DEFINTIONS()
-get_directory_property(COMPILE_DEFINITIONS COMPILE_DEFINITIONS)
-list(SORT COMPILE_DEFINITIONS)
-message(STATUS "MyRocks compile definitions: ${COMPILE_DEFINITIONS}")
+GET_DIRECTORY_PROPERTY(COMPILE_DEFINITIONS COMPILE_DEFINITIONS)
+LIST(SORT COMPILE_DEFINITIONS)
+MESSAGE(STATUS "MyRocks compile definitions: ${COMPILE_DEFINITIONS}")
 
 
 # Suppress warnings for all compilers
@@ -137,6 +168,13 @@ IF(CMAKE_COMPILER_IS_GNUCXX AND NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 6)
   ADD_CXX_COMPILE_FLAGS_TO_FILES(-Wno-logical-op FILES ../../rocksdb/file/filename.cc)
 ENDIF()
 
+# Suppress warnings for gcc-12 or newer
+IF(CMAKE_COMPILER_IS_GNUCXX AND NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 12)
+  IF(HAVE_AVX512F)
+    MESSAGE(STATUS "AVX-512: add -Wno-uninitialized for xxhash.cc (check https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105593)")
+    ADD_CXX_COMPILE_FLAGS_TO_FILES(-Wno-uninitialized -Wno-maybe-uninitialized FILES ../../rocksdb/util/xxhash.cc ${BUNDLED_LZ4_PATH}/xxhash.c)
+  ENDIF()
+ENDIF()
 
 INCLUDE_DIRECTORIES(
   ${ROCKSDB_ROOT}
@@ -179,7 +217,9 @@ IF (WITH_JEMALLOC)
   SET(rocksdb_static_libs ${rocksdb_static_libs} -Wl,-rpath=$ORIGIN
     ${JEMALLOC_LIBRARY})
   ADD_DEFINITIONS(-DROCKSDB_JEMALLOC)
-  ADD_DEFINITIONS(-DROCKSDB_MALLOC_USABLE_SIZE)
+  IF (HAVE_MALLOC_USABLE_SIZE)
+    ADD_DEFINITIONS(-DROCKSDB_MALLOC_USABLE_SIZE)
+  ENDIF()
 ENDIF()
 
 IF (WITH_UNWIND)
