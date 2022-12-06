@@ -141,9 +141,9 @@
 #include "sql/rpl_gtid.h"
 #include "sql/rpl_handler.h"  // launch_hook_trans_begin
 #include "sql/rpl_lag_manager.h"
-#include "sql/rpl_replica.h"  // change_master_cmd
+#include "sql/rpl_replica.h"     // change_master_cmd
 #include "sql/rpl_shardbeats.h"  // Shardbeats_manager
-#include "sql/rpl_source.h"   // register_slave
+#include "sql/rpl_source.h"      // register_slave
 #include "sql/rpl_utility.h"
 #include "sql/session_tracker.h"
 #include "sql/set_var.h"
@@ -2052,11 +2052,13 @@ void wait_for_gr_connection_end(THD *thd) {
   thd->EXIT_COND(&saved_stage);
 }
 
+ulong performance_schema_max_sql_text_length = 1024;
+
 /*
   update_mt_stmt_stats
     Method to update any multi tenancy stats after execution of each stmt
 */
-static void update_mt_stmt_stats(THD *thd, char *sub_query) {
+static void update_mt_stmt_stats(THD *thd, const std::string &sub_query) {
   /* Update write statistics if stats collection is turned on and
     this stmt wrote binlog bytes
   */
@@ -2065,6 +2067,8 @@ static void update_mt_stmt_stats(THD *thd, char *sub_query) {
     thd->set_stmt_total_write_time();
     store_write_statistics(thd);
   }
+
+  store_full_sql_text(thd, sub_query);
 
   if (sql_findings_control == SQL_INFO_CONTROL_ON)
     store_sql_findings(thd, sub_query);
@@ -2097,8 +2101,6 @@ static void update_mt_stmt_stats(THD *thd, char *sub_query) {
   thd->mt_key_clear(THD::SQL_ID);
   thd->mt_key_clear(THD::SQL_HASH);
 }
-
-uint performance_schema_max_sql_text_length = 1024;
 
 /**
   Deep copy the name and value of named parameters into the THD memory.
@@ -2628,8 +2630,6 @@ bool dispatch_command(THD *thd, const COM_DATA *com_data,
           Secondary_engine_optimization::PRIMARY_TENTATIVELY);
 
       const char *beginning_of_current_stmt = thd->query().str;
-      char *sub_query;
-      int sub_query_byte_length;
 
       copy_bind_parameter_values(thd, com_data->com_query.parameters,
                                  com_data->com_query.parameter_count);
@@ -2655,16 +2655,9 @@ bool dispatch_command(THD *thd, const COM_DATA *com_data,
         // Multiple queries exist, execute them individually
         const char *beginning_of_next_stmt = parser_state.m_lip.found_semicolon;
 
-        sub_query_byte_length = static_cast<int>(beginning_of_next_stmt -
-                                                 beginning_of_current_stmt);
-        sub_query_byte_length =
-            std::min(sub_query_byte_length,
-                     static_cast<int>(performance_schema_max_sql_text_length));
-        sub_query =
-            (char *)my_malloc(key_memory_custom_log_message,
-                              sub_query_byte_length + 1, MYF(MY_FAE | MY_WME));
-        memcpy(sub_query, beginning_of_current_stmt, sub_query_byte_length);
-        sub_query[sub_query_byte_length] = '\0';
+        int sub_query_byte_length = static_cast<int>(beginning_of_next_stmt -
+                                                     beginning_of_current_stmt);
+        std::string sub_query(beginning_of_current_stmt, sub_query_byte_length);
 
         /*
           Update MT stats.
@@ -2676,7 +2669,6 @@ bool dispatch_command(THD *thd, const COM_DATA *com_data,
           multi-query set.
         */
         update_mt_stmt_stats(thd, sub_query);
-        my_free(sub_query);
 
         /* store CPU time as part of the query response attributes */
         cpu_time = MYSQL_GET_STATEMENT_CPU_TIME(thd->m_statement_psi);
@@ -2764,16 +2756,9 @@ bool dispatch_command(THD *thd, const COM_DATA *com_data,
         }
       }
 
-      sub_query_byte_length =
+      int sub_query_byte_length =
           static_cast<int>(packet_end - beginning_of_current_stmt);
-      sub_query_byte_length =
-          std::min(sub_query_byte_length,
-                   static_cast<int>(performance_schema_max_sql_text_length));
-      sub_query =
-          (char *)my_malloc(key_memory_custom_log_message,
-                            sub_query_byte_length + 1, MYF(MY_FAE | MY_WME));
-      memcpy(sub_query, beginning_of_current_stmt, sub_query_byte_length);
-      sub_query[sub_query_byte_length] = '\0';
+      std::string sub_query(beginning_of_current_stmt, sub_query_byte_length);
 
       /*
         Update MT stats.
@@ -2783,7 +2768,6 @@ bool dispatch_command(THD *thd, const COM_DATA *com_data,
           statement.
       */
       update_mt_stmt_stats(thd, sub_query);
-      my_free(sub_query);
 
       if (thd->is_in_ac &&
           (!opt_admission_control_by_trx ||

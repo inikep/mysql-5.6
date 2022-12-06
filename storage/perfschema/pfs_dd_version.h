@@ -331,10 +331,13 @@
   80300-021:
   - change type of SQL_FINDINGS.QUERY_TEXT to longtext
 
+  80300-022:
+  - Adding support for full query text.
+
   The last three digits reprents Facebook specific MySQL Schema changes.
-  Version published is now 80300-021. i.e. 8.3.0 Facebook schema change no. 21.
+  Version published is now 80300-022. i.e. 8.3.0 Facebook schema change no. 22.
 */
 
-static const uint PFS_DD_VERSION = 80300021;
+static const uint PFS_DD_VERSION = 80300022;
 
 #endif /* PFS_DD_VERSION_H */
