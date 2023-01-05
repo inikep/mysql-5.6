@@ -619,7 +619,7 @@ typedef struct {
   char *end;
 } malloc_status;
 
-#if defined(HAVE_JEMALLOC) && defined(ROCKSDB_PLATFORM_POSIX)
+#if defined(HAVE_JEMALLOC)
 static void get_jemalloc_status(void *mstat_arg, const char *status) {
   malloc_status *mstat = (malloc_status *)mstat_arg;
   size_t status_len = status ? strlen(status) : 0;
@@ -654,9 +654,7 @@ static int show_memory_status(THD *thd) {
   mstat.end = buf + MALLOC_STATUS_LEN;
   if (!buf) return true;
 
-// We check ROCKSDB_PLATFORM_POSIX because malloc_stats_print is defined in
-// rocksdb submodule.
-#if defined(HAVE_JEMALLOC) && defined(ROCKSDB_PLATFORM_POSIX)
+#if defined(HAVE_JEMALLOC)
   /*
     get_jemalloc_status will be called many times per call to
     malloc_stats_print.
