@@ -217,9 +217,6 @@ SET(ROCKSDB_SE_SOURCES
   sql_dd.cc sql_dd.h
 )
 
-# To avoid compiler error on rdb_fatal_error() in rdb_util.h
-add_compile_flags(${ROCKSDB_SOURCES} COMPILE_FLAGS "-Wno-format-security")
-
 IF(WITH_FB_TSAN OR ROCKSDB_DYNAMIC_PLUGIN)
   SET(PIC_EXT "_pic")
 ELSE()
