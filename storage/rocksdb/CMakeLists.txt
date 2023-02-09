@@ -216,6 +216,7 @@ SET(ROCKSDB_SE_SOURCES
   ha_rockspart.cc ha_rockspart.h
   nosql_access.cc nosql_access.h
   sql_dd.cc sql_dd.h
+  clone/common.h clone/common.cc clone/donor.h clone/donor.cc clone/client.cc
 )
 
 IF(WITH_FB_TSAN OR ROCKSDB_DYNAMIC_PLUGIN)
