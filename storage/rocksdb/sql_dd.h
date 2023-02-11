@@ -83,8 +83,10 @@ void dd_copy_table_columns(dd::Table &new_table, const dd::Table &old_table);
 when the change does not affect InnoDB. This mainly copies the common
 private data between dd::Table and dd::Partition
 @param[in,out]	new_table	Copy of old table or partition definition
-@param[in]	old_table	Old table or partition definition */
-void dd_copy_private(dd::Table &new_table, const dd::Table &old_table);
+@param[in]	old_table	Old table or partition definition
+@param[in]	copy_old_options Clear options on new table and copy from old */
+void dd_copy_private(dd::Table &new_table, const dd::Table &old_table,
+                     bool copy_old_options = true);
 
 /** Determine if a dd::Table has any instant column
 @param[in]	table	dd::Table
