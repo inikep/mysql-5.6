@@ -1755,6 +1755,7 @@ drop table t1;
 #
 SHOW GLOBAL VARIABLES LIKE '%\_storage\_engine';
 Variable_name	Value
+default_dd_storage_engine	InnoDB
 default_storage_engine	InnoDB
 default_tmp_storage_engine	InnoDB
 internal_tmp_mem_storage_engine	TempTable
