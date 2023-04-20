@@ -2420,7 +2420,8 @@ bool dispatch_command(THD *thd, const COM_DATA *com_data,
       */
       const Security_context save_security_ctx(*(thd->security_context()));
 
-      MUTEX_LOCK(grd_secctx, &thd->LOCK_thd_security_ctx);
+      MDL_mutex_guard grd_secctx(thd->get_mutex_thd_security_ctx(), thd,
+                                 &thd->LOCK_thd_security_ctx);
 
       auth_rc = acl_authenticate(thd, COM_CHANGE_USER);
       auth_rc |= mysql_event_tracking_connection_notify(
