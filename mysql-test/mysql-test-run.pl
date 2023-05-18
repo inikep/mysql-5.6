@@ -309,10 +309,6 @@ our @DEFAULT_SUITES = qw(
   funcs_1
   grant
   jp
-  rocksdb
-  rocksdb_rpl
-  rocksdb_stress
-  rocksdb_sys_vars
   rpl_mts
   rpl_recovery
   stress
