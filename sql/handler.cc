@@ -4254,7 +4254,10 @@ void handler::print_error(int error, myf errflag) {
       textno = ER_WRONG_MRG_TABLE;
       break;
     case HA_ERR_FOUND_DUPP_KEY: {
-      const uint key_nr = table ? get_dup_key(error) : -1;
+      uint key_nr = table ? get_dup_key(error) : -1;
+      DBUG_EXECUTE_IF(
+          "raise_error",
+          key_nr = -1;);  // fix issues with m_dupp_errkey in RocksDB
       if ((int)key_nr >= 0) {
         print_keydup_error(
             table, key_nr == MAX_KEY ? nullptr : &table->key_info[key_nr],
