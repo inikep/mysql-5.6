@@ -46,6 +46,7 @@
 #include "my_sys.h"
 #include "mysql/components/services/bits/psi_bits.h"
 #include "mysql/thread_pool_priv.h"  // inc_thread_created
+#include "sql/mysqld.h"              // use_mdl_mutex
 #include "sql/rpl_source.h"          // unregister_replica
 #include "sql/sql_class.h"           // THD
 #include "thr_mutex.h"
@@ -309,7 +310,7 @@ void Global_THD_manager::wait_till_no_thd() {
 void Global_THD_manager::do_for_all_thd_copy(Do_THD_Impl *func) {
   Do_THD doit(func);
   THD *cur_thd = current_thd;
-  assert(cur_thd);
+  if (use_mdl_mutex) assert(cur_thd);
 
   for (int i = 0; i < NUM_PARTITIONS; i++) {
     MDL_mutex_guard guard(&mdl_mutex_thd_remove[i], cur_thd,

@@ -5209,10 +5209,10 @@ MDL_mutex_guard::MDL_mutex_guard(MDL_mutex *mdl_mutex, THD *thd,
                                  mysql_mutex_t *mutex)
     : m_mdl_mutex(mdl_mutex), m_thd(thd), m_mutex(mutex) {
   assert(m_mdl_mutex);
-  assert(m_thd);
 
   // If regular mutex is not passed in then ignore use_mdl_mutex flag.
   if (use_mdl_mutex || !m_mutex) {
+    assert(m_thd);
     m_ticket = m_mdl_mutex->lock(m_thd);
   } else {
     mysql_mutex_lock(m_mutex);
