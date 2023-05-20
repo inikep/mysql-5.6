@@ -997,6 +997,470 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY b;
+EXPLAIN
+-> Filter: ((t.a = 1) and ((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15) or (t.b = 3)))  (rows=1)
+    -> Covering index skip scan for grouping on t using k1 over (a = 1 AND b = 2) OR (a = 1 AND b = 3) OR (a = 1 AND b = 15)  (rows=1)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY b;
+a	MAX(d)	MIN(d)
+1	10	1
+1	10	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	12
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND b = 2 AND (c = 3 OR c = 40) GROUP BY c;
+EXPLAIN
+-> Group aggregate: max(t.d), min(t.d)  (rows=11)
+    -> Covering index range scan on t using k1 over (a = 1 AND b = 2 AND c = 3) OR (a = 1 AND b = 2 AND c = 40)  (rows=11)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND b = 2 AND (c = 3 OR c = 40) GROUP BY c;
+a	MAX(d)	MIN(d)
+1	10	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	2
+Handler_read_last	0
+Handler_read_next	10
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND b = 2 AND (c = 3 OR c = 40) GROUP BY c, b;
+EXPLAIN
+-> Group aggregate: max(t.d), min(t.d)  (rows=8.65)
+    -> Covering index range scan on t using k1 over (a = 1 AND b = 2 AND c = 3) OR (a = 1 AND b = 2 AND c = 40)  (rows=11)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND b = 2 AND (c = 3 OR c = 40) GROUP BY c, b;
+a	MAX(d)	MIN(d)
+1	10	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	2
+Handler_read_last	0
+Handler_read_next	10
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND b = 2 AND (c = 3 OR c = 40) GROUP BY c, b, c;
+EXPLAIN
+-> Group aggregate: max(t.d), min(t.d)  (rows=8.65)
+    -> Covering index range scan on t using k1 over (a = 1 AND b = 2 AND c = 3) OR (a = 1 AND b = 2 AND c = 40)  (rows=11)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND b = 2 AND (c = 3 OR c = 40) GROUP BY c, b, c;
+a	MAX(d)	MIN(d)
+1	10	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	2
+Handler_read_last	0
+Handler_read_next	10
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE b = 2 AND(c = 3 OR c = 40) GROUP BY a, c;
+EXPLAIN
+-> Filter: ((t.b = 2) and ((t.c = 3) or (t.c = 40)))  (rows=148)
+    -> Covering index skip scan for grouping on t using k1  (rows=258)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE b = 2 AND(c = 3 OR c = 40) GROUP BY a, c;
+a	MAX(d)	MIN(d)
+1	10	1
+10	10	1
+11	-10	-10
+12	-23	-23
+12	NULL	NULL
+2	10	1
+3	10	1
+4	10	1
+5	10	1
+6	10	1
+7	10	1
+8	10	1
+9	10	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	1
+Handler_read_key	519
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b FROM t  WHERE a = 1;
+EXPLAIN
+-> Filter: (t.a = 1)  (rows=5)
+    -> Covering index skip scan for deduplication on t using k1 over (a = 1)  (rows=5)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b FROM t  WHERE a = 1;
+b
+1
+2
+3
+4
+5
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	7
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b, a FROM t  WHERE a = 1;
+EXPLAIN
+-> Filter: (t.a = 1)  (rows=5)
+    -> Covering index skip scan for deduplication on t using k1 over (a = 1)  (rows=5)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b, a FROM t  WHERE a = 1;
+b	a
+1	1
+2	1
+3	1
+4	1
+5	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	7
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT c, b, a FROM t  WHERE a = 1;
+EXPLAIN
+-> Filter: (t.a = 1)  (rows=25)
+    -> Covering index skip scan for deduplication on t using k1 over (a = 1)  (rows=25)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT c, b, a FROM t  WHERE a = 1;
+c	b	a
+1	1	1
+1	2	1
+1	3	1
+1	4	1
+1	5	1
+2	1	1
+2	2	1
+2	3	1
+2	4	1
+2	5	1
+3	1	1
+3	2	1
+3	3	1
+3	4	1
+3	5	1
+4	1	1
+4	2	1
+4	3	1
+4	4	1
+4	5	1
+5	1	1
+5	2	1
+5	3	1
+5	4	1
+5	5	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	27
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b, a FROM t  WHERE a = 1 and b = 2 GROUP BY b, a;
+EXPLAIN
+-> Filter: ((t.b = 2) and (t.a = 1))  (rows=1)
+    -> Covering index skip scan for deduplication on t using k1 over (a = 1 AND b = 2)  (rows=1)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b, a FROM t  WHERE a = 1 and b = 2 GROUP BY b, a;
+b	a
+2	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	3
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b FROM t  WHERE a = 1 GROUP BY b, a;
+EXPLAIN
+-> Remove duplicates from input grouped on t.b  (rows=1.5)
+    -> Filter: (t.a = 1)  (rows=2.24)
+        -> Covering index skip scan for deduplication on t using k1 over (a = 1)  (rows=5)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b FROM t  WHERE a = 1 GROUP BY b, a;
+b
+1
+2
+3
+4
+5
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	7
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b, a FROM t  GROUP BY b, a;
+EXPLAIN
+-> Covering index skip scan for deduplication on t using k1  (rows=56)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b, a FROM t  GROUP BY b, a;
+b	a
+1	1
+1	10
+1	2
+1	3
+1	4
+1	5
+1	6
+1	7
+1	8
+1	9
+15	11
+15	12
+2	1
+2	10
+2	11
+2	12
+2	2
+2	3
+2	4
+2	5
+2	6
+2	7
+2	8
+2	9
+3	1
+3	10
+3	11
+3	2
+3	3
+3	4
+3	5
+3	6
+3	7
+3	8
+3	9
+4	1
+4	10
+4	2
+4	3
+4	4
+4	5
+4	6
+4	7
+4	8
+4	9
+5	1
+5	10
+5	2
+5	3
+5	4
+5	5
+5	6
+5	7
+5	8
+5	9
+NULL	11
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	1
+Handler_read_key	58
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b FROM t  GROUP BY b, a;
+EXPLAIN
+-> Sort with duplicate removal: t.b  (rows=50.1)
+    -> Covering index skip scan for deduplication on t using k1  (rows=56)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b FROM t  GROUP BY b, a;
+b
+1
+15
+2
+3
+4
+5
+NULL
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	1
+Handler_read_key	58
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT c, a FROM t  WHERE b = 2;
+EXPLAIN
+-> Filter: (t.b = 2)  (rows=258)
+    -> Covering index skip scan for deduplication on t using k1  (rows=258)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT c, a FROM t  WHERE b = 2;
+c	a
+1	1
+1	10
+1	2
+1	3
+1	4
+1	5
+1	6
+1	7
+1	8
+1	9
+2	1
+2	10
+2	2
+2	3
+2	4
+2	5
+2	6
+2	7
+2	8
+2	9
+3	1
+3	10
+3	11
+3	12
+3	2
+3	3
+3	4
+3	5
+3	6
+3	7
+3	8
+3	9
+4	1
+4	10
+4	2
+4	3
+4	4
+4	5
+4	6
+4	7
+4	8
+4	9
+40	12
+5	1
+5	10
+5	2
+5	3
+5	4
+5	5
+5	6
+5	7
+5	8
+5	9
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	1
+Handler_read_key	260
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t WHERE a = 1 AND(b = 2 OR b = 15 OR b = 3) AND(c = 3 OR c = 40) GROUP BY c;
+EXPLAIN
+-> Group aggregate: max(t.d), min(t.d)  (cost=16.2..18.5 rows=24)
+    -> Sort: t.c  (cost=16.1..16.1 rows=24)
+        -> Covering index range scan on t using k1 over (a = 1 AND b = 2 AND c = 3) OR (a = 1 AND b = 2 AND c = 40) OR (4 more)  (cost=0.112..2.68 rows=24)
+
+EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t WHERE a = 1 AND (c = 3 OR c = 40) GROUP BY c;
+EXPLAIN
+-> Group aggregate: max(t.d), min(t.d)  (cost=28.3..29.7 rows=14.3)
+    -> Sort: t.c  (cost=28.2..28.2 rows=14.3)
+        -> Filter: ((t.c = 3) or (t.c = 40))  (cost=1.49..21.3 rows=14.3)
+            -> Covering index lookup on t using k1 (a=1)  (cost=0.00199..0.415 rows=209)
+
+EXPLAIN FORMAT=TREE SELECT b, MAX(d), MIN(d) FROM t WHERE (a = 1 OR a = 2) AND b = 2 AND (c = 3 OR c = 40) GROUP BY c, b;
+EXPLAIN
+-> Group aggregate: max(t.d), min(t.d)  (cost=14.6..16.7 rows=16.2)
+    -> Sort: t.c  (cost=14.5..14.5 rows=22)
+        -> Covering index range scan on t using k1 over (a = 1 AND b = 2 AND c = 3) OR (a = 1 AND b = 2 AND c = 40) OR (2 more)  (cost=0.113..2.48 rows=22)
+
+EXPLAIN FORMAT=TREE SELECT DISTINCT c FROM t WHERE a = 1;
+EXPLAIN
+-> Sort with duplicate removal: t.c  (cost=225..225 rows=50.1)
+    -> Covering index lookup on t using k1 (a=1)  (cost=0.00166..0.415 rows=250)
+
+EXPLAIN FORMAT=TREE SELECT DISTINCT b, c FROM t WHERE a in (1, 2);
+EXPLAIN
+-> Sort with duplicate removal: t.b, t.c  (cost=549..549 rows=269)
+    -> Covering index range scan on t using k1 over (a = 1) OR (a = 2)  (cost=0.101..50.7 rows=500)
+
 ALTER TABLE t ADD KEY k2(a DESC, b, c DESC, d);
 ANALYZE TABLE t;
 Table	Op	Msg_type	Msg_text
@@ -2122,6 +2586,470 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY b;
+EXPLAIN
+-> Filter: ((t.a = 1) and ((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15) or (t.b = 3)))  (rows=1)
+    -> Covering index skip scan for grouping on t using k1 over (a = 1 AND b = 2) OR (a = 1 AND b = 3) OR (a = 1 AND b = 15)  (rows=1)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY b;
+a	MAX(d)	MIN(d)
+1	10	1
+1	10	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	12
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND b = 2 AND (c = 3 OR c = 40) GROUP BY c;
+EXPLAIN
+-> Group aggregate: max(t.d), min(t.d)  (rows=11)
+    -> Covering index range scan on t using k1 over (a = 1 AND b = 2 AND c = 40) OR (a = 1 AND b = 2 AND c = 3)  (rows=11)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND b = 2 AND (c = 3 OR c = 40) GROUP BY c;
+a	MAX(d)	MIN(d)
+1	10	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	2
+Handler_read_last	0
+Handler_read_next	10
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND b = 2 AND (c = 3 OR c = 40) GROUP BY c, b;
+EXPLAIN
+-> Group aggregate: max(t.d), min(t.d)  (rows=8.65)
+    -> Covering index range scan on t using k1 over (a = 1 AND b = 2 AND c = 40) OR (a = 1 AND b = 2 AND c = 3)  (rows=11)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND b = 2 AND (c = 3 OR c = 40) GROUP BY c, b;
+a	MAX(d)	MIN(d)
+1	10	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	2
+Handler_read_last	0
+Handler_read_next	10
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND b = 2 AND (c = 3 OR c = 40) GROUP BY c, b, c;
+EXPLAIN
+-> Group aggregate: max(t.d), min(t.d)  (rows=8.65)
+    -> Covering index range scan on t using k1 over (a = 1 AND b = 2 AND c = 40) OR (a = 1 AND b = 2 AND c = 3)  (rows=11)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND b = 2 AND (c = 3 OR c = 40) GROUP BY c, b, c;
+a	MAX(d)	MIN(d)
+1	10	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	2
+Handler_read_last	0
+Handler_read_next	10
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE b = 2 AND(c = 3 OR c = 40) GROUP BY a, c;
+EXPLAIN
+-> Filter: ((t.b = 2) and ((t.c = 3) or (t.c = 40)))  (rows=148)
+    -> Covering index skip scan for grouping on t using k1  (rows=258)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE b = 2 AND(c = 3 OR c = 40) GROUP BY a, c;
+a	MAX(d)	MIN(d)
+1	10	1
+10	10	1
+11	-10	-10
+12	-23	-23
+12	NULL	NULL
+2	10	1
+3	10	1
+4	10	1
+5	10	1
+6	10	1
+7	10	1
+8	10	1
+9	10	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	1
+Handler_read_key	519
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b FROM t  WHERE a = 1;
+EXPLAIN
+-> Filter: (t.a = 1)  (rows=5)
+    -> Covering index skip scan for deduplication on t using k1 over (a = 1)  (rows=5)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b FROM t  WHERE a = 1;
+b
+1
+2
+3
+4
+5
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	7
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b, a FROM t  WHERE a = 1;
+EXPLAIN
+-> Filter: (t.a = 1)  (rows=5)
+    -> Covering index skip scan for deduplication on t using k1 over (a = 1)  (rows=5)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b, a FROM t  WHERE a = 1;
+b	a
+1	1
+2	1
+3	1
+4	1
+5	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	7
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT c, b, a FROM t  WHERE a = 1;
+EXPLAIN
+-> Filter: (t.a = 1)  (rows=25)
+    -> Covering index skip scan for deduplication on t using k1 over (a = 1)  (rows=25)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT c, b, a FROM t  WHERE a = 1;
+c	b	a
+1	1	1
+1	2	1
+1	3	1
+1	4	1
+1	5	1
+2	1	1
+2	2	1
+2	3	1
+2	4	1
+2	5	1
+3	1	1
+3	2	1
+3	3	1
+3	4	1
+3	5	1
+4	1	1
+4	2	1
+4	3	1
+4	4	1
+4	5	1
+5	1	1
+5	2	1
+5	3	1
+5	4	1
+5	5	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	27
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b, a FROM t  WHERE a = 1 and b = 2 GROUP BY b, a;
+EXPLAIN
+-> Group (no aggregates)  (rows=50)
+    -> Covering index lookup on t using k1 (a=1, b=2)  (rows=50)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b, a FROM t  WHERE a = 1 and b = 2 GROUP BY b, a;
+b	a
+2	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	1
+Handler_read_last	0
+Handler_read_next	50
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b FROM t  WHERE a = 1 GROUP BY b, a;
+EXPLAIN
+-> Remove duplicates from input grouped on t.b  (rows=1.5)
+    -> Filter: (t.a = 1)  (rows=2.24)
+        -> Covering index skip scan for deduplication on t using k1 over (a = 1)  (rows=5)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b FROM t  WHERE a = 1 GROUP BY b, a;
+b
+1
+2
+3
+4
+5
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	7
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b, a FROM t  GROUP BY b, a;
+EXPLAIN
+-> Covering index skip scan for deduplication on t using k1  (rows=56)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b, a FROM t  GROUP BY b, a;
+b	a
+1	1
+1	10
+1	2
+1	3
+1	4
+1	5
+1	6
+1	7
+1	8
+1	9
+15	11
+15	12
+2	1
+2	10
+2	11
+2	12
+2	2
+2	3
+2	4
+2	5
+2	6
+2	7
+2	8
+2	9
+3	1
+3	10
+3	11
+3	2
+3	3
+3	4
+3	5
+3	6
+3	7
+3	8
+3	9
+4	1
+4	10
+4	2
+4	3
+4	4
+4	5
+4	6
+4	7
+4	8
+4	9
+5	1
+5	10
+5	2
+5	3
+5	4
+5	5
+5	6
+5	7
+5	8
+5	9
+NULL	11
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	1
+Handler_read_key	58
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b FROM t  GROUP BY b, a;
+EXPLAIN
+-> Sort with duplicate removal: t.b  (rows=50.1)
+    -> Covering index skip scan for deduplication on t using k1  (rows=56)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b FROM t  GROUP BY b, a;
+b
+1
+15
+2
+3
+4
+5
+NULL
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	1
+Handler_read_key	58
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT c, a FROM t  WHERE b = 2;
+EXPLAIN
+-> Filter: (t.b = 2)  (rows=258)
+    -> Covering index skip scan for deduplication on t using k1  (rows=258)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT c, a FROM t  WHERE b = 2;
+c	a
+1	1
+1	10
+1	2
+1	3
+1	4
+1	5
+1	6
+1	7
+1	8
+1	9
+2	1
+2	10
+2	2
+2	3
+2	4
+2	5
+2	6
+2	7
+2	8
+2	9
+3	1
+3	10
+3	11
+3	12
+3	2
+3	3
+3	4
+3	5
+3	6
+3	7
+3	8
+3	9
+4	1
+4	10
+4	2
+4	3
+4	4
+4	5
+4	6
+4	7
+4	8
+4	9
+40	12
+5	1
+5	10
+5	2
+5	3
+5	4
+5	5
+5	6
+5	7
+5	8
+5	9
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	1
+Handler_read_key	260
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t WHERE a = 1 AND(b = 2 OR b = 15 OR b = 3) AND(c = 3 OR c = 40) GROUP BY c;
+EXPLAIN
+-> Group aggregate: max(t.d), min(t.d)  (cost=16.8..19.1 rows=24)
+    -> Sort: t.c  (cost=16.7..16.7 rows=24)
+        -> Covering index range scan on t using k1 over (a = 1 AND b = 2 AND c = 40) OR (a = 1 AND b = 2 AND c = 3) OR (4 more)  (cost=0.138..3.32 rows=24)
+
+EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t WHERE a = 1 AND (c = 3 OR c = 40) GROUP BY c;
+EXPLAIN
+-> Group aggregate: max(t.d), min(t.d)  (cost=29.3..30.7 rows=14.3)
+    -> Sort: t.c  (cost=29.2..29.2 rows=14.3)
+        -> Filter: ((t.c = 3) or (t.c = 40))  (cost=1.56..22.3 rows=14.3)
+            -> Covering index lookup on t using k1 (a=1)  (cost=0.00676..1.41 rows=209)
+
+EXPLAIN FORMAT=TREE SELECT b, MAX(d), MIN(d) FROM t WHERE (a = 1 OR a = 2) AND b = 2 AND (c = 3 OR c = 40) GROUP BY c, b;
+EXPLAIN
+-> Group aggregate: max(t.d), min(t.d)  (cost=15.3..17.3 rows=16.2)
+    -> Sort: t.c  (cost=15.1..15.1 rows=22)
+        -> Covering index range scan on t using k1 over (a = 2 AND b = 2 AND c = 40) OR (a = 2 AND b = 2 AND c = 3) OR (2 more)  (cost=0.142..3.12 rows=22)
+
+EXPLAIN FORMAT=TREE SELECT DISTINCT c FROM t WHERE a = 1;
+EXPLAIN
+-> Sort with duplicate removal: t.c  (cost=226..226 rows=50.1)
+    -> Covering index lookup on t using k1 (a=1)  (cost=0.00565..1.41 rows=250)
+
+EXPLAIN FORMAT=TREE SELECT DISTINCT b, c FROM t WHERE a in (1, 2);
+EXPLAIN
+-> Sort with duplicate removal: t.b, t.c  (cost=550..550 rows=269)
+    -> Covering index range scan on t using k1 over (a = 2) OR (a = 1)  (cost=0.104..52.2 rows=500)
+
 ALTER TABLE t DROP KEY k1;
 ALTER TABLE t ADD KEY k1(a, b DESC, c, d DESC);
 ANALYZE TABLE t;
@@ -3122,6 +4050,470 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY b;
+EXPLAIN
+-> Filter: ((t.a = 1) and ((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15) or (t.b = 3)))  (rows=1)
+    -> Covering index skip scan for grouping on t using k1 over (a = 1 AND b = 15) OR (a = 1 AND b = 3) OR (a = 1 AND b = 2)  (rows=1)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY b;
+a	MAX(d)	MIN(d)
+1	10	1
+1	10	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	12
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND b = 2 AND (c = 3 OR c = 40) GROUP BY c;
+EXPLAIN
+-> Group aggregate: max(t.d), min(t.d)  (rows=11)
+    -> Covering index range scan on t using k1 over (a = 1 AND b = 2 AND c = 3) OR (a = 1 AND b = 2 AND c = 40)  (rows=11)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND b = 2 AND (c = 3 OR c = 40) GROUP BY c;
+a	MAX(d)	MIN(d)
+1	10	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	2
+Handler_read_last	0
+Handler_read_next	10
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND b = 2 AND (c = 3 OR c = 40) GROUP BY c, b;
+EXPLAIN
+-> Group aggregate: max(t.d), min(t.d)  (rows=8.65)
+    -> Covering index range scan on t using k1 over (a = 1 AND b = 2 AND c = 3) OR (a = 1 AND b = 2 AND c = 40)  (rows=11)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND b = 2 AND (c = 3 OR c = 40) GROUP BY c, b;
+a	MAX(d)	MIN(d)
+1	10	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	2
+Handler_read_last	0
+Handler_read_next	10
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND b = 2 AND (c = 3 OR c = 40) GROUP BY c, b, c;
+EXPLAIN
+-> Group aggregate: max(t.d), min(t.d)  (rows=8.65)
+    -> Covering index range scan on t using k1 over (a = 1 AND b = 2 AND c = 3) OR (a = 1 AND b = 2 AND c = 40)  (rows=11)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND b = 2 AND (c = 3 OR c = 40) GROUP BY c, b, c;
+a	MAX(d)	MIN(d)
+1	10	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	2
+Handler_read_last	0
+Handler_read_next	10
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE b = 2 AND(c = 3 OR c = 40) GROUP BY a, c;
+EXPLAIN
+-> Filter: ((t.b = 2) and ((t.c = 3) or (t.c = 40)))  (rows=148)
+    -> Covering index skip scan for grouping on t using k1  (rows=258)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE b = 2 AND(c = 3 OR c = 40) GROUP BY a, c;
+a	MAX(d)	MIN(d)
+1	10	1
+10	10	1
+11	-10	-10
+12	-23	-23
+12	NULL	NULL
+2	10	1
+3	10	1
+4	10	1
+5	10	1
+6	10	1
+7	10	1
+8	10	1
+9	10	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	1
+Handler_read_key	519
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b FROM t  WHERE a = 1;
+EXPLAIN
+-> Filter: (t.a = 1)  (rows=5)
+    -> Covering index skip scan for deduplication on t using k1 over (a = 1)  (rows=5)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b FROM t  WHERE a = 1;
+b
+1
+2
+3
+4
+5
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	7
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b, a FROM t  WHERE a = 1;
+EXPLAIN
+-> Filter: (t.a = 1)  (rows=5)
+    -> Covering index skip scan for deduplication on t using k1 over (a = 1)  (rows=5)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b, a FROM t  WHERE a = 1;
+b	a
+1	1
+2	1
+3	1
+4	1
+5	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	7
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT c, b, a FROM t  WHERE a = 1;
+EXPLAIN
+-> Filter: (t.a = 1)  (rows=25)
+    -> Covering index skip scan for deduplication on t using k1 over (a = 1)  (rows=25)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT c, b, a FROM t  WHERE a = 1;
+c	b	a
+1	1	1
+1	2	1
+1	3	1
+1	4	1
+1	5	1
+2	1	1
+2	2	1
+2	3	1
+2	4	1
+2	5	1
+3	1	1
+3	2	1
+3	3	1
+3	4	1
+3	5	1
+4	1	1
+4	2	1
+4	3	1
+4	4	1
+4	5	1
+5	1	1
+5	2	1
+5	3	1
+5	4	1
+5	5	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	27
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b, a FROM t  WHERE a = 1 and b = 2 GROUP BY b, a;
+EXPLAIN
+-> Group (no aggregates)  (rows=50)
+    -> Covering index lookup on t using k1 (a=1, b=2)  (rows=50)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b, a FROM t  WHERE a = 1 and b = 2 GROUP BY b, a;
+b	a
+2	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	1
+Handler_read_last	0
+Handler_read_next	50
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b FROM t  WHERE a = 1 GROUP BY b, a;
+EXPLAIN
+-> Remove duplicates from input grouped on t.b  (rows=1.5)
+    -> Filter: (t.a = 1)  (rows=2.24)
+        -> Covering index skip scan for deduplication on t using k1 over (a = 1)  (rows=5)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b FROM t  WHERE a = 1 GROUP BY b, a;
+b
+1
+2
+3
+4
+5
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	7
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b, a FROM t  GROUP BY b, a;
+EXPLAIN
+-> Covering index skip scan for deduplication on t using k1  (rows=56)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b, a FROM t  GROUP BY b, a;
+b	a
+1	1
+1	10
+1	2
+1	3
+1	4
+1	5
+1	6
+1	7
+1	8
+1	9
+15	11
+15	12
+2	1
+2	10
+2	11
+2	12
+2	2
+2	3
+2	4
+2	5
+2	6
+2	7
+2	8
+2	9
+3	1
+3	10
+3	11
+3	2
+3	3
+3	4
+3	5
+3	6
+3	7
+3	8
+3	9
+4	1
+4	10
+4	2
+4	3
+4	4
+4	5
+4	6
+4	7
+4	8
+4	9
+5	1
+5	10
+5	2
+5	3
+5	4
+5	5
+5	6
+5	7
+5	8
+5	9
+NULL	11
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	1
+Handler_read_key	58
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b FROM t  GROUP BY b, a;
+EXPLAIN
+-> Sort with duplicate removal: t.b  (rows=50.1)
+    -> Covering index skip scan for deduplication on t using k1  (rows=56)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b FROM t  GROUP BY b, a;
+b
+1
+15
+2
+3
+4
+5
+NULL
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	1
+Handler_read_key	58
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT c, a FROM t  WHERE b = 2;
+EXPLAIN
+-> Filter: (t.b = 2)  (rows=258)
+    -> Covering index skip scan for deduplication on t using k1  (rows=258)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT c, a FROM t  WHERE b = 2;
+c	a
+1	1
+1	10
+1	2
+1	3
+1	4
+1	5
+1	6
+1	7
+1	8
+1	9
+2	1
+2	10
+2	2
+2	3
+2	4
+2	5
+2	6
+2	7
+2	8
+2	9
+3	1
+3	10
+3	11
+3	12
+3	2
+3	3
+3	4
+3	5
+3	6
+3	7
+3	8
+3	9
+4	1
+4	10
+4	2
+4	3
+4	4
+4	5
+4	6
+4	7
+4	8
+4	9
+40	12
+5	1
+5	10
+5	2
+5	3
+5	4
+5	5
+5	6
+5	7
+5	8
+5	9
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	1
+Handler_read_key	260
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t WHERE a = 1 AND(b = 2 OR b = 15 OR b = 3) AND(c = 3 OR c = 40) GROUP BY c;
+EXPLAIN
+-> Group aggregate: max(t.d), min(t.d)  (cost=16.8..19.1 rows=24)
+    -> Sort: t.c  (cost=16.7..16.7 rows=24)
+        -> Covering index range scan on t using k1 over (a = 1 AND b = 15 AND c = 3) OR (a = 1 AND b = 15 AND c = 40) OR (4 more)  (cost=0.138..3.32 rows=24)
+
+EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t WHERE a = 1 AND (c = 3 OR c = 40) GROUP BY c;
+EXPLAIN
+-> Group aggregate: max(t.d), min(t.d)  (cost=29.3..30.7 rows=14.3)
+    -> Sort: t.c  (cost=29.2..29.2 rows=14.3)
+        -> Filter: ((t.c = 3) or (t.c = 40))  (cost=1.56..22.3 rows=14.3)
+            -> Covering index lookup on t using k1 (a=1)  (cost=0.00676..1.41 rows=209)
+
+EXPLAIN FORMAT=TREE SELECT b, MAX(d), MIN(d) FROM t WHERE (a = 1 OR a = 2) AND b = 2 AND (c = 3 OR c = 40) GROUP BY c, b;
+EXPLAIN
+-> Group aggregate: max(t.d), min(t.d)  (cost=15.3..17.3 rows=16.2)
+    -> Sort: t.c  (cost=15.1..15.1 rows=22)
+        -> Covering index range scan on t using k1 over (a = 1 AND b = 2 AND c = 3) OR (a = 1 AND b = 2 AND c = 40) OR (2 more)  (cost=0.142..3.12 rows=22)
+
+EXPLAIN FORMAT=TREE SELECT DISTINCT c FROM t WHERE a = 1;
+EXPLAIN
+-> Sort with duplicate removal: t.c  (cost=226..226 rows=50.1)
+    -> Covering index lookup on t using k1 (a=1)  (cost=0.00565..1.41 rows=250)
+
+EXPLAIN FORMAT=TREE SELECT DISTINCT b, c FROM t WHERE a in (1, 2);
+EXPLAIN
+-> Sort with duplicate removal: t.b, t.c  (cost=550..550 rows=269)
+    -> Covering index range scan on t using k1 over (a = 1) OR (a = 2)  (cost=0.104..52.2 rows=500)
+
 DROP TABLE t;
 CREATE TABLE t (a INT, b INT, c INT, d INT, KEY k1(a, b, c, d)) ENGINE=myisam;
 ANALYZE TABLE t;
@@ -4122,4 +5514,468 @@ Handler_read_rnd	0
 Handler_read_rnd_next	0
 include/diff_tables.inc [test.group_query, test.no_group_query]
 drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY b;
+EXPLAIN
+-> Filter: ((t.a = 1) and ((t.c = 3) or (t.c = 40)) and ((t.b = 2) or (t.b = 15) or (t.b = 3)))  (rows=1)
+    -> Covering index skip scan for grouping on t using k1 over (a = 1 AND b = 2) OR (a = 1 AND b = 3) OR (a = 1 AND b = 15)  (rows=1)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND (b = 2 OR b = 15 OR b = 3) AND (c = 3 OR c = 40) GROUP BY b;
+a	MAX(d)	MIN(d)
+1	10	1
+1	10	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	11
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND b = 2 AND (c = 3 OR c = 40) GROUP BY c;
+EXPLAIN
+-> Group aggregate: max(t.d), min(t.d)  (rows=11)
+    -> Covering index range scan on t using k1 over (a = 1 AND b = 2 AND c = 3) OR (a = 1 AND b = 2 AND c = 40)  (rows=11)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND b = 2 AND (c = 3 OR c = 40) GROUP BY c;
+a	MAX(d)	MIN(d)
+1	10	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	2
+Handler_read_last	0
+Handler_read_next	10
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND b = 2 AND (c = 3 OR c = 40) GROUP BY c, b;
+EXPLAIN
+-> Group aggregate: max(t.d), min(t.d)  (rows=8.65)
+    -> Covering index range scan on t using k1 over (a = 1 AND b = 2 AND c = 3) OR (a = 1 AND b = 2 AND c = 40)  (rows=11)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND b = 2 AND (c = 3 OR c = 40) GROUP BY c, b;
+a	MAX(d)	MIN(d)
+1	10	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	2
+Handler_read_last	0
+Handler_read_next	10
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND b = 2 AND (c = 3 OR c = 40) GROUP BY c, b, c;
+EXPLAIN
+-> Group aggregate: max(t.d), min(t.d)  (rows=8.65)
+    -> Covering index range scan on t using k1 over (a = 1 AND b = 2 AND c = 3) OR (a = 1 AND b = 2 AND c = 40)  (rows=11)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE a = 1 AND b = 2 AND (c = 3 OR c = 40) GROUP BY c, b, c;
+a	MAX(d)	MIN(d)
+1	10	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	2
+Handler_read_last	0
+Handler_read_next	10
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE b = 2 AND(c = 3 OR c = 40) GROUP BY a, c;
+EXPLAIN
+-> Filter: ((t.b = 2) and ((t.c = 3) or (t.c = 40)))  (rows=144)
+    -> Covering index skip scan for grouping on t using k1  (rows=250)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ a, MAX(d), MIN(d) FROM t  WHERE b = 2 AND(c = 3 OR c = 40) GROUP BY a, c;
+a	MAX(d)	MIN(d)
+1	10	1
+10	10	1
+11	-10	-10
+12	-23	-23
+12	NULL	NULL
+2	10	1
+3	10	1
+4	10	1
+5	10	1
+6	10	1
+7	10	1
+8	10	1
+9	10	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	1
+Handler_read_key	517
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b FROM t  WHERE a = 1;
+EXPLAIN
+-> Filter: (t.a = 1)  (rows=5)
+    -> Covering index skip scan for deduplication on t using k1 over (a = 1)  (rows=5)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b FROM t  WHERE a = 1;
+b
+1
+2
+3
+4
+5
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	6
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b, a FROM t  WHERE a = 1;
+EXPLAIN
+-> Filter: (t.a = 1)  (rows=5)
+    -> Covering index skip scan for deduplication on t using k1 over (a = 1)  (rows=5)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b, a FROM t  WHERE a = 1;
+b	a
+1	1
+2	1
+3	1
+4	1
+5	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	6
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT c, b, a FROM t  WHERE a = 1;
+EXPLAIN
+-> Remove duplicates from input grouped on t.c, t.b  (rows=144)
+    -> Covering index lookup on t using k1 (a=1)  (rows=251)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT c, b, a FROM t  WHERE a = 1;
+c	b	a
+1	1	1
+1	2	1
+1	3	1
+1	4	1
+1	5	1
+2	1	1
+2	2	1
+2	3	1
+2	4	1
+2	5	1
+3	1	1
+3	2	1
+3	3	1
+3	4	1
+3	5	1
+4	1	1
+4	2	1
+4	3	1
+4	4	1
+4	5	1
+5	1	1
+5	2	1
+5	3	1
+5	4	1
+5	5	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	1
+Handler_read_last	0
+Handler_read_next	250
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b, a FROM t  WHERE a = 1 and b = 2 GROUP BY b, a;
+EXPLAIN
+-> Filter: ((t.b = 2) and (t.a = 1))  (rows=1)
+    -> Covering index skip scan for deduplication on t using k1 over (a = 1 AND b = 2)  (rows=1)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b, a FROM t  WHERE a = 1 and b = 2 GROUP BY b, a;
+b	a
+2	1
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	2
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b FROM t  WHERE a = 1 GROUP BY b, a;
+EXPLAIN
+-> Remove duplicates from input grouped on t.b  (rows=1.5)
+    -> Filter: (t.a = 1)  (rows=2.24)
+        -> Covering index skip scan for deduplication on t using k1 over (a = 1)  (rows=5)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b FROM t  WHERE a = 1 GROUP BY b, a;
+b
+1
+2
+3
+4
+5
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	0
+Handler_read_key	6
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b, a FROM t  GROUP BY b, a;
+EXPLAIN
+-> Covering index skip scan for deduplication on t using k1  (rows=55)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b, a FROM t  GROUP BY b, a;
+b	a
+1	1
+1	10
+1	2
+1	3
+1	4
+1	5
+1	6
+1	7
+1	8
+1	9
+15	11
+15	12
+2	1
+2	10
+2	11
+2	12
+2	2
+2	3
+2	4
+2	5
+2	6
+2	7
+2	8
+2	9
+3	1
+3	10
+3	11
+3	2
+3	3
+3	4
+3	5
+3	6
+3	7
+3	8
+3	9
+4	1
+4	10
+4	2
+4	3
+4	4
+4	5
+4	6
+4	7
+4	8
+4	9
+5	1
+5	10
+5	2
+5	3
+5	4
+5	5
+5	6
+5	7
+5	8
+5	9
+NULL	11
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	1
+Handler_read_key	56
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b FROM t  GROUP BY b, a;
+EXPLAIN
+-> Sort with duplicate removal: t.b  (rows=50.1)
+    -> Covering index skip scan for deduplication on t using k1  (rows=55)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT b FROM t  GROUP BY b, a;
+b
+1
+15
+2
+3
+4
+5
+NULL
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	1
+Handler_read_key	56
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT c, a FROM t  WHERE b = 2;
+EXPLAIN
+-> Filter: (t.b = 2)  (rows=250)
+    -> Covering index skip scan for deduplication on t using k1  (rows=250)
+
+FLUSH STATUS;
+SELECT /*+ GROUP_BY_LIS(t) */ DISTINCT c, a FROM t  WHERE b = 2;
+c	a
+1	1
+1	10
+1	2
+1	3
+1	4
+1	5
+1	6
+1	7
+1	8
+1	9
+2	1
+2	10
+2	2
+2	3
+2	4
+2	5
+2	6
+2	7
+2	8
+2	9
+3	1
+3	10
+3	11
+3	12
+3	2
+3	3
+3	4
+3	5
+3	6
+3	7
+3	8
+3	9
+4	1
+4	10
+4	2
+4	3
+4	4
+4	5
+4	6
+4	7
+4	8
+4	9
+40	12
+5	1
+5	10
+5	2
+5	3
+5	4
+5	5
+5	6
+5	7
+5	8
+5	9
+
+SHOW STATUS LIKE 'handler_read%';
+Variable_name	Value
+Handler_read_first	1
+Handler_read_key	258
+Handler_read_last	1
+Handler_read_next	0
+Handler_read_prev	0
+Handler_read_rnd	0
+Handler_read_rnd_next	0
+include/diff_tables.inc [test.group_query, test.no_group_query]
+drop tables test.group_query, test.no_group_query;
+EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t WHERE a = 1 AND(b = 2 OR b = 15 OR b = 3) AND(c = 3 OR c = 40) GROUP BY c;
+EXPLAIN
+-> Group aggregate: max(t.d), min(t.d)  (cost=16.5..18.8 rows=24)
+    -> Sort: t.c  (cost=16.4..16.4 rows=24)
+        -> Covering index range scan on t using k1 over (a = 1 AND b = 2 AND c = 3) OR (a = 1 AND b = 2 AND c = 40) OR (4 more)  (cost=0.123..2.96 rows=24)
+
+EXPLAIN FORMAT=TREE SELECT a, MAX(d), MIN(d) FROM t WHERE a = 1 AND (c = 3 OR c = 40) GROUP BY c;
+EXPLAIN
+-> Group aggregate: max(t.d), min(t.d)  (cost=31.2..32.6 rows=14.7)
+    -> Sort: t.c  (cost=31.1..31.1 rows=14.7)
+        -> Filter: ((t.c = 3) or (t.c = 40))  (cost=1.62..23.9 rows=14.7)
+            -> Covering index lookup on t using k1 (a=1)  (cost=0.0144..3 rows=209)
+
+EXPLAIN FORMAT=TREE SELECT b, MAX(d), MIN(d) FROM t WHERE (a = 1 OR a = 2) AND b = 2 AND (c = 3 OR c = 40) GROUP BY c, b;
+EXPLAIN
+-> Group aggregate: max(t.d), min(t.d)  (cost=14.9..16.9 rows=16.2)
+    -> Sort: t.c  (cost=14.7..14.7 rows=22)
+        -> Covering index range scan on t using k1 over (a = 1 AND b = 2 AND c = 3) OR (a = 1 AND b = 2 AND c = 40) OR (2 more)  (cost=0.124..2.74 rows=22)
+
+EXPLAIN FORMAT=TREE SELECT DISTINCT c FROM t WHERE a = 1;
+EXPLAIN
+-> Sort with duplicate removal: t.c  (cost=228..228 rows=50.1)
+    -> Covering index lookup on t using k1 (a=1)  (cost=0.012..3 rows=251)
+
+EXPLAIN FORMAT=TREE SELECT DISTINCT b, c FROM t WHERE a in (1, 2);
+EXPLAIN
+-> Sort with duplicate removal: t.b, t.c  (cost=558..558 rows=270)
+    -> Covering index range scan on t using k1 over (a = 1) OR (a = 2)  (cost=0.114..57.1 rows=502)
+
 DROP TABLE t;

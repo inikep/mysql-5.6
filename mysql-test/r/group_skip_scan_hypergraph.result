@@ -3243,7 +3243,8 @@ EXPLAIN FORMAT=TREE SELECT COUNT(DISTINCT b), SUM(DISTINCT b) FROM t2 WHERE a = 
 GROUP BY b;
 EXPLAIN
 -> Group aggregate: count(distinct t2.b), sum(distinct t2.b)  (rows=1)
-    -> Covering index lookup on t2 using a (a=5)  (rows=1)
+    -> Filter: (t2.a = 5)  (rows=1)
+        -> Covering index skip scan for deduplication on t2 using a over (a = 5)  (rows=1)
 
 SELECT COUNT(DISTINCT b), SUM(DISTINCT b) FROM t2 WHERE a = 5
 GROUP BY b;

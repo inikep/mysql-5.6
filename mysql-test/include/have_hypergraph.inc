@@ -9,7 +9,8 @@
 
 --error 0, ER_HYPERGRAPH_NOT_SUPPORTED_YET
 SET optimizer_switch = 'hypergraph_optimizer=on';
-if (`SELECT NOT FIND_IN_SET('hypergraph_optimizer=on', @@optimizer_switch)`) {
+let $using_hypergraph= `SELECT FIND_IN_SET('hypergraph_optimizer=on', @@optimizer_switch)`;
+if (!$using_hypergraph) {
    --skip Test requires binaries built with WITH_HYPERGRAPH_OPTIMIZER=ON
 }
 --enable_warnings

@@ -267,8 +267,7 @@ EXPLAIN
 
 EXPLAIN ANALYZE SELECT 1 FROM t1 GROUP BY d,c;
 EXPLAIN
--> Group (no aggregates)  (rows=35) (actual rows=35 loops=1)
-    -> Covering index scan on t1 using ix1  (rows=1000) (actual rows=1000 loops=1)
+-> Covering index skip scan for deduplication on t1 using ix1  (rows=35) (actual rows=35 loops=1)
 
 EXPLAIN ANALYZE SELECT 1 FROM t1 GROUP BY d,a;
 EXPLAIN
