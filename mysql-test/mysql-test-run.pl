@@ -312,10 +312,6 @@ our @DEFAULT_SUITES = qw(
   grant
   jp
   stress
-  rocksdb
-  rocksdb_rpl
-  rocksdb_stress
-  rocksdb_sys_vars
   rpl_mts
   thread_pool
 );
