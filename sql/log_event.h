@@ -1233,12 +1233,6 @@ class Log_event {
 #ifdef MYSQL_SERVER
 
   /**
-   * Checks if the event needs to run in idempotent recovery mode and sets
-   * things up if it's required
-   */
-  void check_and_set_idempotent_recovery(Relay_log_info *rli, const char *gtid);
-
-  /**
      Apply the event to the database.
 
      This function represents the public interface for applying an
@@ -3022,6 +3016,12 @@ class Rows_log_event : public virtual mysql::binlog::event::Rows_event,
 
 #ifdef MYSQL_SERVER
   virtual int do_add_row_data(uchar *data, size_t length);
+
+  /**
+   * Checks if the event needs to run in idempotent recovery mode and sets
+   * things up if it's required
+   */
+  void check_and_set_idempotent_recovery(Relay_log_info *rli);
 #endif
 
 #ifdef MYSQL_SERVER
