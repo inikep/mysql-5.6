@@ -13429,7 +13429,9 @@ std::string THD::gen_trx_metadata() {
   DBUG_ENTER("THD::gen_trx_metadata");
   assert(opt_binlog_trx_meta_data);
 
-  rapidjson::Document doc;
+  Document_wrapper wrapper;
+  auto &doc = wrapper.doc;
+
   doc.SetObject();
 
   // case: read existing meta data received from the master
@@ -13495,7 +13497,7 @@ std::string THD::gen_trx_metadata() {
   @param meta_data_root Property tree object which represents the JSON
   @return true if all good, false if error
 */
-bool THD::add_time_metadata(rapidjson::Document &meta_data_root) {
+bool THD::add_time_metadata(DocumentType &meta_data_root) {
   DBUG_ENTER("THD::add_time_metadata");
   assert(opt_binlog_trx_meta_data);
 
@@ -13520,7 +13522,7 @@ bool THD::add_time_metadata(rapidjson::Document &meta_data_root) {
   DBUG_RETURN(true);
 }
 
-bool THD::add_db_metadata(rapidjson::Document &meta_data_root) {
+bool THD::add_db_metadata(DocumentType &meta_data_root) {
   DBUG_ENTER("THD::add_db_meta_data");
   assert(opt_binlog_trx_meta_data);
 
@@ -13530,7 +13532,8 @@ bool THD::add_db_metadata(rapidjson::Document &meta_data_root) {
   mysql_mutex_unlock(&LOCK_thd_db_context);
 
   if (!local_db_metadata.empty()) {
-    rapidjson::Document db_metadata_root;
+    Document_wrapper wrapper;
+    auto &db_metadata_root = wrapper.doc;
     // rapidjson doesn't like calling GetObject() on json non-object value
     // The local_db_metadata format should similar to the following example:
     // {"shard":"<shard_name>", "replicaset":"<replicaset_id>"}
