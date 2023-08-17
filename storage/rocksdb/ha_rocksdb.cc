@@ -55,6 +55,7 @@
 #include "sql/dd/dd.h"                       //  dd::get_dictionary
 #include "sql/dd/dictionary.h"               // dd::Dictionary
 #include "sql/debug_sync.h"
+#include "sql/rpl_rli.h"
 #include "sql/sql_audit.h"
 #include "sql/sql_class.h"
 #include "sql/sql_lex.h"
@@ -3728,6 +3729,14 @@ class Rdb_transaction {
       assert(!is_ac_nl_ro_rc_transaction());
       my_core::thd_binlog_pos(m_thd, &m_mysql_log_file_name,
                               &m_mysql_log_offset, nullptr, &m_mysql_max_gtid);
+      if (m_thd->rli_slave && !is_ddl_transaction() && get_write_count() &&
+          (!m_mysql_log_file_name || !m_mysql_log_offset)) {
+        LogPluginErrMsg(
+            ERROR_LEVEL, ER_LOG_PRINTF_MSG,
+            "MyRocks: Applier is committing transaction without binlog "
+            "position info GTID: %s",
+            m_thd->rli_slave->last_gtid);
+      }
       binlog_manager.update(m_mysql_log_file_name, m_mysql_log_offset,
                             m_mysql_max_gtid, get_write_batch());
       return commit_no_binlog();
