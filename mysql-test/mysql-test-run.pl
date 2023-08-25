@@ -324,6 +324,7 @@ our @DEFAULT_SUITES = qw(
 
   rocksdb
   rocksdb_clone
+  rocksdb_dd_innodb
   rocksdb_rpl
   rocksdb_stress
   rocksdb_sys_vars
