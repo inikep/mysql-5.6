@@ -165,4 +165,6 @@ void UnregisterFilename(File fd);
 void MyFileInit();
 void MyFileEnd();
 
+void MyWSFileEnd();
+
 #endif /* MYSYS_PRIV_INCLUDED */
