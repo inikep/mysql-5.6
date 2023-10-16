@@ -3654,7 +3654,8 @@ class Rdb_transaction {
       assert(is_autocommit(*thd));
       assert(table_type == TABLE_TYPE::USER_TABLE);
       assert(get_row_lock_count() == 0);
-      assert(thd_tx_is_read_only(thd));
+      assert(thd_tx_is_read_only(thd) ||
+             thd->is_cmd_skip_transaction_read_only());
       assert(thd_get_trx_isolation(thd) == ISO_READ_COMMITTED);
       m_max_row_locks = 0;
     } else {
@@ -3721,7 +3722,8 @@ class Rdb_transaction {
     if (result) {
       assert(is_autocommit(*get_thd()));
       assert(get_row_lock_count() == 0);
-      assert(thd_tx_is_read_only(get_thd()));
+      assert(thd_tx_is_read_only(get_thd()) ||
+             get_thd()->is_cmd_skip_transaction_read_only());
       assert(thd_get_trx_isolation(get_thd()) == ISO_READ_COMMITTED);
     }
     return result;
