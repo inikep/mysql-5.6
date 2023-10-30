@@ -454,6 +454,7 @@ enum enum_base64_output_mode {
   BASE64_OUTPUT_AUTO = 1,
   BASE64_OUTPUT_UNSPEC = 2,
   BASE64_OUTPUT_DECODE_ROWS = 3,
+  BASE64_OUTPUT_FULL = 4,
   /* insert new output modes here */
   BASE64_OUTPUT_MODE_COUNT
 };
@@ -571,6 +572,9 @@ struct PRINT_EVENT_INFO {
     The version of the last server that sent the transaction
   */
   uint32_t immediate_server_version;
+
+  // Are we inside a binlog group/transaction? Only used in MTA mode
+  bool inside_group = false;
 };
 #endif
 

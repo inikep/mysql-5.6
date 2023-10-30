@@ -638,6 +638,8 @@ struct System_variables {
    */
   Explain_format_type explain_format;
 
+  uint mta_binlog_statement_workers;
+
   /**
     Used to specify the JSON format version used by EXPLAIN FORMAT=JSON with
     the old (non-hypergraph) join optimizer.
