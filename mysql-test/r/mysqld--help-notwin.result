@@ -2963,7 +2963,6 @@ The following options may be given as the first argument:
  Set the priority of a thread. The input format is
  OSthreadId:PriValue. The priority values are in the range
  -20 to 19, similar to nice.
- --thread-stack=#    The stack size for each thread
  --tls-certificates-enforced-validation 
  If set to TRUE, server stops execution at the start up in
  case of invalid certificates When ALTER INSTANCE RELOAD
@@ -3951,7 +3950,6 @@ thread-cache-size 9
 thread-handling one-thread-per-connection
 thread-priority 0
 thread-priority-str 
-thread-stack 1048576
 tls-certificates-enforced-validation FALSE
 tls-ciphersuites (No default value)
 tmp-table-size 16777216
