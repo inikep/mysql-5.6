@@ -426,6 +426,9 @@ bool Item_func::fix_fields(THD *thd, Item **) {
   if (arg_count) {  // Print purify happy
     for (arg = args, arg_end = args + arg_count; arg != arg_end; arg++) {
       if (fix_func_arg(thd, arg)) return true;
+
+      // In case there are many arguments to resolve, yield periodically.
+      thd->check_yield();
     }
   }
 
@@ -5771,6 +5774,7 @@ longlong Item_func_benchmark::val_int() {
         assert(0);
         return 0;
     }
+    thd->check_yield();
   }
   return 0;
 }
