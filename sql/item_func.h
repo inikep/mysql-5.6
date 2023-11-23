@@ -316,7 +316,11 @@ class Item_func : public Item_result_field {
     JSON_DEPTH_FUNC,
     JSON_EXTRACT_FUNC,
     JSON_OBJECT_FUNC,
-    JSON_ARRAY_FUNC
+    JSON_ARRAY_FUNC,
+    // vector db functions
+    FB_VECTOR_L2,
+    FB_VECTOR_IP,
+    FB_VECTOR_COSINE,
   };
   enum optimize_type {
     OPTIMIZE_NONE,
