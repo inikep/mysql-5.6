@@ -1687,6 +1687,8 @@ TABLE *create_tmp_table(THD *thd, Temp_table_param *param,
     param->keyinfo = hash_key;
   }
 
+  param->keyinfo->init_for_tmp_table();
+
   if (thd->is_fatal_error())  // If end of memory
     return nullptr;           /* purecov: inspected */
 
@@ -1903,6 +1905,7 @@ TABLE *create_duplicate_weedout_tmp_table(THD *thd, uint uniq_tuple_length_arg,
     table->key_info->set_in_memory_estimate(IN_MEMORY_ESTIMATE_UNKNOWN);
     table->key_info->name = "weedout_key";
   }
+  keyinfo->init_for_tmp_table();
 
   if (thd->is_fatal_error())  // If end of memory
     goto err;

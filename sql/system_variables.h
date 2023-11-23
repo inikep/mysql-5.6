@@ -642,6 +642,16 @@ struct System_variables {
   uint mta_binlog_statement_workers;
 
   /**
+   minimum vector dimension.
+  */
+  uint fb_vector_min_dimension;
+
+  /**
+   maximum vector dimension.
+  */
+  uint fb_vector_max_dimension;
+
+  /**
     Used to specify the JSON format version used by EXPLAIN FORMAT=JSON with
     the old (non-hypergraph) join optimizer.
     @sa Sys_explain_json_format_version
