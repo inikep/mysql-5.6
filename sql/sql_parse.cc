@@ -3017,23 +3017,9 @@ done:
     thd->clean_parser_memory();
   }
 
-  /*
-    If we've allocated a lot of memory (compared to the default preallocation
-    size = 8192; note that we don't actually preallocate anymore), free
-    it so that one big query won't cause us to hold on to a lot of RAM forever.
-    If not, keep the last block so that the next query will hopefully be able to
-    run without allocating memory from the OS.
+  thd->clean_main_memory();
 
-    The factor 5 is pretty much arbitrary, but ends up allowing three
-    allocations (1 + 1.5 + 1.5²) under the current allocation policy.
-  */
-  constexpr size_t kPreallocSz = 40960;
-  if (thd->mem_root->allocated_size() < kPreallocSz)
-    thd->mem_root->ClearForReuse();
-  else
-    thd->mem_root->Clear();
-
-    /* SHOW PROFILE instrumentation, end */
+  /* SHOW PROFILE instrumentation, end */
 #if defined(ENABLED_PROFILING)
   thd->profiling->finish_current_query();
 #endif
