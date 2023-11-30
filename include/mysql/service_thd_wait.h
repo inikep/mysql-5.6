@@ -118,7 +118,14 @@ enum THD_wait_type : int {
     due to factors such as disk IO and quorum acknowledgements for replication.
   */
   THD_WAIT_COMMIT = 16,
-  THD_WAIT_LAST = 17
+
+  /**
+    Used for all Warm Storage IO operations in my_wsfile.cc. All of them are
+    accessing remote storage over the network so quite often end up blocking
+    the scheduler.
+  */
+  THD_WAIT_WS_IO = 17,
+  THD_WAIT_LAST = 18
 };
 
 inline const char *THD_wait_type_str(THD_wait_type twt) {
@@ -173,6 +180,9 @@ inline const char *THD_wait_type_str(THD_wait_type twt) {
 
     case THD_WAIT_COMMIT:
       return "Waiting for COMMIT event";
+
+    case THD_WAIT_WS_IO:
+      return "Waiting for Warm Storage IO event";
 
     case THD_WAIT_LAST:
       return "<Unused LAST marker value>";
