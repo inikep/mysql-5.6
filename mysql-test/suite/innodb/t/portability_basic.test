@@ -50,6 +50,9 @@ SELECT  file_name,file_type,tablespace_name FROM
 --source include/shutdown_mysqld.inc
 
 --echo # Copy whole --datadir files into new location
+if ($DEFAULT_DDSE == "RocksDB") {
+   --force-cpdir $MYSQLD_OLD_DATADIR/.rocksdb $MYSQLD_NEW_DATADIR
+}
 --copy_file $MYSQLD_OLD_DATADIR/auto.cnf $MYSQLD_NEW_DATADIR/auto.cnf
 --copy_file $MYSQLD_OLD_DATADIR/ib_buffer_pool $MYSQLD_NEW_DATADIR/ib_buffer_pool
 --copy_file $MYSQLD_OLD_DATADIR/ibdata1 $MYSQLD_NEW_DATADIR/ibdata1

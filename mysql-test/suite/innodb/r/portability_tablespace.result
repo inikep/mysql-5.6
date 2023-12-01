@@ -101,7 +101,8 @@ tab3	CREATE TABLE `tab3` (
 /*!50100 PARTITION BY HASH (`empno`)
 (PARTITION P0 DATA DIRECTORY = 'MYSQL_TMP_DIR/new/remote_dir' ENGINE = InnoDB,
  PARTITION P1 DATA DIRECTORY = 'MYSQL_TMP_DIR/new/remote_dir' ENGINE = InnoDB) */
-SELECT file_name,file_type,tablespace_name FROM INFORMATION_SCHEMA.FILES WHERE file_type LIKE '%undo%';
+SELECT file_name,file_type,tablespace_name FROM INFORMATION_SCHEMA.FILES
+WHERE file_type LIKE '%undo%' ORDER BY tablespace_name;
 FILE_NAME	FILE_TYPE	TABLESPACE_NAME
 MYSQL_TMP_DIR/new/undo_dir/undo_001	UNDO LOG	innodb_undo_001
 MYSQL_TMP_DIR/new/undo_dir/undo_002	UNDO LOG	innodb_undo_002
@@ -155,7 +156,8 @@ tab3	CREATE TABLE `tab3` (
 /*!50100 PARTITION BY HASH (`empno`)
 (PARTITION P0 DATA DIRECTORY = 'MYSQL_TMP_DIR/new/remote_dir' ENGINE = InnoDB,
  PARTITION P1 DATA DIRECTORY = 'MYSQL_TMP_DIR/new/remote_dir' ENGINE = InnoDB) */
-SELECT file_name,file_type,tablespace_name FROM INFORMATION_SCHEMA.FILES WHERE file_type LIKE '%undo%';
+SELECT file_name,file_type,tablespace_name FROM INFORMATION_SCHEMA.FILES
+WHERE file_type LIKE '%undo%' ORDER BY tablespace_name;
 FILE_NAME	FILE_TYPE	TABLESPACE_NAME
 MYSQL_TMP_DIR/new/undo_dir/undo_001	UNDO LOG	innodb_undo_001
 MYSQL_TMP_DIR/new/undo_dir/undo_002	UNDO LOG	innodb_undo_002
