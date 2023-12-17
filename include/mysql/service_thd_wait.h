@@ -125,7 +125,13 @@ enum THD_wait_type : int {
     the scheduler.
   */
   THD_WAIT_WS_IO = 17,
-  THD_WAIT_LAST = 18
+
+  /**
+    Used by blocking operations of binlog sender threads.
+  */
+  THD_WAIT_BINLOG_SEND = 18,
+
+  THD_WAIT_LAST = 19
 };
 
 inline const char *THD_wait_type_str(THD_wait_type twt) {
@@ -183,6 +189,9 @@ inline const char *THD_wait_type_str(THD_wait_type twt) {
 
     case THD_WAIT_WS_IO:
       return "Waiting for Warm Storage IO event";
+
+    case THD_WAIT_BINLOG_SEND:
+      return "Waiting for binlog sender threads";
 
     case THD_WAIT_LAST:
       return "<Unused LAST marker value>";
