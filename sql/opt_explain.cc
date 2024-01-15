@@ -76,6 +76,7 @@
 #include "sql/mysqld_thd_manager.h"  // Global_THD_manager
 #include "sql/opt_costmodel.h"
 #include "sql/opt_explain_format.h"
+#include "sql/opt_explain_traditional.h"
 #include "sql/opt_trace.h"  // Opt_trace_*
 #include "sql/parse_tree_node_base.h"
 #include "sql/protocol.h"
@@ -126,7 +127,7 @@ static const char *plan_not_ready[] = {"Not optimized, outer query is empty",
                                        "Plan isn't ready yet"};
 
 static bool ExplainIterator(THD *ethd, const THD *query_thd,
-                            Query_expression *unit);
+                            Query_expression *unit, std::string *plan);
 
 namespace {
 
@@ -1914,7 +1915,7 @@ bool explain_single_table_modification(THD *explain_thd, const THD *query_thd,
 
   if (explain_thd->lex->explain_format->is_iterator_based()) {
     // These kinds of queries don't have a JOIN with an iterator tree.
-    return ExplainIterator(explain_thd, query_thd, nullptr);
+    return ExplainIterator(explain_thd, query_thd, nullptr, nullptr);
   }
 
   if (query_thd->lex->using_hypergraph_optimizer()) {
@@ -2103,7 +2104,7 @@ bool explain_query_specification(THD *explain_thd, const THD *query_thd,
 }
 
 static bool ExplainIterator(THD *ethd, const THD *query_thd,
-                            Query_expression *unit) {
+                            Query_expression *unit, std::string *plan) {
   Query_result_send *result = nullptr;
   if (ethd->lex->explain_format->is_explain_into()) {
     result = new (ethd->mem_root) Query_result_explain_into_var(
@@ -2113,7 +2114,7 @@ static bool ExplainIterator(THD *ethd, const THD *query_thd,
   }
   if (result == nullptr) return true;
 
-  {
+  if (!plan) {
     mem_root_deque<Item *> field_list(ethd->mem_root);
     Item *item = new Item_empty_string("EXPLAIN", 78, system_charset_info);
     field_list.push_back(item);
@@ -2129,17 +2130,23 @@ static bool ExplainIterator(THD *ethd, const THD *query_thd,
       my_error(ER_INTERNAL_ERROR, MYF(0), "Failed to print query plan");
       return true;
     }
-    mem_root_deque<Item *> field_list(ethd->mem_root);
-    Item *item =
-        new Item_string(explain.data(), explain.size(), system_charset_info);
-    field_list.push_back(item);
 
     if (query_thd->killed) {
       ethd->raise_warning(ER_QUERY_INTERRUPTED);
     }
 
-    if (result->send_data(ethd, field_list)) {
-      return true;
+    if (!plan) {
+      mem_root_deque<Item *> field_list(ethd->mem_root);
+      Item *item =
+          new Item_string(explain.data(), explain.size(), system_charset_info);
+      field_list.push_back(item);
+
+      if (result->send_data(ethd, field_list)) {
+        return true;
+      }
+    } else {
+      *plan = std::move(explain);
+      return false;
     }
   }
   return result->send_eof(ethd);
@@ -2283,7 +2290,7 @@ bool explain_query(THD *explain_thd, const THD *query_thd,
       push_warning(explain_thd, Sql_condition::SL_NOTE, ER_YES,
                    "Query is executed in secondary engine; the actual"
                    " query plan may diverge from the printed one");
-    return ExplainIterator(explain_thd, query_thd, unit);
+    return ExplainIterator(explain_thd, query_thd, unit, nullptr);
   }
 
   // Non-iterator-based formats are not supported with EXPLAIN ANALYZE.
@@ -2654,4 +2661,25 @@ bool Query_result_explain_into_var::send_data(
 bool Query_result_explain_into_var::send_eof(THD *thd) {
   my_ok(thd);
   return false;
+}
+
+std::string capture_query_tree_plan(THD *thd) {
+  std::string plan;
+
+  LEX *lex = thd->lex;
+  THD::Query_plan *qp = &thd->query_plan;
+
+  assert(!lex->explain_format);
+
+  // Attach an Explain_format object in order to trigger conversion
+  // of JSON-fied plan data into the tree format
+  lex->explain_format = new (thd->mem_root) Explain_format_tree_plan;
+
+  if (!qp->is_single_table_plan()) {
+    ExplainIterator(thd, thd, lex->unit, &plan);
+  }
+
+  lex->explain_format = nullptr;
+
+  return plan;
 }
