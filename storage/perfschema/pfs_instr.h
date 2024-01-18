@@ -779,6 +779,8 @@ struct PFS_ALIGNED PFS_thread : PFS_connection_slice {
   void remove_held_lock(void *lock);
   int get_held_locks(const char **held_lock_names, int max_count);
 
+  PFS_cpu_sched_stat m_cpu_sched_stat;
+
 #ifndef NDEBUG
   bool m_debug_session_notified;
 #endif
