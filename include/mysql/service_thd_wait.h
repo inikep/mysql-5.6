@@ -131,7 +131,12 @@ enum THD_wait_type : int {
   */
   THD_WAIT_BINLOG_SEND = 18,
 
-  THD_WAIT_LAST = 19
+  /**
+    Used for WAIT_FOR_EXECUTED_GTID_SET() et al.
+  */
+  THD_WAIT_GTID_EXECUTED = 19,
+
+  THD_WAIT_LAST = 20
 };
 
 inline const char *THD_wait_type_str(THD_wait_type twt) {
@@ -192,6 +197,9 @@ inline const char *THD_wait_type_str(THD_wait_type twt) {
 
     case THD_WAIT_BINLOG_SEND:
       return "Waiting for binlog sender threads";
+
+    case THD_WAIT_GTID_EXECUTED:
+      return "Waiting for WAIT_FOR_EXECUTED_GTID_SET()";
 
     case THD_WAIT_LAST:
       return "<Unused LAST marker value>";

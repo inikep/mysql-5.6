@@ -94,8 +94,8 @@ longlong Item_wait_for_executed_gtid_set::val_int() {
     my_error(ER_GTID_MODE_OFF, MYF(0), "use WAIT_FOR_EXECUTED_GTID_SET");
     return error_int();
   }
-  gtid_state->begin_gtid_wait();
-  Scope_guard x([&] { gtid_state->end_gtid_wait(); });
+  gtid_state->begin_gtid_wait(thd);
+  Scope_guard x([&] { gtid_state->end_gtid_wait(thd); });
   if (wait_for_gtid_set.add_gtid_text(gtid_text->c_ptr_safe()) !=
       RETURN_STATUS_OK) {
     // Error has already been generated.

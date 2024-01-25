@@ -42,6 +42,7 @@
 #include "mysql/gtid/uuid.h"
 #include "mysql/psi/mysql_cond.h"
 #include "mysql/psi/mysql_rwlock.h"  // mysql_rwlock_t
+#include "mysql/service_thd_wait.h"
 #include "mysql/strings/m_ctype.h"   // my_isspace
 #include "mysql/utils/return_status.h"
 #include "prealloced_array.h"                          // Prealloced_array
@@ -3125,7 +3126,7 @@ class Gtid_state {
     Increase the global counter when starting a call to
     WAIT_FOR_EXECUTED_GTID_SET.
   */
-  void begin_gtid_wait() {
+  void begin_gtid_wait(THD *thd [[maybe_unused]]) {
     DBUG_TRACE;
     assert(global_gtid_mode.get() != Gtid_mode::OFF);
 #ifndef NDEBUG
@@ -3135,6 +3136,9 @@ class Gtid_state {
     DBUG_PRINT("info", ("atomic_gtid_wait_count changed from %d to %d",
                         new_value - 1, new_value));
     assert(new_value >= 1);
+#if !defined(MYSQL_DYNAMIC_PLUGIN)
+    thd_wait_begin(thd, THD_WAIT_GTID_EXECUTED);
+#endif
     return;
   }
 
@@ -3142,7 +3146,7 @@ class Gtid_state {
     Decrease the global counter when ending a call to
     WAIT_FOR_EXECUTED_GTID_SET.
   */
-  void end_gtid_wait() {
+  void end_gtid_wait(THD *thd [[maybe_unused]]) {
     DBUG_TRACE;
     assert(global_gtid_mode.get() != Gtid_mode::OFF);
 #ifndef NDEBUG
@@ -3152,6 +3156,9 @@ class Gtid_state {
     DBUG_PRINT("info", ("atomic_gtid_wait_count changed from %d to %d",
                         new_value + 1, new_value));
     assert(new_value >= 0);
+#if !defined(MYSQL_DYNAMIC_PLUGIN)
+    thd_wait_end(thd);
+#endif
     return;
   }
 
