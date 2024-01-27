@@ -12306,6 +12306,9 @@ ER_DD_ENGINE_NOT_FOUND
 ER_UNSUPPORTED_DD_ENGINE
   eng "The DD_ENGINE value '%u' found in dd_properties isn't supported DDSE. Currently supported DDSE are '%s'"
 
+ER_CANT_CREATE_DUMP_THREAD
+  eng "Can't create thread for DUMP TABLE (errno= %d)"
+
 #
 # End of 8.0 error messages intended to be written to the server error log.
 #
