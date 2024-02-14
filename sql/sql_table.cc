@@ -15680,6 +15680,7 @@ static bool fk_check_copy_alter_table(THD *thd, Table_ref *table_list,
             transfer_preexisting_foreign_keys().
           */
           assert(false);
+          [[fallthrough]];
         default:
           assert(0);
       }
@@ -15733,6 +15734,7 @@ static bool fk_check_copy_alter_table(THD *thd, Table_ref *table_list,
           transfer_preexisting_foreign_keys().
         */
         assert(false);
+        [[fallthrough]];
       default:
         assert(0);
     }

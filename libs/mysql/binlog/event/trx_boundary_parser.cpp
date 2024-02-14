@@ -346,6 +346,7 @@ bool Transaction_boundary_parser::update_state(
         case EVENT_PARSER_ERROR: /* we probably threw a warning before */
           error = true;
           /* FALL THROUGH */
+          [[fallthrough]];
         case EVENT_PARSER_NONE:
           break;
       }
@@ -375,6 +376,7 @@ bool Transaction_boundary_parser::update_state(
         case EVENT_PARSER_ERROR: /* we probably threw a warning before */
           error = true;
           /* FALL THROUGH */
+          [[fallthrough]];
         case EVENT_PARSER_NONE:
         case EVENT_PARSER_GTID:
           break;
@@ -410,6 +412,7 @@ bool Transaction_boundary_parser::update_state(
         case EVENT_PARSER_ERROR: /* we probably threw a warning before */
           error = true;
           /* FALL THROUGH */
+          [[fallthrough]];
         case EVENT_PARSER_DML:
           break;
       }
@@ -436,8 +439,10 @@ bool Transaction_boundary_parser::update_state(
         case EVENT_PARSER_ERROR: /* we probably threw a warning before */
           error = true;
           /* FALL THROUGH */
+          [[fallthrough]];
         case EVENT_PARSER_DML:
         /* XA ROLLBACK can appear after a GTID event */
+          [[fallthrough]];
         case EVENT_PARSER_GTID:
           break;
       }

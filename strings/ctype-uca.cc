@@ -4948,6 +4948,7 @@ static int my_strnncoll_uca_900(const CHARSET_INFO *cs, const uint8_t *s,
             cs, Mb_wc_utf8mb4(), s, slen, t, tlen, t_is_prefix);
       default:
         assert(false);
+        [[fallthrough]];
       case 3:
         return my_strnncoll_uca<uca_scanner_900<Mb_wc_utf8mb4, 3>, 3>(
             cs, Mb_wc_utf8mb4(), s, slen, t, tlen, t_is_prefix);
@@ -4967,6 +4968,7 @@ static int my_strnncoll_uca_900(const CHARSET_INFO *cs, const uint8_t *s,
           cs, mb_wc, s, slen, t, tlen, t_is_prefix);
     default:
       assert(false);
+      [[fallthrough]];
     case 3:
       return my_strnncoll_uca<uca_scanner_900<decltype(mb_wc), 3>, 3>(
           cs, mb_wc, s, slen, t, tlen, t_is_prefix);
@@ -5043,6 +5045,7 @@ static void my_hash_sort_uca_900(const CHARSET_INFO *cs, const uint8_t *s,
                                                            s, slen, n1);
       default:
         assert(false);
+        [[fallthrough]];
       case 3:
         return my_hash_sort_uca_900_tmpl<Mb_wc_utf8mb4, 3>(cs, Mb_wc_utf8mb4(),
                                                            s, slen, n1);
@@ -5062,6 +5065,7 @@ static void my_hash_sort_uca_900(const CHARSET_INFO *cs, const uint8_t *s,
                                                            n1);
     default:
       assert(false);
+      [[fallthrough]];
     case 3:
       return my_hash_sort_uca_900_tmpl<decltype(mb_wc), 3>(cs, mb_wc, s, slen,
                                                            n1);
@@ -5140,6 +5144,7 @@ static size_t my_strnxfrm_uca_900(const CHARSET_INFO *cs, uint8_t *dst,
             cs, Mb_wc_utf8mb4(), dst, dstlen, src, srclen, flags);
       default:
         assert(false);
+        [[fallthrough]];
       case 3:
         return my_strnxfrm_uca_900_tmpl<Mb_wc_utf8mb4, 3>(
             cs, Mb_wc_utf8mb4(), dst, dstlen, src, srclen, flags);
@@ -5158,6 +5163,7 @@ static size_t my_strnxfrm_uca_900(const CHARSET_INFO *cs, uint8_t *dst,
             cs, mb_wc, dst, dstlen, src, srclen, flags);
       default:
         assert(false);
+        [[fallthrough]];
       case 3:
         return my_strnxfrm_uca_900_tmpl<decltype(mb_wc), 3>(
             cs, mb_wc, dst, dstlen, src, srclen, flags);
