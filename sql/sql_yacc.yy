@@ -15280,6 +15280,11 @@ opt_dump_option:
     $$.clear();
     $$.chunk_size = n;
   }
+  | CONSISTENT_SYM SNAPSHOT_SYM
+  {
+    $$.clear();
+    $$.consistent = true;
+  }
   ;
 
 opt_load_parallel:
