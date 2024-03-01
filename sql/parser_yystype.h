@@ -336,11 +336,26 @@ struct PT_install_component_set_element {
 };
 
 /**
+  Unit for chunking. Currently used by DUMP TABLE.
+*/
+enum class Chunk_unit {
+  UNSET,
+  ROWS,
+  KB,
+  MB,
+  GB,
+
+  // Add before this line.
+  LAST,
+};
+
+/**
   Options struct for PT_dump_table root node.
 */
 struct Dump_table_opts {
   static constexpr int DEFAULT_THREADS = 1;
   static constexpr int DEFAULT_CHUNKSIZE = 128;
+  static constexpr Chunk_unit DEFAULT_CHUNK_UNIT = Chunk_unit::ROWS;
 
   /**
     Number of worker threads to dump with.
@@ -348,9 +363,14 @@ struct Dump_table_opts {
   int nthreads;
 
   /**
-    Chunk size. For now in rows, later can be MB, GB, etc.
+    Chunk size, in units of `chunk_unit`.
   */
   int chunk_size;
+
+  /**
+    How to interpret `chunk_size`.
+  */
+  Chunk_unit chunk_unit;
 
   /**
     Whether to use a consistent snapshot / read.
@@ -367,6 +387,9 @@ struct Dump_table_opts {
     if (other.consistent) {
       consistent = true;
     }
+    if (other.chunk_unit != Chunk_unit::UNSET) {
+      chunk_unit = other.chunk_unit;
+    }
   }
 
   /**
@@ -376,6 +399,7 @@ struct Dump_table_opts {
     nthreads = 0;
     chunk_size = 0;
     consistent = false;
+    chunk_unit = Chunk_unit::UNSET;
   }
 
   /**
@@ -388,6 +412,9 @@ struct Dump_table_opts {
     }
     if (chunk_size == 0) {
       chunk_size = DEFAULT_CHUNKSIZE;
+    }
+    if (chunk_unit == Chunk_unit::UNSET) {
+      chunk_unit = DEFAULT_CHUNK_UNIT;
     }
   }
 };
@@ -488,6 +515,7 @@ union MY_SQL_PARSER_STYPE {
   PT_order_list *order_list;
   Limit_options limit_options;
   Query_options select_options;
+  Chunk_unit chunk_unit;
   Dump_table_opts dump_table_opts;
   PT_limit_clause *limit_clause;
   Parse_tree_node *node;
