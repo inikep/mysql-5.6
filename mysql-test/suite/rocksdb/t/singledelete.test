@@ -1,5 +1,7 @@
 --source include/have_rocksdb.inc
 
+select case when @@default_dd_system_storage_engine = "RocksDB" then 20 else 0 end into @delta;
+
 set global rocksdb_compact_cf='__system__';
 # only SingleDelete increases
 CREATE TABLE t1 (id INT, value int, PRIMARY KEY (id), INDEX (value)) ENGINE=RocksDB;
@@ -70,7 +72,7 @@ while ($i <= 10000) {
 --enable_query_log
 optimize table t4;
 select case when variable_value-@s > 5 and variable_value-@s < 100 then 'true' else 'false' end from performance_schema.global_status where variable_name='rocksdb_number_sst_entry_singledelete';
-select case when variable_value-@d < 10 then 'true' else 'false' end from performance_schema.global_status where variable_name='rocksdb_number_sst_entry_delete';
+select case when variable_value-@d < (10 + @delta) then 'true' else 'false' end from performance_schema.global_status where variable_name='rocksdb_number_sst_entry_delete';
 
 set global rocksdb_compact_cf='__system__';
 # only SingleDelete increases
@@ -88,7 +90,7 @@ while ($i <= 10000) {
 --enable_query_log
 optimize table t5;
 select case when variable_value-@s > 5 and variable_value-@s < 100 then 'true' else 'false' end from performance_schema.global_status where variable_name='rocksdb_number_sst_entry_singledelete';
-select case when variable_value-@d < 10 then 'true' else 'false' end from performance_schema.global_status where variable_name='rocksdb_number_sst_entry_delete';
+select case when variable_value-@d < (10 + @delta) then 'true' else 'false' end from performance_schema.global_status where variable_name='rocksdb_number_sst_entry_delete';
 
 set global rocksdb_compact_cf='__system__';
 # SingleDelete used for PK. Verify old PK is always deleted.
