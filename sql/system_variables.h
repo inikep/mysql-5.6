@@ -652,6 +652,12 @@ struct System_variables {
   uint fb_vector_max_dimension;
 
   /**
+    This parameter controls the vector search radius for a query
+    vector when doing nearest neighbour search or similarity search.
+  */
+  uint fb_vector_search_nprobe;
+
+  /**
     Used to specify the JSON format version used by EXPLAIN FORMAT=JSON with
     the old (non-hypergraph) join optimizer.
     @sa Sys_explain_json_format_version
