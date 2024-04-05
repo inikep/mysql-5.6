@@ -136,7 +136,19 @@ enum THD_wait_type : int {
   */
   THD_WAIT_GTID_EXECUTED = 19,
 
-  THD_WAIT_LAST = 20
+  /**
+    Used for storage engine latch waits.
+  */
+  THD_WAIT_LATCH = 20,
+
+  /**
+    Separate type for yields in Raft plugin, to be able to disable it if needed
+    without affecting the server yields. The concern is that yields in Raft
+    could happen while some global lock is held which could stall writes.
+  */
+  THD_WAIT_RAFT_YIELD = 21,
+
+  THD_WAIT_LAST = 22
 };
 
 inline const char *THD_wait_type_str(THD_wait_type twt) {
@@ -200,6 +212,12 @@ inline const char *THD_wait_type_str(THD_wait_type twt) {
 
     case THD_WAIT_GTID_EXECUTED:
       return "Waiting for WAIT_FOR_EXECUTED_GTID_SET()";
+
+    case THD_WAIT_LATCH:
+      return "Waiting for storage engine latch";
+
+    case THD_WAIT_RAFT_YIELD:
+      return "Waiting for yield in Raft plugin";
 
     case THD_WAIT_LAST:
       return "<Unused LAST marker value>";
