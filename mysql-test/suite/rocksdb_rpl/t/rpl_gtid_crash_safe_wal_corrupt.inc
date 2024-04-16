@@ -4,11 +4,6 @@ source include/master-slave.inc;
 -- let $use_gtids = `select @@gtid_mode = "ON";`
 
 connection master;
---disable_warnings
-drop table if exists x;
---enable_warnings
-
-connection master;
 
 select @@binlog_format;
 
@@ -23,6 +18,11 @@ select @@global.gtid_executed;
 
 --let $use_gtids = 1
 source include/sync_slave_sql_with_master.inc;
+
+# Flush everything after syncing with master so we don't
+# lose the first binlog position and its max gtid
+connection slave;
+set global rocksdb_force_flush_memtable_now=1;
 
 connection slave;
 --let slave_data_dir= query_get_value(SELECT @@DATADIR, @@DATADIR, 1)
