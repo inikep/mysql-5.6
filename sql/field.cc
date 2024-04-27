@@ -7744,6 +7744,12 @@ type_conversion_status Field_json::store(const char *from, size_t length,
     return TYPE_ERR_BAD_VALUE;
   }
 
+  if (m_fb_vector_dimension > 0 &&
+      ensure_fb_vector(dom.get(), m_fb_vector_dimension)) {
+    my_error(ER_INVALID_VECTOR, MYF(0));
+    return TYPE_ERR_BAD_VALUE;
+  }
+
   return store_binary(value.ptr(), value.length());
 }
 
@@ -7816,6 +7822,13 @@ type_conversion_status Field_json::store_time(MYSQL_TIME *, uint8) {
 */
 type_conversion_status Field_json::store_json(const Json_wrapper *json) {
   ASSERT_COLUMN_MARKED_FOR_WRITE;
+
+  if (m_fb_vector_dimension > 0 &&
+      ensure_fb_vector(const_cast<Json_wrapper *>(json)->to_dom(),
+                       m_fb_vector_dimension)) {
+    my_error(ER_INVALID_VECTOR, MYF(0));
+    return TYPE_ERR_BAD_VALUE;
+  }
 
   /*
     We want to serialize the JSON value directly into Field_blob::value if
