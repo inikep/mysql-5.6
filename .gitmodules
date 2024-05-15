@@ -4,3 +4,6 @@
 [submodule "rqg"]
 	path = rqg
 	url = https://github.com/yoshinorim/rqg.git
+[submodule "faiss"]
+	path = faiss
+	url = https://github.com/facebookresearch/faiss.git
