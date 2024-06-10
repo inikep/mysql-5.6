@@ -51,7 +51,7 @@ TARGET_LINK_LIBRARIES(merge_temptable_tests-t
 TARGET_LINK_LIBRARIES(merge_temptable_tests-t perfschema)
 
 # Necessary to make sure that we can use the jemalloc API calls.
-MY_TARGET_LINK_OPTIONS(merge_temptable_tests-t "${WITH_MYSQLD_LDFLAGS}")
+MY_TARGET_LINK_OPTIONS(merge_temptable_tests-t "${WITH_MYSQLD_LDFLAGS} ${SERVER_UNITTEST_LIBRARY_LDFLAGS}")
 
 ADD_DEPENDENCIES(merge_temptable_tests-t GenError)
 

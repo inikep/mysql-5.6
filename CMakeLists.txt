@@ -2263,6 +2263,8 @@ IF(NOT WITHOUT_SERVER)
       # FB - 8.0.28 - disable shared unittest library since it causes test
       # crashes due to jemalloc/malloc mismatches
       SET(WITH_SHARED_UNITTEST_LIBRARY_DEFAULT OFF)
+      # pull symbols from minchassis
+      SET(SERVER_UNITTEST_LIBRARY_LDFLAGS "-Wl,-u,mysql_service_mysql_rwlock_v1")
     ENDIF()
     OPTION(WITH_SHARED_UNITTEST_LIBRARY
       "Build a shared library for unit tests which depend on the entire server"
@@ -2279,6 +2281,7 @@ ELSE()
     ADD_SUBDIRECTORY(storage/ndb)
   ENDIF()
 ENDIF()
+
 
 IF(WITHOUT_SERVER)
   ADD_SUBDIRECTORY(components/libminchassis)

@@ -70,7 +70,7 @@ TARGET_LINK_LIBRARIES(merge_keyring_file_tests-t
   )
 
 # Necessary to make sure that we can use the jemalloc API calls.
-MY_TARGET_LINK_OPTIONS(merge_keyring_file_tests-t "${WITH_MYSQLD_LDFLAGS}")
+MY_TARGET_LINK_OPTIONS(merge_keyring_file_tests-t "${WITH_MYSQLD_LDFLAGS} ${SERVER_UNITTEST_LIBRARY_LDFLAGS}")
 
 ADD_DEPENDENCIES(merge_keyring_file_tests-t GenError)
 

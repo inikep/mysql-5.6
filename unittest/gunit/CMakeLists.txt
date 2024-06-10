@@ -362,7 +362,7 @@ MYSQL_ADD_EXECUTABLE(merge_large_tests-t ${ALL_LARGE_TESTS}
   )
 
 # Necessary to make sure that we can use the jemalloc API calls.
-MY_TARGET_LINK_OPTIONS(merge_large_tests-t "${WITH_MYSQLD_LDFLAGS}")
+MY_TARGET_LINK_OPTIONS(merge_large_tests-t "${WITH_MYSQLD_LDFLAGS} ${SERVER_UNITTEST_LIBRARY_LDFLAGS}")
 
 FOREACH(test ${TESTS})
   MYSQL_ADD_EXECUTABLE(${test}-t ${test}-t.cc
