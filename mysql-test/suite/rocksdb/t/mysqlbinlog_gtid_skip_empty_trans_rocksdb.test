@@ -3,7 +3,7 @@
 ################################################################################
 # Test the --skip-empty-trans option for mysqlbinlog with rocksdb
 ################################################################################
-reset master;
+RESET BINARY LOGS AND GTIDS;
 set timestamp=1000000000;
 let $storage_engine=rocksdb;
 

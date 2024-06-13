@@ -70,7 +70,7 @@ SET GLOBAL binlog_format=statement;
 SET GLOBAL binlog_format=row;
 
 drop table r1;
-reset master;
+RESET BINARY LOGS AND GTIDS;
 set @@global.default_storage_engine=@save_default_storage_engine;
 
 --connection default

@@ -1,4 +1,4 @@
-reset master;
+RESET BINARY LOGS AND GTIDS;
 set timestamp=1000000000;
 set SESSION binlog_format = 'ROW';
 Warnings:
