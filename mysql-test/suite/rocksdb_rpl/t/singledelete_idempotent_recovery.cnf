@@ -7,7 +7,6 @@ enforce_gtid_consistency=ON
 
 [mysqld.2]
 relay_log_recovery=1
-relay_log_info_repository=FILE
 log_slave_updates
 gtid_mode=ON
 enforce_gtid_consistency=ON
