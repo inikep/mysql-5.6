@@ -1,3 +1,32 @@
 --source include/have_rocksdb.inc
 
---source ../../clone/t/remote_dml_gtid.test
+--let $HOST = 127.0.0.1
+--let $PORT =`select @@port`
+--let $USER = root
+--let remote_clone = 1
+
+--source ../../clone/include/clone_connection_begin.inc
+--let $CLONE_DATADIR = $MYSQL_TMP_DIR/data_new
+
+## Install plugin
+--replace_result $CLONE_PLUGIN CLONE_PLUGIN
+--eval INSTALL PLUGIN clone SONAME '$CLONE_PLUGIN'
+
+## Create test schema
+--source  ../../clone/include/create_schema.inc
+--let num_rows = 16
+
+# Insert rows
+--eval call execute_dml(0, 0, $num_rows, $num_rows, 10, 0)
+
+--echo # In connection default - Cloning database
+--connection clone_conn_1
+--source ../../clone/include/clone_command.inc
+--echo # In connection default - Finished Cloning
+
+SELECT @@GLOBAL.GTID_EXECUTED;
+SHOW BINARY LOGS;
+--let restart_parameters="restart:"
+--source include/restart_mysqld.inc
+SELECT @@GLOBAL.GTID_EXECUTED;
+SHOW BINARY LOGS;
