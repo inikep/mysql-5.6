@@ -988,7 +988,7 @@ TARGET_LINK_LIBRARIES(sql_main ext::libprotobuf-lite)
 IF (WITH_FB_VECTORDB)
   MESSAGE(STATUS "Building sql module with fb vectordb support")
   TARGET_INCLUDE_DIRECTORIES(sql_main SYSTEM PRIVATE "${FAISS_SOURCE_DIR}")
-  TARGET_LINK_LIBRARIES(sql_main -lgfortran FAISS)
+  TARGET_LINK_LIBRARIES(sql_main FAISS)
 ENDIF()
 
 ADD_LIBRARY(sql_gis STATIC ${SQL_GIS_SOURCES})
